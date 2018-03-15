@@ -1,9 +1,16 @@
 ---
 title: 'MAP Data Merge'
-subtitle: 'Draft'
+subtitle: 'DRAFT'
 author: '[Omair A. Khan, MAS](omair.a.khan@vanderbilt.edu)'
 date: "Created: 20180309 | Last Modified: `r format(Sys.time(), '%Y%m%d')`"
-output: html_notebook
+output:
+  html_notebook:
+    number_sections: yes
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
 ---
 
 # Introduction
@@ -17,7 +24,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 # Setup
 
-```{r setup, echo = TRUE, results = 'hide'}
+```{r setup, echo = TRUE, results = 'hide', eval = FALSE}
 # install and load packages
 ## this will be in the rVMAC package
 load.pkg <- function(pkg){
