@@ -1,0 +1,29 @@
+
+
+all: missingtoNA
+map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+arrange: `map_id`
+
+main:
+missingtoNA: c('-8888', '-9999', ''), `"\\_notes\\>"`
+missingtoNA: 0, `"^ecogself\\_(mem|lang|vis|plan|org|attn)\\d{2}$"`
+
+man3T/man3T.bh:
+rename: `"scan.date\\d?", "session.id.?\\d?"` (possibly unnecessary after name change)
+select: `-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "scan.date\\d?", "session.id.?\\d?")`
+mutate: `"swi.microbleeds.distribution...2" = NA` (if it doesn't exist -- it does here)
+
+cardiac.mri
+select: `-c("vmac.id")`
+
+addendum
+vmac_id: check that correspondence w/ map_id is 1:1, else, keep reconciled or --1 version only
+select: -c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "enrollment", "diagnosis", "diagnosis.date", "nc.type", "mci.amnestic", "mci.domain", "mci.stage", "mci.notes", "diagnosis.complete", "np.examiner")
+rename: `c("np_date", "np_notes", "neuropsychological_assessment_complete")`, `paste0(., "_addend")`
+
+csf
+select: `-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "map.id.orig")`
+
+srt
+select: `-c("vmac.id")`
+

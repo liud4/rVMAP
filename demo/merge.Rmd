@@ -1,0 +1,382 @@
+---
+title: 'MAP Data Merge'
+subtitle: 'Draft'
+author: '[Omair A. Khan, MAS](omair.a.khan@vanderbilt.edu)'
+date: "Created: 20180309 | Last Modified: `r format(Sys.time(), '%Y%m%d')`"
+output: html_notebook
+---
+
+# Introduction
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+## Notes about this merge
+
+- Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. 
+- Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+
+# Setup
+
+```{r setup, echo = TRUE, results = 'hide'}
+# install and load packages
+## this will be in the rVMAC package
+load.pkg <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- Hmisc::Cs(
+  knitr,
+  dplyr,
+  magrittr,
+  stringr,
+  lubridate,
+  Hmisc,
+  rms,
+  purrr,
+  formattable,
+  DT,
+  rVMAC
+)
+
+load.pkg(packages)
+
+# R options
+options(digits = 7)
+Sys.setenv(TZ = 'US/Central')
+set.seed(314159)
+
+# Hmisc options
+options(
+  prType = 'html', 
+  grType = 'plotly',
+  contrasts = c("contr.treatment", "contr.treatment")
+)
+
+# define important directories
+box.dir  <- file.path("~", "box") # should be in .Rprofile for each individual
+
+vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
+func.dir <- file.path(vmac.dir, "Useful Code")
+data.dir <- file.path(vmac.dir, "DATA", "MAP")
+
+data.raw.dir <- file.path(data.dir, "rawData")
+data.int.dir <- file.path(data.dir, "intermediateData")
+data.merged.dir <- file.path(data.dir, "mergedData")
+data.med.dir <- file.path(data.dir, "Medication")
+data.surg.dir <- file.path(data.dir, "Surgeries")
+```
+
+# Define paths
+
+## Paths to REDCap data, current merged dataset, and previous merged dataset
+ 
+
+```{r MAPmergepaths, eval = FALSE}
+# get path to most recent REDCap freeze
+MAPfreeze.dir <- file.info(
+  list.files(
+    path = data.raw.dir, 
+    pattern = "MAPfreeze_\\d{8}.rds",
+    full.names = T
+  )
+) %>%
+  tibble::rownames_to_column(., var = "path") %>%
+  arrange(desc(mtime)) %>% 
+  filter(row_number() == 1) %>%
+  pull(1)
+
+# extract REDCap freeze date
+MAPfreeze.date <- stringr::str_extract(MAPfreeze.dir, "\\d{8}")
+
+###
+
+# define data merge date
+MAPmerge.date <- format(Sys.time(), "%Y%m%d")
+
+# define date string
+filename.date <- paste0("_d", MAPfreeze.date, "_m", MAPmerge.date)
+
+# define path to merged dataset
+MAPmerge.df <- file.path(
+  data.merge.dir, 
+  paste0("MAPmerge_", filename.date)
+)
+
+###
+
+# get date of previous merged dataset
+lastMAPmerge.date <- file.info(
+  list.files(
+    path = data.merged.dir,
+    pattern = "MAP\\_bh\\_d\\d{8}\\_m\\d{8}.rds",
+    full.names = T
+  )
+) %>%
+  tibble::rownames_to_column(., var = "path") %>%
+  arrange(desc(mtime)) %>%
+  filter(row_number() == 1) %>%
+  pull(1) %>%
+  str_extract("(?<=(MAP\\_bh\\_))d\\d{8}\\_m\\d{8}")
+
+# define path to previous merged datasets
+lastMAPmerge.fm.df <- file.path(
+  data.merged.dir, 
+  paste0("MAP_fm_", lastMAPmerge.date)
+)
+lastMAPmerge.bh.df <- file.path(
+  data.merged.dir, 
+  paste0("MAP_bh_", lastMAPmerge.date)
+)
+```
+
+## Paths to non-REDCap data
+
+In this subsection, we define paths to files that were not saved in `r paste0("MAPfreeze_", MAPfreeze.date, ".rds")`.
+
+### Epoch Indepdent
+
+```{r filesEpoch0}
+# ABP consent data
+track.file <- file.path(
+  data.raw.dir, 
+  'MAPParticipantTracki_DATA_2015-08-26_1412.csv'
+)
+
+# APOE data - will not change
+apoe.file <- file.path(
+  data.raw.dir,
+  'MAPAPOE_DATA_2015-08-26_1415.csv'
+)
+
+# selected data from eligibility (REDCap report: "Elig Items for Main Merge (LRS)")
+elig,file <- file.path(
+  data.raw.dir,
+  'MAPEligibility_DATA_2016-11-03_1532.csv'
+)
+
+# main medication files
+
+med.file.date <- 20150817
+
+cholesterol.file <- file.path(
+  data.med.dir,
+  paste0("CholesterolMedNumbers_", med.file.date, ".csv")
+)
+afib.file <- file.path(
+  data.med.dir, 
+  paste0("AFibMedNumbers_", med.file.date, ".csv")
+)
+aht.file <- file.path(
+  data.med.dir, 
+  paste0("AntihypertensiveMedNumbers_", med.file.date, ".csv")
+)
+diabetes.file <- file.path(
+  data.med.dir, 
+  paste0("DiabetesMedNumbers_", med.file.date, ".csv")
+)
+
+# antihypertensive medication subtypes
+
+aht.med.file.date <- 20160928
+
+aht.betablocker.file <- file.path(
+  data.med.dir,
+  paste0("antiHyp_BetaBlockers_", aht.med.file.date, ".csv")
+)
+aht.betablocker.ifnotdrops.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_BetaBlockersIfNotDrops_", aht.med.file.date, ".csv")
+)
+aht.aceinhibitors.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_ACEInhibitors_", aht.med.file.date, ".csv")
+)
+aht.arb.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_ARBs_", aht.med.file.date, ".csv")
+)
+aht.ccb.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_CaChannelBlockers_", aht.med.file.date, ".csv")
+)
+aht.ksd.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_PotassiumSparingDiuretics_", aht.med.file.date, ".csv")
+)
+aht.other.file <- file.path(
+  data.med.dir, 
+  paste0("antiHyp_Other_", aht.med.file.date, ".csv")
+)
+
+# surgery lookup file
+
+surg.file.date <- 20150817
+
+afib.surg.file <- file.path(
+  data.surg.dir, 
+  paste0("AFibSurgNumbers_", surg.file.date, ".csv")
+)
+```
+
+### Epoch 1
+
+```{r filesEpoch1}
+# Epoch 1 ABP Summary Data
+## (created by biostats team from raw data from VMAC-- not from REDCap)
+abp.file <- file.path(
+  datadir,
+  "ABP_RawAndDerived", 
+  "MapAbpData_Epoch1_20150625.rds"
+)
+
+# Epoch 1 SRT Error Variables
+## MAPfreeze.list$epoch_1$data$srt #newest file does not have vmac_id or recency or learning...
+srtfileEpoch1 <- file.path(
+  rawdir, 
+  "MAPSRTErrorAnalysisEpoch1_DATA_2017-09-01_0936.csv"
+)
+```
+
+## Epoch Independent
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_0"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_0"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 1
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_1"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_1"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 2
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_2"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_2"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 3
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_3"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_3"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+# Merge process
+
+## Load data
+
+```{r, eval = FALSE}
+MAPfreeze.list <- MAPfreeze.dir %>%
+  file.path() %>%
+  readRDS()
+
+# load CSV files
+```
+
+## main
+- missingtoNA: -9999
+- missingtoNA: -2222, `"(ccqself[0-9]+)|(ccqinform[0-9]+)"`
+- missingtoNA: -8888, `"(?!.*\\bmhx\\_tobac\\_quit\\b)"`
+- missingtoNA: 0, `"^ecogself\\_(mem|lang|vis|plan|org|attn)\\d{2}$"`
+- missingtoNA: c('-8888', '-9999', ''), `"\\_notes\\>"`
+- arrange: `map_id`
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+
+## abp.file
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+
+## biomarkers
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- missingtoNA: -9999, -8888, -7777
+
+## auto3T
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- missingtoNA: -9999, -8888
+
+## auto3T.bh
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- missingtoNA: -9999, -8888
+
+## man3T
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- rename: `"scan.date\\d?", "session.id.?\\d?"` (possibly unnecessary after name change)
+- select: `-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "scan.date\\d?", "session.id.?\\d?")`
+- mutate: `"swi.microbleeds.distribution...2" = NA` (if it doesn't exist -- it does here)
+- missingtoNA: -9999, -8888
+
+## man3T.bh
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- rename: `"scan.date\\d?", "session.id.?\\d?"` (possibly unnecessary after name change)
+- select: `-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "scan.date\\d?", "session.id.?\\d?")`
+- mutate: `swi.microbleeds.distribution...2 = NA` (if it doesn't exist -- it doesn't here)
+- missingtoNA: -9999, -8888
+
+## cardiac.mri
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- select: `-c("vmac.id")`
+- missingtoNA: -9999, -8888, -7777
+
+## addendum
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- vmac_id: check that correspondence w/ map_id is 1:1, else, keep reconciled or --1 version only
+- missingtoNA: -9999, -8888
+- select: 
+```{r}
+-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "enrollment", "diagnosis", "diagnosis.date", "nc.type", "mci.amnestic", "mci.domain", "mci.stage", "mci.notes", "diagnosis.complete", "np.examiner")
+```
+- rename: `c("np_date", "np_notes", "neuropsychological_assessment_complete")`, `paste0(., "_addend")`
+
+## csf
+- arrange: `map_id`
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- select: `-c("vmac.id", "entry.primary", "entry.secondary", "data.entry.complete", "map.id.orig")`
+- missingtoNA: -9999, -8888
+
+## srt
+- map_id: remove missing and negatives; remove duplicates; convert to three-digit string
+- arrange: `map_id`
+- select: `-c("vmac.id")`
+- missingtoNA: -9999, -8888, -7777
+
+## Final steps
+
+### All epochs
+- merge: `mydat.temp <- df.notBH.list %>% purrr::reduce(left_join, by = "map_id")`
+- missingtoNA: -99, 
+```{r}
+Cs(np.pvlt1, np.pvlt2, np.pvlt3, np.pvlt4, np.pvlt5, np.pvlta.tot, np.pvlta.intrus, np.pvlta.pers, np.pvlta.clust, np.pvlt.init.intrus, np.pvlt.tt.intrus, np.pvlt.wt.pers, np.pvlta.prim, np.pvlta.mid, np.pvlta.rec, np.pvlta.primperc, np.pvlta.midperc, np.pvlta.recperc, np.pvlt6, np.pvlt7, np.pvlt8.fruit, np.pvlt8.office, np.pvlt8.clothing, np.pvlt8, np.pvlt9, np.pvlt10.fruit, np.pvlt10.office, np.pvlt10.clothing, np.pvlt10, np.pvltrecog.m, np.pvltrecog.foil, np.pvltrecog.falsepos, np.pvltrecog.discrim)
+```
+- mutate: `breath_hold == FALSE`
+- mutate: `epoch == epochnum`
+
+### Epoch 1 only
+- `mydat.bh.temp <- mydat.temp %>% filter(as.numeric(map_id) %in% 1:25)`
+- `mydat.bh.temp[, names(auto3T.bh)] <- auto3T.bh`
+- `mydat.bh.temp[, names(man3T.bh)] <- man3T.bh`
+- mutate: `breath_hold == TRUE`
+- `bind_rows(mydat.bh.temp, mydat.temp)`
+
+### All epochs
+- save: mydat.temp

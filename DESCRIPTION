@@ -1,11 +1,18 @@
 Package: rVMAC
 Type: Package
-Title: What the Package Does (Title Case)
+Title: A research package to improve the efficiency and reproducibility of VMAC projects
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+    person(c("Omair", "A."), "Khan", email = c("omair.a.khan@vanderbilt.edu", "omair@prettynumbe.rs"), role = c("aut", "cre")),
+    person("Dandan", "Liu", email = "dandan.liu@vanderbilt.edu", role = "aut"),
+    person("Vanderbilt University Medical Center", role = "cph"))
+Description: A research package to improve the efficiency and reproducibility of VMAC projects.
+    It will contain the following: functions that are commonly used in VMAC research;
+    scripts that will help automate mundane tasks (e.g. quarterly MAP merge and deriation);
+    vesion-controlled snapshots of external packages to ensure consistency and reproducibility;
+    and dot files to help ensure consistent environments across users and computers.
+URL: https://github.com/prettynumbers/rVMAC
+BugReports: https://github.com/prettynumbers/rVMAC/issues
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
