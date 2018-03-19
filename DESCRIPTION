@@ -1,18 +1,25 @@
-Package: rVMAC
+Package: rVMAP
 Type: Package
-Title: A research package to improve the efficiency and reproducibility of VMAC projects
+Title: A research package for improving statistical collaboration between
+VMAC and VUMC Department of Biostatistics for the Vanderbilt Memory and Aging 
+Project (VMAP)
 Version: 0.1.0
 Authors@R: c(
-    person(c("Omair", "A."), "Khan", email = c("omair.a.khan@vanderbilt.edu", "omair@prettynumbe.rs"), role = c("aut", "cre")),
-    person("Dandan", "Liu", email = "dandan.liu@vanderbilt.edu", role = "aut"),
-    person("Vanderbilt University Medical Center", role = "cph"))
-Description: A research package to improve the efficiency and reproducibility of VMAC projects.
+    person(c("Omair", "A."), "Khan", 
+      email = c("omair.a.khan@vanderbilt.edu", "omair@prettynumbe.rs"), 
+      role = c("aut", "cre")),
+    person("Dandan", "Liu", 
+      email = "dandan.liu@vanderbilt.edu", 
+      role = "aut"),
+    person("Vanderbilt University Medical Center", 
+      role = "cph"))
+Description: A research package to improve the efficiency and reproducibility of VMAC MAP studies.
     It will contain the following: functions that are commonly used in VMAC research;
-    scripts that will help automate mundane tasks (e.g. quarterly MAP merge and deriation);
+    scripts that will help automate mundane tasks (e.g. quarterly MAP merge and derivation);
     vesion-controlled snapshots of external packages to ensure consistency and reproducibility;
     and dot files to help ensure consistent environments across users and computers.
-URL: https://github.com/prettynumbers/rVMAC
-BugReports: https://github.com/prettynumbers/rVMAC/issues
+URL: https://github.com/liud4/rVMAP
+BugReports: https://github.com/liud4/rVMAP/issues
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
