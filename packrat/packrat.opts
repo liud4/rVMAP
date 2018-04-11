@@ -6,6 +6,7 @@ vcs.ignore.src: FALSE
 external.packages:
     rmarkdown
     knitr
+    dplyr
 local.repos: 
 load.external.packages.on.startup: TRUE
 ignored.packages: 
