@@ -1,0 +1,801 @@
+---
+title: "MAP Data: Merge, Derive, and Label"
+subtitle: "Draft"
+author:
+- name: '[Omair A. Khan, MAS](omair.a.khan@vumc.org)'
+- name: '[Dandan Liu, PhD](dandan.liu@vanderbilt.edu)'
+date: "Created: 20180503 | Last Modified: `r format(Sys.time(), '%Y%m%d')`"
+output:
+  html_notebook:
+    code_folding: hide
+    theme: lumen
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: true
+---
+
+##%#########################################################%##
+# Template: MAP Data: Merge, Derive, and Label                #
+#                                                             #
+# Description: This script is run quarterly to merge, derive, #
+#   and label the MAP data. The script requires the VMACr     #
+#   package. It is configured to optionally perform the data  #
+#   freeze as well.                                           #
+#                                                             #
+# Status: Currently non-functional. This is a draft that      #
+#    includes legacy code from L. Samuels that needs to be    #
+#    modernized before it can be used. (20180507)             #
+##%#########################################################%##
+
+
+<style type="text/css">
+ #TOC{
+   position:fixed;
+   top:0;
+   // left:0;
+   right:0;
+   margin: 32px 20px 20px 20px;
+   z-index: 9;
+   // display:none;
+  }
+  #toc-toggle{
+    position:fixed;
+    top:0;
+    // left:0;
+    right:0;
+    margin: 5px 20px 5px 20px;
+  }
+  .col-md-3{
+    width: 0%;
+  }
+  .col-md-9{
+    width: 100%;
+  }
+  div.container-fluid.main-container{
+    max-width:none;
+    margin-left:0px;
+    margin-right:none;
+  }
+  div.plot-container{
+    margin-left:50px;
+    margin-bottom:20px;
+  }
+  h1.title{
+    max-width:950px;
+  }
+  li.tocify-item{
+    text-indent:0px;
+  }
+  #toc-toggle{
+    z-index:9;
+  }
+  .tocify-subheader, .tocify-item, .tocify, .list-group-item{
+  font-size:12pt;
+  }
+</style>
+
+<button id="toc-toggle" type="button" class="btn btn-default btn-xs code-folding-btn pull-right collapsed" onclick="toggletoc()"><span>Table of Contents (click to hide/show)</span></button>
+
+<script>
+function toggletoc(){
+$("#TOC").toggle();
+}
+</script>
+
+```{r setup, echo = TRUE, results = 'hide'}
+# clear environment
+rm(list = ls())
+options(datadist = NULL)
+
+##%######################################################%##
+####                modifiable settings                 ####
+##%######################################################%##
+
+# modify this variable as follows: quarterly scheduled download = {TRUE}; off-cycle download = {FALSE}
+quarterly.download <- TRUE
+# modify one of these variables to download data or specify a specific raw data file to merge
+download <- FALSE
+data.freeze.date <- NULL # in {yyyymmdd} format
+# modify this variable to specify a specific data merge file to compare the new one with
+last.data.merge.suffix <- NULL  # in d{yyyymmdd}_m{yyyymmdd} format
+
+###
+
+# load packages
+list.of.packages <- as.character(expression(
+  knitr, dplyr, lubridate, tidyr, stringr, daff, Hmisc
+))
+load.pkg(list.of.packages)
+
+# set timezone
+Sys.setenv(TZ = 'US/Central')
+
+# set seed
+set.seed(20140728) # this number was set by L. Samuels in the previous version of this code
+
+# Hmisc options
+options(
+  prType = 'html', 
+  grType = 'plotly',
+  digits = 7,
+  contrasts = c("contr.treatment", "contr.treatment")
+)
+
+# define important directories
+## base directories
+box.dir  <- file.path("~", "box")
+vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
+func.dir <- useful.dir <- file.path(vmac.dir, "Useful Code")
+## data directories
+data.dir <- file.path(vmac.dir, "DATA", "MAP")
+data.raw.dir <- ifelse(quarterly.download,
+                       file.path(data.dir, "rawData"),
+                       file.path(data.dir, "rawData", "temp"))
+data.merge.dir <- file.path(data.dir, 'mergedData')
+```
+
+```{r load-functions}
+source(file.path(functiondir, "scoringFunctions.R"))
+source(file.path(functiondir, "missingsFunctions.R"))
+source(file.path(functiondir, "miscUtilityFunctions.R"))
+source(file.path(functiondir, "dates.R"))
+source(file.path(functiondir, "callFunction.R"))
+source(file.path(functiondir, "mergeWithinEpoch_new.R"))
+source(file.path(functiondir, "comparisonFunctions.R"))
+source(file.path(functiondir, "coerceAndStack.R"))
+```
+
+```{r finish-setup}
+if (download == TRUE) {
+  # specify data freeze date
+  data.freeze.date <- format(Sys.time(), "%Y%m%d")
+  # load raw data
+  MAPfreeze.list <- data_freeze(quarterly.download = FALSE, save = TRUE)
+} else if (download == FALSE & is.null(data.freeze.date)) {
+  # get path to most recent REDCap freeze
+  data.freeze.file <- file.info(
+    list.files(
+      path = data.raw.dir, 
+      pattern = "MAPfreeze_\\d{8}.rds",
+      full.names = T
+    )
+  ) %>%
+    tibble::rownames_to_column(., var = "path") %>%
+    arrange(desc(mtime)) %>% 
+    filter(row_number() == 1) %>%
+    pull(1)
+  # extract data freeze date
+  data.freeze.date <- stringr::str_extract(data.freeze.file, "\\d{8}")
+  # load raw data
+  MAPfreeze.list <- readRDS(data.freeze.file)
+} else if (download == FALSE & !is.null(data.freeze.date)) {
+  # data freeze date is user specified
+  # load raw data
+  MAPfreeze.list <- readRDS(
+    file.path(
+      data.raw.dir,
+      "MAPfreeze_",
+      data.freeze.date,
+      ".rds"
+    )
+  )
+} else {
+  stop("Either `download` or `data.freeze.date` must be specified as TRUE or FALSE and a 8 digit yyyymmdd, respectively.")
+}
+
+# define paths for saving current merged files
+data.merge.date <- format(Sys.time(), "%Y%m%d")
+current.data.merge.suffix <- paste0("_d", data.freeze.date, "_m", data.merge.date)
+# OAK 20180507 later, combine the fm and bh files into one taller dataset where nrows = n(map.id) + 25  and ncol = ncol(merged.data) + 1  # 25 is the number of breath hold participants and the extra column is whether the data is BH or not
+data.merge.fm.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_fm", filename.date)
+)
+data.merge.bh.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_bh", filename.date)
+)
+
+if (is.null(last.data.merge.suffix)) {
+  # extact date of previous data merge
+  last.data.merge.suffix <- file.info(
+    list.files(
+      path = data.merge.dir,
+      pattern = "MAP\\_bh\\_d\\d{8}\\_m\\d{8}.rds",
+      full.names = T
+    )
+  ) %>%
+    tibble::rownames_to_column(., var = "path") %>%
+    arrange(desc(mtime)) %>%
+    filter(row_number() == 1) %>%
+    pull(1) %>%
+    stringr::str_extract("(?<=(MAP\\_bh\\_))d\\d{8}\\_m\\d{8}")
+}
+
+# define path to previous merged datasets
+last.data.merge.fm.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_fm_", last.data.merge.date)
+)
+last.data.merge.bh.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_bh_", last.data.merge.date)
+)
+```
+
+# Overview
+
+This script will merge and derive data in Epochs 1, 2, and 3 that was downloaded by user `r cat(MAPfreeze.list$general$sysinfo$user)` on `r cat(MAPfreeze.list$general$timestamp)` using [REDCap]{http://redcap.vanderbilt.edu/} version `r cat(MAPfreeze.list$general$versions$REDCap)`, [REDCapR]{https://cran.r-project.org/web/packages/REDCapR/index.html} version `r cat(MAPfreeze.list$general$versions$REDCapR)`, and `r cat(MAPfreeze.list$general$versions$R)`. The following data will be used in this process:
+
+## Epoch Independent
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_0"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_0"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 1
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_1"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_1"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 2
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_2"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_2"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 3
+
+```{r}
+list(
+  project = MAPfreeze.list[["epoch_3"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_3"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+<!-- ## Epoch 4 -->
+
+<!-- ```{r} -->
+<!-- list( -->
+<!--   project = MAPfreeze.list[["epoch_4"]][["project"]], -->
+<!--   shortname = MAPfreeze.list[["epoch_4"]][["shortname"]] -->
+<!-- ) %>% rbind.data.frame() -->
+<!-- ``` -->
+
+**NB: The remaining code is outdated and will need to be updated before this template can be used.**
+
+# Data Merge
+
+## Merge within Epoch 1
+
+```{r}
+# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
+
+## main enrollment data, Epoch 1
+mainfileEpoch1 <- MAPfreeze.list$epoch_1$data$main
+## ABP summary data, Epoch 1
+abpfileEpoch1 <- MAPfreeze.list$epoch_1$data$abp.static
+## biomarker data, Epoch 1
+biomarkfileEpoch1 <- MAPfreeze.list$epoch_1$data$biomarkers
+## automated 3T imaging data, Epoch 1, using facemask (standard procedure)
+auto3TfileEpoch1 <- MAPfreeze.list$epoch_1$data$auto3T
+## automated 3T imaging data, Epoch 1, using breath hold (for first 26 people in Epoch 1)
+auto3TBHfileEpoch1 <- MAPfreeze.list$epoch_1$data$auto3T.bh
+## manual 3T imaging data, Epoch 1, using facemask (standard procedure)
+man3TfileEpoch1 <- MAPfreeze.list$epoch_1$data$man3T
+## manual 3T imaging data, Epoch 1, using breath hold (for first 26 people in Epoch 1)
+man3TBHfileEpoch1 <- MAPfreeze.list$epoch_1$data$man3T.bh
+## cardiac MRI QMASS, Qflow, and TomTec data file for CMR variables, Epoch 1
+qmassfileEpoch1 <- MAPfreeze.list$epoch_1$data$cardiac.mri
+## addendum, Epoch 1
+addendumfileEpoch1 <- MAPfreeze.list$epoch_1$data$addendum
+## CSF, Epoch 1
+csffileEpoch1 <- MAPfreeze.list$epoch_1$data$csf
+## SRT error variables, Epoch 1
+srtfileEpoch1 <- MAPfreeze.list$epoch_1$data$srt.static
+```
+
+```{r mergeWithinEpoch1}
+mergeWithinEpoch_new(
+  epochnum     = 1,
+  mainfile     = mainfileEpoch1,
+  functiondir  = functiondir,
+  firstRds     = firstRdsEpoch1,
+  abpfile      = abpfileEpoch1,
+  biomarkfile  = biomarkfileEpoch1,
+  auto3Tfile   = auto3TfileEpoch1,
+  auto3TBHfile = auto3TBHfileEpoch1,
+  man3Tfile    = man3TfileEpoch1,
+  man3TBHfile  = man3TBHfileEpoch1,
+  qmassfile    = qmassfileEpoch1,
+  addendumfile = addendumfileEpoch1,
+  csffile      = csffileEpoch1,
+  srtfile      = srtfileEpoch1
+)
+```
+
+## Merge within Epoch 2
+
+```{r}
+# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
+
+## main enrollment data, Epoch 2
+mainfileEpoch2 <- MAPfreeze.list$epoch_2$data$main
+## biomarker data, Epoch 2
+biomarkfileEpoch2 <- MAPfreeze.list$epoch_2$data$biomarkers
+## automated 3T imaging data, Epoch 2
+auto3TfileEpoch2 <- MAPfreeze.list$epoch_2$data$auto3T
+## manual 3T imaging data, Epoch 2
+man3TfileEpoch2 <- MAPfreeze.list$epoch_2$data$man3T
+## cardiac MRI QMASS, Qflow, and TomTec data file for CMR variables, Epoch 2
+qmassfileEpoch2 <- MAPfreeze.list$epoch_2$data$cardiac.mri
+## CSF, Epoch 2
+csffileEpoch2 <- MAPfreeze.list$epoch_2$data$csf
+```
+
+```{r}
+mergeWithinEpoch_new(
+  epochnum     = 2,
+  mainfile     = mainfileEpoch2,
+  functiondir  = functiondir,
+  firstRds     = firstRdsEpoch2,
+  #abpfile      = abpfileEpoch2,
+  biomarkfile  = biomarkfileEpoch2,
+  auto3Tfile   = auto3TfileEpoch2,
+  #auto3TBHfile = auto3TBHfileEpoch2,
+  man3Tfile    = man3TfileEpoch2,
+  #man3TBHfile  = man3TBHfileEpoch2,
+  qmassfile    = qmassfileEpoch2,
+  #addendumfile = addendumfileEpoch2,
+  csffile      = csffileEpoch2
+  #srtfile      = srtfileEpoch2
+)
+```
+
+## Merge within Epoch 3
+
+```{r}
+# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
+
+## main enrollment data, Epoch 3
+mainfileEpoch3 <- MAPfreeze.list$epoch_3$data$main
+## biomarker data, Epoch 3
+biomarkfileEpoch3 <- MAPfreeze.list$epoch_3$data$biomarkers
+## automated 3T imaging data, Epoch 3
+auto3TfileEpoch3 <- MAPfreeze.list$epoch_3$data$auto3T
+## manual 3T imaging data, Epoch 3
+man3TfileEpoch3 <- MAPfreeze.list$epoch_3$data$man3T
+## CSF, Epoch 3
+csffileEpoch3 <- MAPfreeze.list$epoch_3$data$csf
+```
+
+```{r}
+mergeWithinEpoch_new(
+  epochnum     = 3,
+  mainfile     = mainfileEpoch3,
+  functiondir  = functiondir,
+  firstRds     = firstRdsEpoch3,
+  #abpfile      = abpfileEpoch3,
+  biomarkfile  = biomarkfileEpoch3,
+  auto3Tfile   = auto3TfileEpoch3,
+  #auto3TBHfile = auto3TBHfileEpoch3,
+  man3Tfile    = man3TfileEpoch3,
+  #man3TBHfile  = man3TBHfileEpoch3,
+  #qmassfile    = qmassfileEpoch3,
+  #addendumfile = addendumfileEpoch3,
+  csffile      = csffileEpoch3
+  #srtfile      = srtfileEpoch3
+)
+```
+
+## Merge across all epochs
+
+We start with Epoch 1 data.
+
+```{r}
+epoch1 <- readRDS(firstRdsEpoch1)
+allEpochs <- epoch1
+```
+
+### Compare and stack: Epoch 2 with Epoch 1
+
+Here we refer to the Epoch 2 data as "new" and the previous epochs (Epoch 1) as "old."
+
+Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Legacy code. TODO: Modernize to prevent this warning. -->
+
+```{r compareAndStackEpoch2}
+epoch2 <- readRDS(firstRdsEpoch2)
+epoch2 <- within(epoch2, {
+  cmr.findings.pulse <- as.numeric(cmr.findings.pulse)
+  abp.date <- NA
+})
+
+compareVarnames(newdat = epoch2, olddat = allEpochs)
+compareIDs(newdat = epoch2, olddat = allEpochs)
+compareFactors(newdat = epoch2, olddat = allEpochs)
+```
+
+```{r coerceAndStackEpoch2}
+allEpochs <- coerceAndStack(newdat = epoch2, olddat = allEpochs)
+printAfterStackingText()
+```
+
+### Compare and stack: Epoch 3 with Epochs 1 and 2
+
+Here we refer to the Epoch 3 data as "new" and the previous epochs (Epochs 1 and 2) as "old."
+
+Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Legacy code. TODO: Modernize to prevent this warning. -->
+
+```{r compareAndStackEpoch3}
+epoch3 <- readRDS(firstRdsEpoch3)
+
+epoch3 <- within(epoch3, {
+  cmr.findings.pulse <- as.numeric(cmr.findings.pulse)
+  abp.date <- NA
+})
+
+compareVarnames(newdat = epoch3, olddat = allEpochs)
+compareIDs(newdat = epoch3, olddat = allEpochs)
+compareFactors(newdat = epoch3, olddat = allEpochs)
+```
+
+```{r coerceAndStackEpoch3}
+allEpochs <- coerceAndStack(newdat = epoch3, olddat = allEpochs)
+printAfterStackingText() 
+```
+
+## Merge Epoch independent data
+
+Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Legacy code. TODO: Modernize to prevent this warning. -->
+
+### Add ABPM consent data
+
+```{r}
+trackdat <- MAPfreeze.list$epoch_0$data$tracking.static
+# names(trackdat) <- gsub("\\_", "\\.", names(trackdat))
+
+# TODO: after next download, the subsetting won't be nec.
+trackdat.subset <- trackdat[, Cs(
+  map.id, elig.visit.consent.abpm, elig.visit.consent.lp,elig.visit.consent.lp.ineligible
+)]
+
+# this file has numeric map_id... but no duplicates
+trackdat.subset <- within(trackdat.subset, {
+  map.id <- formatC(map.id, width= 3, format= "d", flag= "0")
+})
+
+CheckNamesBeforeMerge(allEpochs, trackdat.subset, c('map.id'))
+
+epochsPlus1 <- merge(
+  allEpochs, 
+  trackdat.subset,
+  by = "map.id", 
+  all.x = TRUE
+)
+
+epochsPlus1 <- within(epochsPlus1, {
+  # TODO: We need to add to this when we are given the variable name for other epochs
+  abp.consent <- ifelse(epoch == 1, elig.visit.consent.abpm, NA)
+  abp.consent.factor <- factor(abp.consent, levels = c(1, 0), labels = c("Yes", "No")) 
+})
+```
+
+### Add post-fixed eligibility data
+
+```{r}
+eligdat <- MAPfreeze.list$epoch_0$data$eligibility.static
+# names(eligdat) <- gsub("\\_", "\\.", names(eligdat))
+
+# There are a ton of problems with their map.id
+eligdat <- within(eligdat, {
+  map.id <- as.numeric(map.id)
+})
+
+eligdat <- eligdat[!is.na(eligdat$map.id) & eligdat$map.id > 0, ]
+
+eligdat <- within(eligdat, {
+  map.id <- formatC(map.id, width = 3, format = "d", flag = "0")
+})
+
+source(file.path(functiondir, "eligibility.R"))
+
+eligdat1 <- eligibility(eligdat)
+
+CheckNamesBeforeMerge(epochsPlus1, eligdat1, c('map.id'))
+
+epochsPlus2 <- merge(
+  epochsPlus1, 
+  eligdat1,
+  by = "map.id", 
+  all.x = TRUE
+)
+```
+
+### Add APOE data
+
+```{r}
+apoedat <- MAPfreeze.list$epoch_0$data$apoe.static
+# names(apoedat) <- gsub("\\_", "\\.", names(apoedat))
+
+apoedat <- within(apoedat, {
+  map.id <- formatC(map.id, width = 3, format = "d", flag = "0")
+})
+
+CheckNamesBeforeMerge(epochsPlus2, apoedat, c('map.id'))
+
+alldat <- merge(
+  epochsPlus2, 
+  apoedat,
+  by = "map.id", 
+  all.x = TRUE
+)
+```
+
+### Apply labels to raw data
+
+```{r}
+# add label function
+```
+
+# Derivation of New Variables
+
+```{r derivedvarsetc}
+alldat <- callFunction("mainLabelsAndFactors", functiondir, "Apply labels and create factors for main REDCap dataset", alldat)
+# Note that the dates() function is also used in Elig. processing
+alldat <- callFunction("dates", functiondir, "Convert dates", alldat)
+alldat <- callFunction("datesDerived", functiondir, "Derive date variables", alldat)
+# demog needs to come after the dates function and before medhxEtc
+alldat <- callFunction("demog", functiondir, "Derive demographic variables", alldat)
+alldat <- callFunction("apoe", functiondir, "Derive APOE variables", alldat)
+# the extra arguments for this function are defined at the top of this file
+alldat <- callFunction(
+  "medicationAndSurgery", functiondir, "Derive medication and surgery variables", alldat,
+  diabFile                        = diabFile,
+  cholFile                        = cholFile,
+  #antihypFile                    = antihypFile, # changed processing 07 Oct 2016
+  afibFile                        = afibFile,
+  afibsurgFile                    = afibsurgFile,
+  antihypBetaBlockerFile          = antihypBetaBlockerFile,
+  antihypBetaBlockerIfNotDropFile = antihypBetaBlockerIfNotDropFile,
+  antihypACEInhibFile             = antihypACEInhibFile,
+  antihypARBFile                  = antihypARBFile,
+  antihypCCBFile                  = antihypCCBFile,
+  antihypKSDFile                  = antihypKSDFile,
+  antihypOtherFile                = antihypOtherFile
+)
+alldat <- callFunction("csfProcess", functiondir, "Process CSF variables", alldat)
+# This needs to come before the medical history function
+alldat <- callFunction("bloodConversion", functiondir, "Convert blood values", alldat)
+# TODO: I would recommend having all of the echo code together. 
+# The following two files have code for echo variables (other files might too). LS
+alldat <- callFunction("medhxEtc", functiondir, "Derive medical history variables, etc.", alldat)
+# the cardiacStructure() function uses bsa, so it needs to stay after medhxEtc for now
+alldat <- callFunction("cardiacStructure", functiondir, "Derive a few echo variables", alldat)
+alldat <- callFunction("abpqc", functiondir, "Derive ABP QC variables", alldat)
+alldat <- callFunction("fsrp", functiondir, "Derive FSRP", alldat)
+alldat <- callFunction("cognitiveComplaint", functiondir, "Derive complaint, fcadl, and faq variables", alldat)
+alldat <- callFunction("neuropsych", functiondir, "Derive neuropsych variables", alldat)
+alldat <- callFunction("addendum", functiondir, "Label addendum variables and create a few factor variables", alldat)
+alldat <- callFunction("mltaChamps", functiondir, "Derive MLTA and CHAMPS variables", alldat)
+# Note from LS: I am commenting out for now (08 Jul 2016, 19 Aug 2016)
+# alldat <- callFunction("famhx", functiondir, "Derive family history variables", alldat)
+alldat <- callFunction("depression", functiondir, "Derive depression variables", alldat)
+alldat <- callFunction("biomarkers", functiondir, "Derive biomarker (csf and other) variables", alldat)
+alldat <- callFunction("informantInfo", functiondir, "Derive informant information variables", alldat)
+alldat <- callFunction("automated3T", functiondir, "Derive automated 3T variables", alldat)
+alldat <- callFunction("manual3T", functiondir, "Derive manual 3T variables", alldat)
+alldat <- callFunction("diagnosisAndStaging", functiondir, "Derive diagnosis and staging variables", alldat)
+alldat <- callFunction("psqi", functiondir, "Derive PSQI variables", alldat)
+alldat <- callFunction("frailty", functiondir, "Derive frailty variables", alldat)
+alldat <- callFunction("foodScan", functiondir, "Derive food scan variables", alldat)
+# alldat <- callFunction("qmass", functiondir, "Process qmass variables", alldat)
+# The invalidCmr call needs to come before the cmr call.
+# alldat <- callFunction("invalidCmr", functiondir, "Set invalid cmr values to missing", alldat)
+# The cmr call needs to stay after the medhx call (uses bsa)
+# alldat <- callFunction("cmr", functiondir, "Process cmr variables", alldat)
+alldat <- callFunction("cardiacMRI", functiondir, "Process cmr and qmass", alldat)
+alldat <- callFunction("pvlt", functiondir, "Process PVLT variables", alldat)
+alldat <- callFunction("srt", functiondir, "Process SRT variables", alldat)
+```
+
+# Set invalid values to missing
+
+```{r}
+#####################################
+# Setting invalid values to missing
+# Note that the "invalid" functions in this section are applied after
+#   derived variables are created.
+#####################################
+alldat <- callFunction("invalidNeuropsychElig", functiondir, "Set invalid eligibility neuropsych items to missing", alldat)
+alldat <- callFunction("invalidNeuropsychAddendum", functiondir, "Set invalid neuropsych items from Addendum to missing", alldat)
+alldat <- callFunction("invalidNeuropsychItems", functiondir, "Set invalid neuropsych items from main protocol to missing", alldat)
+# TODO: All of these are neuropsych items, so it might make more sense to combine.
+#     Also I think some of the code is duplicated. LS
+alldat <- callFunction("invalidColorblind", functiondir, "Set invalid colorblindness-related items to missing", alldat)
+
+# Drop unused factor levels, then re-apply the variable labels
+# (droplevels drops var labels for some vars)
+oldlabels <- unlist(lapply(names(alldat), function(x) label(alldat[, x])))
+names(oldlabels) <- names(alldat)
+
+# 09 Dec 2016: Somewhere we are losing other labels
+ep1labels <- unlist(lapply(names(epoch1), function(x) label(epoch1[, x])))
+names(ep1labels) <- names(epoch1)
+
+alldat <- droplevels(alldat)
+
+for(vname in names(alldat)){
+  if (label(alldat[, vname]) == "") {
+    label(alldat[, vname]) <- oldlabels[vname]
+    # and if it's still null
+    if (label(alldat[, vname]) == "") {
+      label(alldat[, vname]) <- ep1labels[vname]
+    }
+  }
+}
+```
+
+# Add baseline versions of some variables onto every row
+
+```{r, repeatBaseline}
+# Get certain enrollment (epoch 1) vars onto every row
+# TODO: add to this list (see meeting minutes),
+#    then do consistency checks for things that shouldn't change
+
+enrollmentVarsThatShouldNotChange <- Cs(
+  dob,
+  education,
+  sex.factor,
+  raceethnicity.factor,
+  usa.born.factor,
+  lang.prim.factor
+)
+
+otherKeyEnrollmentVars <- Cs(
+  # diagnosis.factor is handled separately because of diff. name
+  mci.stage.factor, 
+  albert.mci.stage.factor, 
+  age
+)
+
+# If you change the order here, change it below too!
+epoch1ToRepeat <- alldat[alldat$epoch %in% 1, 
+                         c('map.id', 'diagnosis.factor', enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)
+                         ]
+
+for(vname in otherKeyEnrollmentVars){
+  label(epoch1ToRepeat[[vname]]) <- 
+    paste0(label(epoch1ToRepeat[[vname]]), ", from Enrollment")
+}
+
+# note order above, and modify this as necessary!
+# For backwards compatibility we are calling the enrollment
+#  version of diagnosis.factor "enrolled.dx.factor" instead of
+#  "enrolled.diagnosis.factor."
+names(epoch1ToRepeat) <- c(Cs(map.id, enrolled.dx.factor), 
+                           paste0("enrolled.", c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)))
+
+alldat <- merge(alldat, epoch1ToRepeat, by = 'map.id')
+```
+
+The following variables were added to each row:
+
+```{r}
+data.frame(Variable = setdiff(names(epoch1ToRepeat), "map.id"), row.names = FALSE)
+```
+
+# Add memory composite score
+
+```{r}
+memoryfile <- file.path(
+  rawdir,
+  'Mem_Ef_scores_9-29.csv'
+)
+
+mem.composite <- read.csv(
+  memoryfile, 
+  header = TRUE
+)
+
+colnames(mem.composite) <- c("map.id", "epoch", "np.executive.composite", "np.memory.composite")
+mem.composite$map.id <- formatC(mem.composite$map.id, width = 3,format = "d",flag = "0")
+
+label(mem.composite$np.executive.composite) <- 'EF Composite'
+label(mem.composite$np.memory.composite) <- 'Memory Composite'
+
+alldat <- merge(alldat, mem.composite, by = c('map.id', 'epoch'), all.x = TRUE)
+
+# OAK 20180224
+# Becasue I got rid of the code below in invalidNeuropsychItems.R because of a merge conflict,
+# I am adding it here for now. To be fixed in the next revamp of merge code.
+alldat[alldat$map.id == "209" & alldat$epoch == 1, 'np.memory.composite'] <- NA
+```
+
+# Add labels for derived variables
+
+```{r}
+nolabel <- names(alldat)[lapply(alldat, function(x) label(x)) == ""]
+
+metadata.select.fun <- function(data){
+  data %>%
+    select(c("field_name", "field_type", "field_label", "select_choices_or_calculations")) %>%
+    mutate(field_name = gsub("\\_", "\\.", field_name))
+}
+
+labels.0 <- lapply(MAPfreeze.list[["epoch_0"]][["metadata"]], metadata.select.fun) %>% bind_rows()
+labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]], metadata.select.fun) %>% bind_rows()
+labels.2 <- lapply(MAPfreeze.list[["epoch_2"]][["metadata"]], metadata.select.fun) %>% bind_rows()
+labels.3 <- lapply(MAPfreeze.list[["epoch_3"]][["metadata"]], metadata.select.fun) %>% bind_rows()
+
+labels.all <- bind_rows(labels.0, labels.1, labels.2, labels.3) %>% 
+  distinct() %>%
+  filter(field_name %in% nolabel)
+
+duplicated.names <- labels.all$field_name[duplicated(labels.all$field_name)]
+
+labels.all <- filter(labels.all, field_name %nin% duplicated.names)
+
+for (varname in labels.all$field_name){
+  Hmisc::label(alldat[, varname]) <- labels.all[labels.all$field_name == varname, "field_label", drop = TRUE]
+}
+```
+
+# The merged file
+```{r, saveFinalFiles}
+# email from Kim, 23 Mar 2015: I recommend using data from MAP Automated 3T Brain MRI Breath Hold for MAP IDS 1-4, 6-10, and 12-25. This data was acquired at enrollment. MAP Automated 3T Brain MRI Epoch 1 is the enrollment dataset for MAP IDs 27-336. MAP 5,11, 26, 31, 77, 177, 184, 190, and 201 had no imaging.
+# In subsequent meetings, they explained that sometimes they will want to use the Breath Hold data for ids 1-25, and sometimes they won't.  We decided to make two files, one that uses the Breath Hold data for those 25 and one that doesn't.
+
+# 20 Oct 2016 (LS)--- tweaking code
+bHoldnames <- setdiff(names(alldat)[grep("^bHold\\.", names(alldat))], "bHold.scan.date")
+bHoldIndices <- match(bHoldnames, names(alldat))
+
+bHoldnamesWithCounterparts.temp <- bHoldnames[!(bHoldnames %in% c("bHold.session.id.11","bHold.scan.date.11"))]
+regnames.temp <- gsub("^bHold\\.", "", bHoldnamesWithCounterparts.temp)
+regnames <- regnames.temp[regnames.temp %in% names(alldat)] # Identify counterpart that are actually in alldat
+bHoldnamesWithCounterparts <- bHoldnamesWithCounterparts.temp[regnames.temp %in% names(alldat)]
+# 19 Oct 2016: taking out this line--- it should not be necessary. LS
+#regnames <- regnames[!(regnames %in% c("session.id.11","scan.date.11"))]
+reglabels <- label(alldat[, regnames])
+
+# The file that uses the facemask 3T data for everyone
+alldatMain <- alldat[, -bHoldIndices]
+
+# The file that uses the Breath Hold epoch 1 data for ids 1-25
+alldatbHold <- alldat
+
+alldatbHold[alldat$epoch == 1 & as.numeric(alldat$map.id) <= 25, regnames] <- alldatbHold[alldat$epoch == 1 & as.numeric(alldat$map.id) <= 25, bHoldnamesWithCounterparts]
+
+alldatbHold <- alldatbHold[, -bHoldIndices]
+
+# OAK 20180224
+# Add AD.sig variables once bHold data has been separated. This will prevent the regression error.
+alldatMain <- callFunction("addADsig",
+                           functiondir, 
+                           "Derive AD.sig.mcevoy and AD.sig.schwarz after data is separated", 
+                           alldatMain)
+alldatbHold <- callFunction("addADsig",
+                           functiondir,
+                           "Derive AD.sig.mcevoy and AD.sig.schwarz after data is separated", 
+                           alldatbHold)
+
+# Save the files in two formats.
+saveRDS(alldatMain, file = paste0(mergedfile, ".rds"))
+write.csv(alldatMain, file = paste0(mergedfile, ".csv"), row.names = FALSE)
+
+saveRDS(alldatbHold, file = paste0(breathHoldMergedfile, ".rds"))
+write.csv(alldatbHold, file = paste0(breathHoldMergedfile, ".csv"), row.names = FALSE)
+```
+
+<!-- Add code for daff function. -->
