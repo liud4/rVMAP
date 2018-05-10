@@ -120,9 +120,11 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     }
   }
 
-  MAPfreeze.list$general$versions[["REDCap"]] <- redcap_version(
-    redcap_uri = redcap.api.uri,
-    token = MAPfreeze.list$epoch_1$token[1]
+  MAPfreeze.list$general$versions[["REDCap"]] <- as.character(
+    redcap_version(
+      redcap_uri = redcap.api.uri,
+      token = MAPfreeze.list$epoch_1$token[1]
+    )
   )
 
   ###

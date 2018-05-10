@@ -96,7 +96,7 @@ options(datadist = NULL)
 # modify this variable as follows: quarterly scheduled download = {TRUE}; off-cycle download = {FALSE}
 quarterly.download <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to merge
-download <- FALSE
+download.data <- FALSE
 data.freeze.date <- NULL # in {yyyymmdd} format
 # modify this variable to specify a specific data merge file to compare the new one with
 last.data.merge.suffix <- NULL  # in d{yyyymmdd}_m{yyyymmdd} format
@@ -148,12 +148,12 @@ source(file.path(functiondir, "coerceAndStack.R"))
 ```
 
 ```{r finish-setup}
-if (download == TRUE) {
+if (download.data == TRUE) {
   # specify data freeze date
   data.freeze.date <- format(Sys.time(), "%Y%m%d")
   # load raw data
   MAPfreeze.list <- data_freeze(quarterly.download = FALSE, save = TRUE)
-} else if (download == FALSE & is.null(data.freeze.date)) {
+} else if (download.data == FALSE & is.null(data.freeze.date)) {
   # get path to most recent REDCap freeze
   data.freeze.file <- file.info(
     list.files(
@@ -170,7 +170,7 @@ if (download == TRUE) {
   data.freeze.date <- stringr::str_extract(data.freeze.file, "\\d{8}")
   # load raw data
   MAPfreeze.list <- readRDS(data.freeze.file)
-} else if (download == FALSE & !is.null(data.freeze.date)) {
+} else if (download.data == FALSE & !is.null(data.freeze.date)) {
   # data freeze date is user specified
   # load raw data
   MAPfreeze.list <- readRDS(
@@ -182,7 +182,7 @@ if (download == TRUE) {
     )
   )
 } else {
-  stop("Either `download` or `data.freeze.date` must be specified as TRUE or FALSE and a 8 digit yyyymmdd, respectively.")
+  stop("Either `download.data` or `data.freeze.date` must be specified as TRUE or FALSE and a 8 digit yyyymmdd, respectively.")
 }
 
 # define paths for saving current merged files
@@ -227,7 +227,7 @@ last.data.merge.bh.file <- file.path(
 
 # Overview
 
-This script will merge and derive data in Epochs 1, 2, and 3 that was downloaded by user `r cat(MAPfreeze.list$general$sysinfo$user)` on `r cat(MAPfreeze.list$general$timestamp)` using [REDCap]{http://redcap.vanderbilt.edu/} version `r cat(MAPfreeze.list$general$versions$REDCap)`, [REDCapR]{https://cran.r-project.org/web/packages/REDCapR/index.html} version `r cat(MAPfreeze.list$general$versions$REDCapR)`, and `r cat(MAPfreeze.list$general$versions$R)`. The following data will be used in this process:
+This script will merge and derive data in Epochs 1, 2, and 3 that was downloaded by user `r cat(MAPfreeze.list[["general"]][["sysinfo"]][["user"]])` on `r cat(MAPfreeze.list[["general"]][["timestamp"]]` using [REDCap]{http://redcap.vanderbilt.edu/} version `r cat(MAPfreeze.list[["general"]][["versions"]][["REDCap"]])`, [REDCapR]{https://cran.r-project.org/web/packages/REDCapR/index.html} version `r cat(MAPfreeze.list[["general"]][["versions"]][["REDCapR"]])`, and `r cat(MAPfreeze.list[["general"]][["versions"]][["R"]])`. The following data will be used in this process:
 
 ## Epoch Independent
 
