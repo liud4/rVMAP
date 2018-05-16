@@ -4,7 +4,7 @@
 #' @param pkg A character vector containing the names of CRAN packages.
 #' @export
 
-load.pkg <- function(pkg){
+load_pkg <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg)){
     install.packages(new.pkg, dependencies = TRUE)
