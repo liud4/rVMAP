@@ -16,19 +16,18 @@ output:
       smooth_scroll: true
 ---
 
-##%#########################################################%##
-# Template: MAP Data: Merge, Derive, and Label                #
-#                                                             #
-# Description: This script is run quarterly to merge, derive, #
-#   and label the MAP data. The script requires the VMACr     #
-#   package. It is configured to optionally perform the data  #
-#   freeze as well.                                           #
-#                                                             #
-# Status: Currently non-functional. This is a draft that      #
-#    includes legacy code from L. Samuels that needs to be    #
-#    modernized before it can be used. (20180507)             #
-##%#########################################################%##
-
+<!-- ##%#########################################################%## -->
+<!-- # Template: MAP Data: Merge, Derive, and Label                # -->
+<!-- #                                                             # -->
+<!-- # Description: This script is run quarterly to merge, derive, # -->
+<!-- #   and label the MAP data. The script requires the VMACr     # -->
+<!-- #   package. It is configured to optionally perform the data  # -->
+<!-- #   freeze as well.                                           # -->
+<!-- #                                                             # -->
+<!-- # Status: Currently non-functional. This is a draft that      # -->
+<!-- #    includes legacy code from L. Samuels that needs to be    # -->
+<!-- #    modernized before it can be used. (20180507)             # -->
+<!-- ##%#########################################################%## -->
 
 <style type="text/css">
  #TOC{
@@ -93,8 +92,8 @@ options(datadist = NULL)
 ####                modifiable settings                 ####
 ##%######################################################%##
 
-# modify this variable as follows: quarterly scheduled download = {TRUE}; off-cycle download = {FALSE}
-quarterly.download <- TRUE
+# modify this variable as follows: quarterly scheduled merge = {TRUE}; off-cycle merge = {FALSE}
+quarterly.merge <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to merge
 download.data <- FALSE
 data.freeze.date <- NULL # in {yyyymmdd} format
@@ -130,7 +129,7 @@ vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
 func.dir <- useful.dir <- file.path(vmac.dir, "Useful Code")
 ## data directories
 data.dir <- file.path(vmac.dir, "DATA", "MAP")
-data.raw.dir <- ifelse(quarterly.download,
+data.raw.dir <- ifelse(quarterly.merge,
                        file.path(data.dir, "rawData"),
                        file.path(data.dir, "rawData", "temp"))
 data.merge.dir <- file.path(data.dir, 'mergedData')
@@ -152,7 +151,7 @@ if (download.data == TRUE) {
   # specify data freeze date
   data.freeze.date <- format(Sys.time(), "%Y%m%d")
   # load raw data
-  MAPfreeze.list <- data_freeze(quarterly.download = FALSE, save = TRUE)
+  MAPfreeze.list <- data_freeze(quarterly.merge = FALSE, save = TRUE)
 } else if (download.data == FALSE & is.null(data.freeze.date)) {
   # get path to most recent REDCap freeze
   data.freeze.file <- file.info(
@@ -227,11 +226,13 @@ last.data.merge.bh.file <- file.path(
 
 # Overview
 
-This script will merge and derive data in Epochs 1, 2, and 3 that was downloaded by user `r cat(MAPfreeze.list[["general"]][["sysinfo"]][["user"]])` on `r cat(MAPfreeze.list[["general"]][["timestamp"]]` using [REDCap]{http://redcap.vanderbilt.edu/} version `r cat(MAPfreeze.list[["general"]][["versions"]][["REDCap"]])`, [REDCapR]{https://cran.r-project.org/web/packages/REDCapR/index.html} version `r cat(MAPfreeze.list[["general"]][["versions"]][["REDCapR"]])`, and `r cat(MAPfreeze.list[["general"]][["versions"]][["R"]])`. The following data will be used in this process:
+Explain what the different variables are here.
 
 ## Epoch Independent
 
-```{r}
+Add description for what Epoch Independent means.
+
+```{r list-projects-epoch0}
 list(
   project = MAPfreeze.list[["epoch_0"]][["project"]],
   shortname = MAPfreeze.list[["epoch_0"]][["shortname"]]
@@ -240,7 +241,7 @@ list(
 
 ## Epoch 1
 
-```{r}
+```{r list-projects-epoch1}
 list(
   project = MAPfreeze.list[["epoch_1"]][["project"]],
   shortname = MAPfreeze.list[["epoch_1"]][["shortname"]]
@@ -249,7 +250,7 @@ list(
 
 ## Epoch 2
 
-```{r}
+```{r list-projects-epoch2}
 list(
   project = MAPfreeze.list[["epoch_2"]][["project"]],
   shortname = MAPfreeze.list[["epoch_2"]][["shortname"]]
@@ -258,7 +259,7 @@ list(
 
 ## Epoch 3
 
-```{r}
+```{r list-projects-epoch3}
 list(
   project = MAPfreeze.list[["epoch_3"]][["project"]],
   shortname = MAPfreeze.list[["epoch_3"]][["shortname"]]
@@ -267,7 +268,7 @@ list(
 
 <!-- ## Epoch 4 -->
 
-<!-- ```{r} -->
+<!-- ```{r  list-projects-epoch4} -->
 <!-- list( -->
 <!--   project = MAPfreeze.list[["epoch_4"]][["project"]], -->
 <!--   shortname = MAPfreeze.list[["epoch_4"]][["shortname"]] -->
@@ -280,123 +281,64 @@ list(
 
 ## Merge within Epoch 1
 
-```{r}
-# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
-
-## main enrollment data, Epoch 1
-mainfileEpoch1 <- MAPfreeze.list$epoch_1$data$main
-## ABP summary data, Epoch 1
-abpfileEpoch1 <- MAPfreeze.list$epoch_1$data$abp.static
-## biomarker data, Epoch 1
-biomarkfileEpoch1 <- MAPfreeze.list$epoch_1$data$biomarkers
-## automated 3T imaging data, Epoch 1, using facemask (standard procedure)
-auto3TfileEpoch1 <- MAPfreeze.list$epoch_1$data$auto3T
-## automated 3T imaging data, Epoch 1, using breath hold (for first 26 people in Epoch 1)
-auto3TBHfileEpoch1 <- MAPfreeze.list$epoch_1$data$auto3T.bh
-## manual 3T imaging data, Epoch 1, using facemask (standard procedure)
-man3TfileEpoch1 <- MAPfreeze.list$epoch_1$data$man3T
-## manual 3T imaging data, Epoch 1, using breath hold (for first 26 people in Epoch 1)
-man3TBHfileEpoch1 <- MAPfreeze.list$epoch_1$data$man3T.bh
-## cardiac MRI QMASS, Qflow, and TomTec data file for CMR variables, Epoch 1
-qmassfileEpoch1 <- MAPfreeze.list$epoch_1$data$cardiac.mri
-## addendum, Epoch 1
-addendumfileEpoch1 <- MAPfreeze.list$epoch_1$data$addendum
-## CSF, Epoch 1
-csffileEpoch1 <- MAPfreeze.list$epoch_1$data$csf
-## SRT error variables, Epoch 1
-srtfileEpoch1 <- MAPfreeze.list$epoch_1$data$srt.static
-```
-
-```{r mergeWithinEpoch1}
+```{r merge-within-epoch1}
 mergeWithinEpoch_new(
   epochnum     = 1,
-  mainfile     = mainfileEpoch1,
-  functiondir  = functiondir,
-  firstRds     = firstRdsEpoch1,
-  abpfile      = abpfileEpoch1,
-  biomarkfile  = biomarkfileEpoch1,
-  auto3Tfile   = auto3TfileEpoch1,
-  auto3TBHfile = auto3TBHfileEpoch1,
-  man3Tfile    = man3TfileEpoch1,
-  man3TBHfile  = man3TBHfileEpoch1,
-  qmassfile    = qmassfileEpoch1,
-  addendumfile = addendumfileEpoch1,
-  csffile      = csffileEpoch1,
-  srtfile      = srtfileEpoch1
+  mainfile     = MAPfreeze.list$epoch_1$data$main,
+  functiondir  = function.dir,
+  firstRds     = epoch1.rds,
+  abpfile      = MAPfreeze.list$epoch_1$data$abp.static,
+  biomarkfile  = MAPfreeze.list$epoch_1$data$biomarkers,
+  auto3Tfile   = MAPfreeze.list$epoch_1$data$auto3T,
+  auto3TBHfile = MAPfreeze.list$epoch_1$data$auto3T.bh,
+  man3Tfile    = MAPfreeze.list$epoch_1$data$man3T,
+  man3TBHfile  = MAPfreeze.list$epoch_1$data$man3T.bh,
+  qmassfile    = MAPfreeze.list$epoch_1$data$cardiac.mri,
+  addendumfile = MAPfreeze.list$epoch_1$data$addendum,
+  csffile      = MAPfreeze.list$epoch_1$data$csf,
+  srtfile      = MAPfreeze.list$epoch_1$data$srt.static
 )
 ```
 
 ## Merge within Epoch 2
 
-```{r}
-# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
-
-## main enrollment data, Epoch 2
-mainfileEpoch2 <- MAPfreeze.list$epoch_2$data$main
-## biomarker data, Epoch 2
-biomarkfileEpoch2 <- MAPfreeze.list$epoch_2$data$biomarkers
-## automated 3T imaging data, Epoch 2
-auto3TfileEpoch2 <- MAPfreeze.list$epoch_2$data$auto3T
-## manual 3T imaging data, Epoch 2
-man3TfileEpoch2 <- MAPfreeze.list$epoch_2$data$man3T
-## cardiac MRI QMASS, Qflow, and TomTec data file for CMR variables, Epoch 2
-qmassfileEpoch2 <- MAPfreeze.list$epoch_2$data$cardiac.mri
-## CSF, Epoch 2
-csffileEpoch2 <- MAPfreeze.list$epoch_2$data$csf
-```
-
-```{r}
+```{r merge-within-epoch2}
 mergeWithinEpoch_new(
   epochnum     = 2,
-  mainfile     = mainfileEpoch2,
+  mainfile     = MAPfreeze.list$epoch_2$data$main,
   functiondir  = functiondir,
-  firstRds     = firstRdsEpoch2,
-  #abpfile      = abpfileEpoch2,
-  biomarkfile  = biomarkfileEpoch2,
-  auto3Tfile   = auto3TfileEpoch2,
-  #auto3TBHfile = auto3TBHfileEpoch2,
-  man3Tfile    = man3TfileEpoch2,
-  #man3TBHfile  = man3TBHfileEpoch2,
-  qmassfile    = qmassfileEpoch2,
-  #addendumfile = addendumfileEpoch2,
-  csffile      = csffileEpoch2
-  #srtfile      = srtfileEpoch2
+  firstRds     = epoch2.rds,
+  # abpfile      = abpfileEpoch2,
+  biomarkfile  = MAPfreeze.list$epoch_2$data$biomarkers,
+  auto3Tfile   = MAPfreeze.list$epoch_2$data$auto3T,
+  # auto3TBHfile = auto3TBHfileEpoch2,
+  man3Tfile    = MAPfreeze.list$epoch_2$data$man3T,
+  # man3TBHfile  = man3TBHfileEpoch2,
+  qmassfile    = MAPfreeze.list$epoch_2$data$cardiac.mri,
+  # addendumfile = addendumfileEpoch2,
+  csffile      = MAPfreeze.list$epoch_2$data$csf
+  # srtfile      = srtfileEpoch2
 )
 ```
 
 ## Merge within Epoch 3
 
-```{r}
-# specify location of data  # OAK 20180507 This is written to work with the legacy functions by L. Samuels. TODO: modernize.
-
-## main enrollment data, Epoch 3
-mainfileEpoch3 <- MAPfreeze.list$epoch_3$data$main
-## biomarker data, Epoch 3
-biomarkfileEpoch3 <- MAPfreeze.list$epoch_3$data$biomarkers
-## automated 3T imaging data, Epoch 3
-auto3TfileEpoch3 <- MAPfreeze.list$epoch_3$data$auto3T
-## manual 3T imaging data, Epoch 3
-man3TfileEpoch3 <- MAPfreeze.list$epoch_3$data$man3T
-## CSF, Epoch 3
-csffileEpoch3 <- MAPfreeze.list$epoch_3$data$csf
-```
-
-```{r}
+```{r merge-within-epoch3}
 mergeWithinEpoch_new(
   epochnum     = 3,
-  mainfile     = mainfileEpoch3,
+  mainfile     = MAPfreeze.list$epoch_3$data$main,
   functiondir  = functiondir,
-  firstRds     = firstRdsEpoch3,
-  #abpfile      = abpfileEpoch3,
-  biomarkfile  = biomarkfileEpoch3,
-  auto3Tfile   = auto3TfileEpoch3,
-  #auto3TBHfile = auto3TBHfileEpoch3,
-  man3Tfile    = man3TfileEpoch3,
-  #man3TBHfile  = man3TBHfileEpoch3,
-  #qmassfile    = qmassfileEpoch3,
-  #addendumfile = addendumfileEpoch3,
-  csffile      = csffileEpoch3
-  #srtfile      = srtfileEpoch3
+  firstRds     = epoch3.rds,
+  # abpfile      = abpfileEpoch3,
+  biomarkfile  = MAPfreeze.list$epoch_3$data$biomarkers,
+  auto3Tfile   = MAPfreeze.list$epoch_3$data$auto3T,
+  # auto3TBHfile = auto3TBHfileEpoch3,
+  man3Tfile    = MAPfreeze.list$epoch_3$data$man3T,
+  # man3TBHfile  = man3TBHfileEpoch3,
+  # qmassfile    = qmassfileEpoch3,
+  # addendumfile = addendumfileEpoch3,
+  csffile      = MAPfreeze.list$epoch_3$data$csf
+  # srtfile      = srtfileEpoch3
 )
 ```
 
@@ -404,8 +346,8 @@ mergeWithinEpoch_new(
 
 We start with Epoch 1 data.
 
-```{r}
-epoch1 <- readRDS(firstRdsEpoch1)
+```{r merge-across-epochs}
+# epoch1 <- readRDS(firstRdsEpoch1)
 allEpochs <- epoch1
 ```
 
@@ -415,8 +357,8 @@ Here we refer to the Epoch 2 data as "new" and the previous epochs (Epoch 1) as 
 
 Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Legacy code. TODO: Modernize to prevent this warning. -->
 
-```{r compareAndStackEpoch2}
-epoch2 <- readRDS(firstRdsEpoch2)
+```{r compare-epoch1-epoch2}
+# epoch2 <- readRDS(firstRdsEpoch2)
 epoch2 <- within(epoch2, {
   cmr.findings.pulse <- as.numeric(cmr.findings.pulse)
   abp.date <- NA
@@ -427,7 +369,7 @@ compareIDs(newdat = epoch2, olddat = allEpochs)
 compareFactors(newdat = epoch2, olddat = allEpochs)
 ```
 
-```{r coerceAndStackEpoch2}
+```{r coerce-stack-epoch1-epoch2}
 allEpochs <- coerceAndStack(newdat = epoch2, olddat = allEpochs)
 printAfterStackingText()
 ```
@@ -438,9 +380,8 @@ Here we refer to the Epoch 3 data as "new" and the previous epochs (Epochs 1 and
 
 Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Legacy code. TODO: Modernize to prevent this warning. -->
 
-```{r compareAndStackEpoch3}
-epoch3 <- readRDS(firstRdsEpoch3)
-
+```{r compare-epoch12-epoch3}
+# epoch3 <- readRDS(firstRdsEpoch3)
 epoch3 <- within(epoch3, {
   cmr.findings.pulse <- as.numeric(cmr.findings.pulse)
   abp.date <- NA
@@ -451,9 +392,9 @@ compareIDs(newdat = epoch3, olddat = allEpochs)
 compareFactors(newdat = epoch3, olddat = allEpochs)
 ```
 
-```{r coerceAndStackEpoch3}
+```{r coerce-stack-epoch12-epoch3}
 allEpochs <- coerceAndStack(newdat = epoch3, olddat = allEpochs)
-printAfterStackingText() 
+printAfterStackingText()
 ```
 
 ## Merge Epoch independent data
@@ -464,16 +405,15 @@ Ignore warning messages about NAs introduced by coercion: <!-- OAK 20180507: Leg
 
 ```{r}
 trackdat <- MAPfreeze.list$epoch_0$data$tracking.static
-# names(trackdat) <- gsub("\\_", "\\.", names(trackdat))
 
 # TODO: after next download, the subsetting won't be nec.
 trackdat.subset <- trackdat[, Cs(
-  map.id, elig.visit.consent.abpm, elig.visit.consent.lp,elig.visit.consent.lp.ineligible
+  map_id, elig_visit_consent_abpm, elig_visit_consent_lp, elig_visit_consent_lp_ineligible
 )]
 
 # this file has numeric map_id... but no duplicates
 trackdat.subset <- within(trackdat.subset, {
-  map.id <- formatC(map.id, width= 3, format= "d", flag= "0")
+  map_id <- formatC(map_id, width = 3, format = "d", flag = "0")
 })
 
 CheckNamesBeforeMerge(allEpochs, trackdat.subset, c('map.id'))
@@ -496,7 +436,6 @@ epochsPlus1 <- within(epochsPlus1, {
 
 ```{r}
 eligdat <- MAPfreeze.list$epoch_0$data$eligibility.static
-# names(eligdat) <- gsub("\\_", "\\.", names(eligdat))
 
 # There are a ton of problems with their map.id
 eligdat <- within(eligdat, {
@@ -543,7 +482,7 @@ alldat <- merge(
 )
 ```
 
-### Apply labels to raw data
+## Apply labels to raw data
 
 ```{r}
 # add label function
@@ -611,6 +550,8 @@ alldat <- callFunction("srt", functiondir, "Process SRT variables", alldat)
 ```
 
 # Set invalid values to missing
+
+Move to after raw data labeling.
 
 ```{r}
 #####################################
@@ -710,7 +651,7 @@ mem.composite <- read.csv(
 )
 
 colnames(mem.composite) <- c("map.id", "epoch", "np.executive.composite", "np.memory.composite")
-mem.composite$map.id <- formatC(mem.composite$map.id, width = 3,format = "d",flag = "0")
+mem.composite$map.id <- formatC(mem.composite$map.id, width = 3, format = "d", flag = "0")
 
 label(mem.composite$np.executive.composite) <- 'EF Composite'
 label(mem.composite$np.memory.composite) <- 'Memory Composite'
@@ -754,19 +695,19 @@ for (varname in labels.all$field_name){
 
 # The merged file
 ```{r, saveFinalFiles}
-# email from Kim, 23 Mar 2015: I recommend using data from MAP Automated 3T Brain MRI Breath Hold for MAP IDS 1-4, 6-10, and 12-25. This data was acquired at enrollment. MAP Automated 3T Brain MRI Epoch 1 is the enrollment dataset for MAP IDs 27-336. MAP 5,11, 26, 31, 77, 177, 184, 190, and 201 had no imaging.
+# email from Kim, 23 Mar 2015: I recommend using data from MAP Automated 3T Brain MRI Breath Hold for MAP IDS 1-4, 6-10, and 12-25. This data was acquired at enrollment. MAP Automated 3T Brain MRI Epoch 1 is the enrollment dataset for MAP IDs 27-336. MAP 5, 11, 26, 31, 77, 177, 184, 190, and 201 had no imaging.
 # In subsequent meetings, they explained that sometimes they will want to use the Breath Hold data for ids 1-25, and sometimes they won't.  We decided to make two files, one that uses the Breath Hold data for those 25 and one that doesn't.
 
 # 20 Oct 2016 (LS)--- tweaking code
 bHoldnames <- setdiff(names(alldat)[grep("^bHold\\.", names(alldat))], "bHold.scan.date")
 bHoldIndices <- match(bHoldnames, names(alldat))
 
-bHoldnamesWithCounterparts.temp <- bHoldnames[!(bHoldnames %in% c("bHold.session.id.11","bHold.scan.date.11"))]
+bHoldnamesWithCounterparts.temp <- bHoldnames[!(bHoldnames %in% c("bHold.session.id.11", "bHold.scan.date.11"))]
 regnames.temp <- gsub("^bHold\\.", "", bHoldnamesWithCounterparts.temp)
 regnames <- regnames.temp[regnames.temp %in% names(alldat)] # Identify counterpart that are actually in alldat
 bHoldnamesWithCounterparts <- bHoldnamesWithCounterparts.temp[regnames.temp %in% names(alldat)]
 # 19 Oct 2016: taking out this line--- it should not be necessary. LS
-#regnames <- regnames[!(regnames %in% c("session.id.11","scan.date.11"))]
+#regnames <- regnames[!(regnames %in% c("session.id.11", "scan.date.11"))]
 reglabels <- label(alldat[, regnames])
 
 # The file that uses the facemask 3T data for everyone
