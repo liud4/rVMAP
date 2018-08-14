@@ -1,6 +1,8 @@
 format_id <- function(data) {
   data %<>%
+    arrange(map_id) %>%
     mutate(
+      map_id = gsub("\\-\\-[0-9]", "", map_id),
       map_id = as.numeric(map_id)
     ) %>%
     filter(
@@ -8,7 +10,6 @@ format_id <- function(data) {
     ) %>%
     mutate(
       map_id = formatC(map_id, width = 3, format = "d", flag = "0")
-    )
-
-  cat("Variable `map_id` has been formatted appropriately.")
+    ) %>%
+    distinct(map_id, .keep_all = TRUE)
 }

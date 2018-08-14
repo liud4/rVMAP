@@ -3,8 +3,7 @@ dates <- function(dat){
     # Note that this function is called within the Eligibility
     # processing as well as within the main merge program
 
-    datevars <- setdiff(names(dat)[grepl("\\.date$", names(dat))],
-        c("abp.date", "usa.date"))
+    datevars <- setdiff(names(dat)[grepl("\\.date", names(dat))], c("abp.date", "usa.date"))
     # the eligibility dset doesn't have dob
     if("dob" %in% names(dat)) datevars <- c(datevars, "dob")
 
