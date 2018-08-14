@@ -6,7 +6,7 @@ Project (VMAP)
 Version: 0.1.0
 Authors@R: c(
     person(c("Omair", "A."), "Khan", 
-      email = c("omair.a.khan@vanderbilt.edu", "omair@prettynumbe.rs"), 
+      email = c("omair.a.khan@vumc.org", "omair@prettynumbe.rs"), 
       role = c("aut", "cre")),
     person("Dandan", "Liu", 
       email = "dandan.liu@vanderbilt.edu", 

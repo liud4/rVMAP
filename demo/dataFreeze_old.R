@@ -1,7 +1,7 @@
 # INSTEAD OF THIS, WRITE CODE SO THAT WE MAKE SURE THESE ARE ALL SPECIFIED AT THE BEGINNING.
 
 # install and load packages
-library("rVMAC")
+#library("rVMAC")
 load.pkg(c("Hmisc", "REDCapR"))
 
 # define important directories
