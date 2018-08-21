@@ -88,6 +88,22 @@ $("#TOC").toggle();
 rm(list = ls())
 options(datadist = NULL)
 
+packages <- Hmisc::Cs(
+  knitr,
+  dplyr,
+  lubridate,
+  tidyr,
+  stringr,
+  magrittr,
+  daff,
+  Hmisc,
+  formattable,
+  REDCapR,
+  secret
+)
+
+load_pkg(packages)
+
 ##%######################################################%##
 ####                modifiable settings                 ####
 # modify this variable as follows: quarterly scheduled merge = {TRUE}; off-cycle merge = {FALSE}
