@@ -13,14 +13,9 @@
 
 data_freeze <- function(box.dir = file.path("~", "box"),
                         quarterly.download,
-                        tokens.list = get_secret(name = "MAP_redcap_tokens.secret"),
+                        tokens.list = secret::get_secret(name = "MAP_redcap_tokens.secret"),
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
                         save = TRUE) {
-
-  # load required packages
-  require("Hmisc")
-  require("REDCapR")
-  require("secret")
 
   # define important directories
   vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
@@ -98,14 +93,14 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       df <- meta.df <- NULL
 
       # grab data
-      df <- redcap_read_oneshot(
+      df <- REDCapR::redcap_read_oneshot(
         redcap_uri = redcap.api.uri,
         token = current.token,
         raw_or_label = "raw",
         verbose = FALSE
       )$data
 
-      meta.df <- redcap_metadata_read(
+      meta.df <- REDCapR::redcap_metadata_read(
         redcap_uri = redcap.api.uri,
         token = current.token,
         verbose = FALSE
@@ -121,9 +116,10 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   }
 
   MAPfreeze.list$general$versions[["REDCap"]] <- as.character(
-    redcap_version(
+    REDCapR::redcap_version(
       redcap_uri = redcap.api.uri,
-      token = MAPfreeze.list$epoch_1$token[1]
+      token = MAPfreeze.list$epoch_1$token[1],
+      verbose = FALSE
     )
   )
 
@@ -138,11 +134,13 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     data.dir, "rawData",
     "MAPParticipantTracki_DATA_2015-08-26_1412.csv"
   )
+
   # The APOE data
   apoe.file <- file.path(
     data.dir, "rawData",
     "MAPAPOE_DATA_2015-08-26_1415.csv"
   )
+
   # Selected data from eligibility.
   elig.file <- file.path(
     data.dir, "rawData",
@@ -153,14 +151,17 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     med.dir,
     paste0("CholesterolMedNumbers_", med.file.date, ".csv")
   )
+
   afib.file <- file.path(
     med.dir,
     paste0("AFibMedNumbers_", med.file.date, ".csv")
   )
+
   antihyp.file <- file.path(
     med.dir, "old (save for reference)",
     paste0("AntihypertensiveMedNumbers_", med.file.date, ".csv")
   )
+
   diab.file <- file.path(
     med.dir,
     paste0("DiabetesMedNumbers_", med.file.date, ".csv")
@@ -171,26 +172,32 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     med.dir,
     paste0("antiHyp_BetaBlockers_", antihypSubtype.file.date, ".csv")
   )
+
   antihypBetaBlockerIfNotDrop.file <- file.path(
     med.dir,
     paste0("antiHyp_BetaBlockersIfNotDrops_", antihypSubtype.file.date, ".csv")
   )
+
   antihypACEInhib.file <- file.path(
     med.dir,
     paste0("antiHyp_ACEInhibitors_", antihypSubtype.file.date, ".csv")
   )
+
   antihypARB.file <- file.path(
     med.dir,
     paste0("antiHyp_ARBs_", antihypSubtype.file.date, ".csv")
   )
+
   antihypCCB.file <- file.path(
     med.dir,
     paste0("antiHyp_CaChannelBlockers_", antihypSubtype.file.date, ".csv")
   )
+
   antihypKSD.file <- file.path(
     med.dir,
     paste0("antiHyp_PotassiumSparingDiuretics_", antihypSubtype.file.date, ".csv")
   )
+
   antihypOther.file <- file.path(
     med.dir,
     paste0("antiHyp_Other_", antihypSubtype.file.date, ".csv")
@@ -208,6 +215,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     "ABP_RawAndDerived",
     "MapAbpData_Epoch1_20150625.rds"
   )
+
   srt.file <- file.path(
     data.raw.dir,
     "MAPSRTErrorAnalysisEpoch1_DATA_2017-09-01_0936.csv"
@@ -305,7 +313,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     token = rep("static.file", 2),
     data = list(
       readRDS(abp.raw.derived.file),
-      read.csv(apoe.file, stringsAsFactors = FALSE),
+      read.csv(apoe.file, stringsAsFactors = FALSE)
     ),
     metadata = rep("NA", 2)
   )

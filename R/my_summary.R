@@ -6,7 +6,7 @@ my_summary <- function(descr.var, group.var, data, overall = TRUE, test = TRUE, 
   summary = my.summaryM(
     descr.formula,
     data = data,
-    test = test
+    test = test,
     overall = overall,
     continuous = 6
   )

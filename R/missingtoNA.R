@@ -59,11 +59,11 @@ missingtoNA <- function(vec, mod.val, equal.val) {
       warning("Vector must be of class numeric, integer, or character.")
     }
   } else if (!missing(mod.val) & missing(equal.val)) { # mod.val only
-  if (any(class(vec) == "numeric")) {
-    case_when(
-      vec %% mod.val == 0 ~ NA_real_,
-      TRUE ~ vec
-    )
+    if (any(class(vec) == "numeric")) {
+      case_when(
+        vec %% mod.val == 0 ~ NA_real_,
+        TRUE ~ vec
+      )
     } else if (any(class(vec) == "integer")) {
       case_when(
         vec %% mod.val == 0 ~ NA_integer_,

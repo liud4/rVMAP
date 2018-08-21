@@ -1,34 +1,40 @@
-callFunction <- function(functionName, filepath, purpose, dat, ...){
-    # calls function functionName on dataset dat with arguments ...
+callFunction <- function(functionName, purpose, dat, ...){
+  # calls function functionName on dataset dat with arguments ...
 
-    cat("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+  cat("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 
-    oldnames <- names(dat)
+  oldnames <- names(dat)
 
-    otherArgs <- list(...)
+  otherArgs <- list(...)
 
-    # if that doesn't work:
-    #http://stackoverflow.com/questions/3142731/r-using-a-list-for-ellipsis-arguments
-    #otherArgs <- as.list(substitute(list(...)))[-1L]
+  # if that doesn't work:
+  #http://stackoverflow.com/questions/3142731/r-using-a-list-for-ellipsis-arguments
+  #otherArgs <- as.list(substitute(list(...)))[-1L]
 
-    cat("Calling function ", functionName, "().",
-        "\n    Purpose: ", purpose, ".\n", sep= "")
-    source(file.path(filepath, paste0(functionName, ".R")))
-    dat <- do.call(functionName, c(list(dat= dat), otherArgs))
+  cat("Calling function ", functionName, "().",
+      "\n    Purpose: ", purpose, ".\n", sep= "")
+  #source(file.path(filepath, paste0(functionName, ".R")))
+  dat <- do.call(functionName, c(list(dat= dat), otherArgs))
 
-    newnames <- names(dat)
-    cat("New variables:\n")
-    addedvars <- setdiff(newnames, oldnames)
-    numAddedvars <- length(addedvars)
-    if (numAddedvars == 0) {
-        cat("None.\n")
-    } else if (numAddedvars <= 100) {
-        print(data.frame(addedvars)) 
-    } else {
-        cat("Added ", numAddedvars, " new variables.\n", sep= "")
-    }
+  newnames <- names(dat)
+  cat("New variables:\n")
+  addedvars <- setdiff(newnames, oldnames)
+  numAddedvars <- length(addedvars)
+
+  if (numAddedvars == 0) {
+    cat("None.\n")
+  } else {
+    print(data.frame(addedvars))
+  }
+    #if (numAddedvars == 0) {
+    #    cat("None.\n")
+    #} else if (numAddedvars <= 100) {
+    #    print(data.frame(addedvars))
+    #} else {
+    #    cat("Added ", numAddedvars, " new variables.\n", sep= "")
+    #}
 
     cat("\nCurrent dimensions:", dim(dat), "\n")
     cat("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
     dat
-}
+  }

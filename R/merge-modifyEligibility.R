@@ -1,19 +1,10 @@
-# Changes
+#' Perform a variety of data cleaning on eligibility data.
+#'
+#' @param elig_data The eligibility data frame
+#' @return The tidied eligibility data frame.
+#' @export
 
-## 16 Mar 2015, LS:
-#  Added processing of cdr (the redcap values are not the cdr values)
-
-## 10 Apr 2015, LS:
-#  Changed naming of cdr vars to match enrollment db
-#  Changed date processing to incorporate 'missing' code from kim
-
-## 06 May 2015 JN:
-#  Added additional eligibility variables to keep
-
-## 02 July 2015 JN & 20 July 2015 LS:
-#  Added additional eligibility variables to keep
-
-modify_eligibility <- function(data) {
+modify_eligibility <- function(elig_data) {
   # Returns data (should be eligibility data),
   # keeping only the variables we want
   # with derived variables added
@@ -30,62 +21,56 @@ modify_eligibility <- function(data) {
   # data[, numericCols] <- apply(data[, numericCols], 2,
   #                              minus8888)
 
-  data %<>% mutate_if(
+  elig_data %<>% mutate_if(
     is.numeric,
     funs(
-      missingtoNA(., equal.val = -9999),
-      missingtoNA(., equal.val = -8888)
+      missingtoNA(., equal.val = c(-9999, -8888))
     )
   )
 
-  # TODO: ???
-  # process dates
-  data <- dates(data)
+  elig_data <- dates(elig_data)
 
-  data$faq.redcap <- data$faq
+  # data$faq.redcap <- data$faq
   faqvars <- paste0("faq", formatC(1:10, width = 2, flag = "0"))
-  # 02 Mar 2015 (meeting): AJ and KG want to check IDs w/ any FAQ
-  # items missing
-  data$faq <- apply(data[, faqvars], 1, totscore, threshold = 1)
 
-  data$np.srt.immed.redcap <- data$np.srt.immed
+  elig_data$faq <- apply(elig_data[, faqvars], 1, totscore, threshold = 1)
+
+  elig_data$np.srt.immed.redcap <- elig_data$np.srt.immed
   np.srt.immedvars <- paste0("np.srt", 1:6)
-  data$np.srt.immed <- apply(data[, np.srt.immedvars], 1, totscore, threshold = 1)
+  elig_data$np.srt.immed <- apply(elig_data[, np.srt.immedvars], 1, totscore, threshold = 1)
 
-  data$np.cfl.redcap <- data$np.cfl
+  elig_data$np.cfl.redcap <- elig_data$np.cfl
   np.cflvars <- c(
     paste0("np.cfl.fq", 1:4),
     paste0("np.cfl.cq", 1:4),
     paste0("np.cfl.lq", 1:4)
   )
-  data$np.cfl <- apply(data[, np.cflvars], 1, totscore, threshold = 1)
+  elig_data$np.cfl <- apply(elig_data[, np.cflvars], 1, totscore, threshold = 1)
 
-  data$np.veg.redcap <- data$np.veg
+  elig_data$np.veg.redcap <- elig_data$np.veg
   np.vegvars <- paste0("np.vegq", 1:4)
-  data$np.veg <- apply(data[, np.vegvars], 1, totscore, threshold = 1)
+  elig_data$np.veg <- apply(elig_data[, np.vegvars], 1, totscore, threshold = 1)
 
-  data$np.bvrt.redcap <- data$np.bvrt
+  elig_data$np.bvrt.redcap <- elig_data$np.bvrt
   np.bvrtvars <- paste0("np.bvrt", formatC(1:10, width = 2, flag = "0"))
-  data$np.bvrt <- apply(data[, np.bvrtvars], 1, totscore, threshold = 1)
+  elig_data$np.bvrt <- apply(elig_data[, np.bvrtvars], 1, totscore, threshold = 1)
 
-  # 21 July 2015: Truncate tmta and tmtb in eligibility
-  data$np.tmta.trun <- ifelse(data$np.tmta > 150, 150, data$np.tmta)
-  data$np.tmtb.trun <- ifelse(data$np.tmtb > 240, 240, data$np.tmtb)
+  elig_data$np.tmta.trun <- ifelse(elig_data$np.tmta > 150, 150, elig_data$np.tmta)
+  elig_data$np.tmtb.trun <- ifelse(elig_data$np.tmtb > 240, 240, elig_data$np.tmtb)
 
-  data <- within(data, {
-
-    # email from KG: we will use cdr as ordered factor,
-    # not as numeric values 0.5, 1, etc.
-    cdr.factor <- factor(cdr,
-                         levels = c(0, 1, 2, 4, 6),
-                         labels = c("0","0.5","1","2","3"),
-                         ordered = TRUE)
+  elig_data <- within(elig_data, {
+    cdr.factor <- factor(
+      cdr,
+      levels = c(0, 1, 2, 4, 6),
+      labels = c("0", "0.5", "1", "2", "3"),
+      ordered = TRUE
+    )
 
     label(cdr.date)="CDR - Date of Administration, from Eligibility"
     label(cdr)="CDR Global Score- raw REDCap value. Probably not what you want."
     label(cdr.factor)="CDR Global Score, from Eligibility, recoded"
     label(faq.date)="FAQ Date of Administration, from Eligibility"
-    label(faq.redcap)="FAQ Total Score, from Eligibility"
+    #label(faq.redcap)="FAQ Total Score, from Eligibility"
     label(faq)="FAQ Total Score, from Eligibility, recalculated"
     label(np.date)="NP Assessment - date of administration, from Eligibility"
     label(np.moca)="MoCA total score, from Eligibility"
@@ -186,7 +171,7 @@ modify_eligibility <- function(data) {
     np.tmtb.trun
   )
 
-  dataToKeep <- data[, c("map.id", keep.vars)]
+  dataToKeep <- elig_data[, c("map.id", keep.vars)]
   names(dataToKeep) <- c("map.id", paste0(keep.vars, ".elig"))
 
   dataToKeep

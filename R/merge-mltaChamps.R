@@ -4,7 +4,7 @@
 #  re-doing Champs individ kcal items so they are individually usable
 #  (request from Liz & AJ, 24 Mar 2015)
 
-mltaChamps <- function(dat){
+mltaChamps <- function(dat) {
   # Returns dat with MLTA & CHAMPS derived variables added
   # and with some totals that were calculated in REDCap recalculated
   # Make sure to source "scoringFunctions.R" before calling this function
@@ -74,13 +74,13 @@ mltaChamps <- function(dat){
       paste0(label(dat[, vname]), " (kcal, recalculated)")
   }
 
-  dat$mlta.min <- apply(dat[, Cs(
+  dat$mlta.min <- apply(dat[, Hmisc::Cs(
     mlta01 , mlta02 , mlta03 , mlta04 , mlta05 , mlta06 , mlta07 ,
     mlta08 , mlta09 , mlta10 , mlta11 , mlta12 , mlta13 , mlta14 ,
     mlta15 , mlta16 , mlta17 , mlta18 , mlta19 , mlta20 , mlta21 ,
     mlta22 , mlta23 ,mlta24 , mlta25)], 1, totscore)
 
-  dat$mlta.kcal <- apply(dat[, Cs(
+  dat$mlta.kcal <- apply(dat[, Hmisc::Cs(
     mlta01.kcal , mlta02.kcal , mlta03.kcal , mlta04.kcal ,
     mlta05.kcal , mlta06.kcal , mlta07.kcal ,
     mlta08.kcal , mlta09.kcal , mlta10.kcal , mlta11.kcal ,
@@ -89,7 +89,7 @@ mltaChamps <- function(dat){
     mlta19.kcal , mlta20.kcal , mlta21.kcal ,
     mlta22.kcal , mlta23.kcal , mlta24.kcal , mlta25.kcal)], 1, totscore)
 
-  dat$champs.caloricexpend.all <- apply(dat[, Cs(
+  dat$champs.caloricexpend.all <- apply(dat[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
     champs10.kcal, champs14.kcal,
     champs15.kcal, champs16.kcal, champs19.kcal,
@@ -100,7 +100,7 @@ mltaChamps <- function(dat){
     champs40.kcal)], 1,
     totscore)
 
-  dat$champs.caloricexpend.mod <- apply(dat[, Cs(
+  dat$champs.caloricexpend.mod <- apply(dat[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
     champs14.kcal, champs15.kcal, champs16.kcal, champs19.kcal,
     champs21.kcal, champs23.kcal, champs24.kcal,
@@ -109,7 +109,7 @@ mltaChamps <- function(dat){
     champs36.kcal, champs37.kcal, champs38.kcal,
     champs40.kcal)], 1, totscore)
 
-  dat$champs.freqall <- apply(dat[, Cs(
+  dat$champs.freqall <- apply(dat[, Hmisc::Cs(
     champs07.wk, champs09.wk,
     champs10.wk, champs14.wk, champs15.wk, champs16.wk, champs19.wk,
     champs20.wk, champs21.wk, champs22.wk, champs23.wk, champs24.wk,
@@ -118,7 +118,7 @@ mltaChamps <- function(dat){
     champs35.wk, champs36.wk, champs37.wk, champs38.wk, champs39.wk,
     champs40.wk)], 1, totscore)
 
-  dat$champs.freqmod <- apply(dat[, Cs(
+  dat$champs.freqmod <- apply(dat[, Hmisc::Cs(
     champs07.wk, champs09.wk,
     champs14.wk, champs15.wk, champs16.wk, champs19.wk,
     champs21.wk, champs23.wk, champs24.wk,

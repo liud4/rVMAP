@@ -1,29 +1,8 @@
-# 12 Jun 2015
-# Merged variable derivation with exclusion criteria
-
-# 18 June 2015
-# Changed a conversion from cm^2 to mm^2
-
-# 21 September 2015
-# Email from Susan: Myocardial contraction fraction should have 1.05 in the denominator, not the numerator
-
-# 19 Aug 2016, LS
-#  Commenting out last line--- the function call should not be included in here
-#  Explicitly using dat <- within(dat, ... & returning dat
-
-# 01 Sep 2016, JN
-## Added pp.index (requires pp, medhxEtc must be called first)
-## Updated  qmass.lv.stroke.volume to remove missing values
-
-# 19 Sep 2016, LS
-## Splitting into two functions for clarity (first will set invalid values to missing)
-
-
 # NOTE: this function uses bsa, which is recalculated in medhxEtc.
 #   That function needs to be called before this one.
 # NOTE: ALSO: the function invalidCmr needs to be called before this one.
-cardiacMRI <- function(dat){
-  
+
+cardiacMRI <- function(dat) {
   dat <- within(dat, {
     #label(scan.date)="Scan date"
     label(qmass.usable)="Is QMass data usable?"
@@ -130,69 +109,67 @@ cardiacMRI <- function(dat){
     label(pwv)="Pulse Wave Velocity"
     label(pwv.comments)="Pulse Wave Velocity Comments"
     label(pulse.wave.velocity.complete)="Complete?"
-    #Setting Units
-    
-    
+
     #Setting Factors(will create new variable for factors)
-    qmass.usable.factor = factor(qmass.usable,levels=c("1","0"))
-    qmass.complete.factor = factor(qmass.complete,levels=c("0","1","2"))
-    qstrain.usable.factor = factor(qstrain.usable,levels=c("1","0"))
-    qstrain.complete.factor = factor(qstrain.complete,levels=c("0","1","2"))
-    pwv.usable.factor = factor(pwv.usable,levels=c("1","0"))
-    pulse.wave.velocity.complete.factor = factor(pulse.wave.velocity.complete,levels=c("0","1","2"))
-    
-    levels(qmass.usable.factor)=c("Yes","No")
-    levels(qmass.complete.factor)=c("Incomplete","Unverified","Complete")
-    levels(qstrain.usable.factor)=c("Yes","No")
-    levels(qstrain.complete.factor)=c("Incomplete","Unverified","Complete")
-    levels(pwv.usable.factor)=c("Yes","No")
-    levels(pulse.wave.velocity.complete.factor)=c("Incomplete","Unverified","Complete")
-    
+    qmass.usable.factor = factor(qmass.usable, levels = c("1", "0"))
+    qmass.complete.factor = factor(qmass.complete, levels = c("0", "1", "2"))
+    qstrain.usable.factor = factor(qstrain.usable, levels = c("1", "0"))
+    qstrain.complete.factor = factor(qstrain.complete, levels = c("0", "1", "2"))
+    pwv.usable.factor = factor(pwv.usable, levels = c("1", "0"))
+    pulse.wave.velocity.complete.factor = factor(pulse.wave.velocity.complete, levels = c("0", "1", "2"))
+
+    levels(qmass.usable.factor) = c("Yes", "No")
+    levels(qmass.complete.factor) = c("Incomplete", "Unverified", "Complete")
+    levels(qstrain.usable.factor) = c("Yes", "No")
+    levels(qstrain.complete.factor) = c("Incomplete", "Unverified", "Complete")
+    levels(pwv.usable.factor) = c("Yes", "No")
+    levels(pulse.wave.velocity.complete.factor) = c("Incomplete", "Unverified", "Complete")
+
   })
-  
+
   #within(dat,{
   #dat <- within(dat,{
    # qmass.lv.stroke.volume=ifelse(qmass.lv.stroke.volume==-9999, NA, qmass.lv.stroke.volume)
     #pp.index=pp/qmass.lv.stroke.volume
     #label(pp.index)       = 'Echo Pulse Pressure Indexed by Stroke Volume'
-    
+
   #  qmass.lv.mass <- ifelse(qmass.lv.mass==-9999,NA,qmass.lv.mass)
    # qmass.lv.mass <- as.numeric(qmass.lv.mass)
-    
+
     #qmass.cardiac.index <- qmass.lv.cardiac.output/bsa
     #tomtec.cardiac.index <- (tomtec.stroke.volume*qmass.heart.rate)/bsa
     #tomtec.cardiac.index <- ifelse(dat$map.id %in% c("139","173","228"),(tomtec.stroke.volume*cmr.findings.pulse)/bsa,tomtec.cardiac.index)
     #tomtec.cardiac.index <- tomtec.cardiac.index/1000
-    #qmass.lv.mass.index <- qmass.lv.mass/((weight^0.425*height^0.725)*0.007184) 
+    #qmass.lv.mass.index <- qmass.lv.mass/((weight^0.425*height^0.725)*0.007184)
     #qmass.lv.es.volume.index <- qmass.lv.es.volume/((weight^0.425)*(height^0.725)*0.007184)
-    
-    #qmass.lv.ed.volume.index <- qmass.lv.ed.volume/((weight^0.425)*(height^0.725)*0.007184) 
-    
+
+    #qmass.lv.ed.volume.index <- qmass.lv.ed.volume/((weight^0.425)*(height^0.725)*0.007184)
+
     #qmass.lv.stroke.volume.index <- qmass.lv.stroke.volume/((weight^0.425)*(height^0.725)*0.007184)
-    
-    #qmass.lv.cardiac.index <- qmass.lv.cardiac.output/((weight^0.425)*(height^0.725)*0.007184) 
-    
+
+    #qmass.lv.cardiac.index <- qmass.lv.cardiac.output/((weight^0.425)*(height^0.725)*0.007184)
+
     # Change to numeric, some numbers include commas
     #qflow.ascending.aorta.max.area <- as.numeric(gsub(",","", qflow.ascending.aorta.max.area))
     #qflow.ascending.aorta.max.area <- ifelse(qflow.ascending.aorta.max.area==-9999,NA,qflow.ascending.aorta.max.area)
-    
+
     #qflow.ascending.aorta.min.area <- as.numeric(gsub(",","", qflow.ascending.aorta.min.area))
     #qflow.ascending.aorta.min.area <- ifelse(qflow.ascending.aorta.min.area==-9999,NA,qflow.ascending.aorta.min.area)
     #cmr.findings.pp <- as.numeric(cmr.findings.pp)
-    
+
     #qmass.ascen.ao.compliance <- (qflow.ascending.aorta.max.area - qflow.ascending.aorta.min.area)/(cmr.findings.pp)
-    
+
     # Change to numeric, some numbers include commas
     #qflow.descending.aorta.max.area <- as.numeric(gsub(",","", qflow.descending.aorta.max.area))
     #qflow.descending.aorta.max.area <- ifelse(qflow.descending.aorta.max.area==-9999,NA,qflow.descending.aorta.max.area)
-    
+
     #qflow.descending.aorta.min.area <- as.numeric(gsub(",","", qflow.descending.aorta.min.area))
     #qflow.descending.aorta.min.area <- ifelse(qflow.descending.aorta.min.area==-9999,NA,qflow.descending.aorta.min.area)
-    
+
     #qmass.descend.ao.compliance <- (qflow.descending.aorta.max.area - qflow.descending.aorta.min.area)/(cmr.findings.pp)
-    
+
     #qmass.myocardial.contraction.fraction <- (qmass.lv.stroke.volume)/(qmass.lv.mass*1.05)
-    
+
     # Labeling Variables
     #label(qmass.cardiac.index) <- "Cardiac Index - QMASS"
     #label(tomtec.cardiac.index) <- "Cardiac Index - TomTec"
@@ -204,7 +181,7 @@ cardiacMRI <- function(dat){
     #label(qmass.ascen.ao.compliance) <- "Ascending aortic compliance in mm2/mmHG - QMASS"
     #label(qmass.descend.ao.compliance) <- "Descending aortic compliance in mm2/mmHG - QMASS"
     #label(qmass.myocardial.contraction.fraction) <- "Myocardial Contraction Fraction - QMASS"
-    
+
 #  })
 
     dat

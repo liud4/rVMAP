@@ -1,33 +1,31 @@
-# Changes
-
-# 27 Feb 2015, LS:
-## Added preprocessing for .notes variables
-
-# 04 Mar 2015, LS:
-## moved missing-value function definitions to a separate file
-
-# 15 Dec 2016, LS:
-## Moved Dandan's pvlt code to mergeWithinEpochs function---
-##    it can't be called from within this file because
-##    in Epoch1, the pvlt vars aren't part of the main dataset
-
-preprocessingMain <- function(dat){
+preprocessingMain <- function(dat) {
   # Returns dat with some preprocessing steps applied
   # To be called BEFORE the redcap-supplied R file
 
-
   # For any numeric variable, change value of -9999 to NA
-  numericCols <- names(dat)[sapply(dat, is.numeric)]
-  dat[, numericCols] <- apply(dat[, numericCols], 2, minus9999)
-  dat[, numericCols] <- apply(dat[, numericCols], 2, minus7777)
+  dat <- dat %>%
+    mutate_if(
+      ~ any(class(.) %in% c("numeric", "integer", "character")),
+      ~ missingtoNA(., equal.val = c(-9999, -7777))
+    )
+
+  dat <- dat %>%
+    mutate_at(
+      grep("ccqself[0-9]+|ccqinform[0-9]+", names(.)),
+      ~ missingtoNA(., equal.val = -2222)
+    )
+
+  # numericCols <- names(dat)[sapply(dat, is.numeric)]
+  # dat[, numericCols] <- apply(dat[, numericCols], 2, minus9999)
+  # dat[, numericCols] <- apply(dat[, numericCols], 2, minus7777)
 
   # As of 17 Dec 2014, the ccqself and ccqinform vars have values of -2222,
   # which is equivalent to -8888 (& we want to count as missing)
-  colsFor2222 <- c(
-    names(dat)[grepl("ccqself[0-9]+", names(dat))],
-    names(dat)[grepl("ccqinform[0-9]+", names(dat))])
-
-  dat[, colsFor2222] <- apply(dat[, colsFor2222], 2, minus2222)
+  # colsFor2222 <- c(
+  #   names(dat)[grepl("ccqself[0-9]+", names(dat))],
+  #   names(dat)[grepl("ccqinform[0-9]+", names(dat))])
+  #
+  # dat[, colsFor2222] <- apply(dat[, colsFor2222], 2, minus2222)
 
   # There is at least one variable for which we want to
   # preserve values of -8888 (i.e., we do not want to count -8888
@@ -44,11 +42,18 @@ preprocessingMain <- function(dat){
   # to count -8888 as missing, and to specify the exceptions instead.
 
   # Here are the numeric vars for which we want to preserve values of -8888:
-  keep8888 <- c(
-    "mhx_tobac_quit"
-  )
-  colsFor8888 <- setdiff(numericCols, keep8888)
-  dat[, colsFor8888] <- apply(dat[, colsFor8888], 2, minus8888)
+
+  dat <- dat %>%
+    mutate_if(
+      ~ any(class(.) %in% c("numeric", "integer", "character")) & any(!colnames(.) %in% "mhx_tobac_quit"),
+      ~ missingtoNA(., equal.val = -8888)
+    )
+
+  # keep8888 <- c(
+  #   "mhx_tobac_quit"
+  # )
+  # colsFor8888 <- setdiff(numericCols, keep8888)
+  # dat[, colsFor8888] <- apply(dat[, colsFor8888], 2, minus8888)
 
   if(FALSE){
     # temp code to help:
@@ -64,33 +69,33 @@ preprocessingMain <- function(dat){
   # email from KG, 06 Aug 2014:  in ecogself, set 0 (DK) to missing
   # keeping the underscores here because the processing needs
   # to happen before the renaming
-  ecogself_mem <- Cs(
+  ecogself_mem <- Hmisc::Cs(
     ecogself_mem01, ecogself_mem02, ecogself_mem03, ecogself_mem04,
     ecogself_mem05, ecogself_mem06, ecogself_mem07, ecogself_mem08
   )
 
-  ecogself_lg <- Cs(
+  ecogself_lg <- Hmisc::Cs(
     ecogself_lang01, ecogself_lang02, ecogself_lang03,
     ecogself_lang04, ecogself_lang05, ecogself_lang06,
     ecogself_lang07, ecogself_lang08, ecogself_lang09
   )
 
-  ecogself_vs <- Cs(
+  ecogself_vs <- Hmisc::Cs(
     ecogself_vis01, ecogself_vis02, ecogself_vis03, ecogself_vis04,
     ecogself_vis05, ecogself_vis06, ecogself_vis07
   )
 
-  ecogself_plan <- Cs(
+  ecogself_plan <- Hmisc::Cs(
     ecogself_plan01, ecogself_plan02, ecogself_plan03,
     ecogself_plan04, ecogself_plan05
   )
 
-  ecogself_org <- Cs(
+  ecogself_org <- Hmisc::Cs(
     ecogself_org01, ecogself_org02, ecogself_org03,
     ecogself_org04, ecogself_org05, ecogself_org06
   )
 
-  ecogself_att <- Cs(
+  ecogself_att <- Hmisc::Cs(
     ecogself_attn01, ecogself_attn02,
     ecogself_attn03, ecogself_attn04
   )
@@ -103,13 +108,19 @@ preprocessingMain <- function(dat){
     ecogself_org,
     ecogself_att
   )
-  dat[, ecogself_underscore] <- apply(dat[, ecogself_underscore], 2, zeroNA)
 
+  # dat[, ecogself_underscore] <- apply(dat[, ecogself_underscore], 2, zeroNA)
+
+  dat <- dat %>%
+    mutate_at(
+      vars(ecogself_underscore),
+      ~ missingtoNA(., equal.val = 0)
+    )
 
   # 27 Feb 2015:  _notes variables
   notesvars <- names(dat)[grepl("\\_notes\\>", names(dat))]
   dat[, notesvars] <- apply(dat[, notesvars], 2, function(vec) {
-    ifelse(str_trim(vec) %in% c('-8888', '-9999', ""), NA, vec) })
+    ifelse(stringr::str_trim(vec) %in% c('-8888', '-9999', ""), NA, vec) })
 
   dat
 }
