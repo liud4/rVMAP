@@ -1,0 +1,35 @@
+REDCapR-package         R utilities for interacting with a REDCap data
+                        system <URL: http://www.project-redcap.org/>
+create_batch_glossary   Creates a 'base::data.frame()' that help
+                        batching long-running read and writes.
+metadata_utilities      Manipulate and interpret the metadata of a
+                        REDCap project.
+redcap_column_sanitize
+                        Sanitize to adhere to REDCap character encoding
+                        requirements.
+redcap_download_file_oneshot
+                        Download a file from a REDCap project record.
+redcap_metadata_read    Export the metadata of a REDCap project.
+redcap_project          A 'Reference Class' to make later calls to
+                        REDCap more convenient.
+redcap_read             Read records from a REDCap project in subsets,
+                        and stacks them together before returning a
+                        'base::data.frame()'.
+redcap_read_oneshot     Read/Export records from a REDCap project.
+redcap_read_oneshot_eav
+                        Read/Export records from a REDCap project.
+redcap_upload_file_oneshot
+                        Upload a file into to a REDCap project record.
+redcap_variables        Enumerate the exported variables.
+redcap_version          Determine version of REDCap instance
+redcap_write            Write/Import records to a REDCap project.
+redcap_write_oneshot    Write/Import records to a REDCap project.
+replace_nas_with_explicit
+                        Create explicit factor level for missing
+                        values.
+retrieve_credential     Read a token and other credentials from a
+                        (non-REDCap) database or file.
+retrieve_token          Read a token from a (non-REDCap) database.
+sanitize_token          Validate and sanitize the user's REDCap token.
+validate                Inspect a 'base::data.frame()' to anticipate
+                        problems before writing to a REDCap project.

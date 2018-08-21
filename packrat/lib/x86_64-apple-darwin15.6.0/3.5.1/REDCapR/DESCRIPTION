@@ -1,0 +1,45 @@
+Package: REDCapR
+Title: Interaction Between R and REDCap
+Description: Encapsulates functions to streamline calls from R to the REDCap
+    API.  REDCap (Research Electronic Data CAPture) is a web application for
+    building and managing online surveys and databases developed at Vanderbilt
+    University.  The Application Programming Interface (API) offers an avenue
+    to access and modify data programmatically, improving the capacity for
+    literate and reproducible programming.
+Version: 0.9.8
+Date: 2017-05-18
+Authors@R: c(person("Will", "Beasley", role = c("aut", "cre"), email =
+    "wibeasley@hotmail.com"), person("David", "Bard", role = "ctb"),
+    person("Thomas", "Wilson", role = "ctb"), person(given="John J",
+    family="Aponte", role = "ctb", email="john.aponte@isglobal.org"), 
+    person("Rollie", "Parrish", role = "ctb", email =
+    "rparrish@flightweb.com"), person("Benjamin", "Nutter",
+    role = "ctb"), person("Andrew", "Peters",
+    role = "ctb"), person("Hao", "Zhu",
+    role = "ctb"))
+Author: Will Beasley [aut, cre],
+    David Bard [ctb],
+    Thomas Wilson [ctb],
+    John J Aponte [ctb],
+    Rollie Parrish [ctb],
+    Benjamin Nutter [ctb],
+    Andrew Peters [ctb],
+    Hao Zhu [ctb]
+Maintainer: Will Beasley <wibeasley@hotmail.com>
+URL: https://github.com/OuhscBbmc/REDCapR, http://ouhsc.edu/bbmc/,
+        http://project-redcap.org
+BugReports: https://github.com/OuhscBbmc/REDCapR/issues
+Depends: R(>= 3.0.0), stats
+Imports: data.table, dplyr, httr(>= 1.0.0.9000), magrittr, methods,
+        readr, tibble, tidyr
+Suggests: devtools, kableExtra, knitr, rmarkdown, RODBC, RODBCext,
+        testthat (>= 0.9)
+License: GPL-2
+LazyData: TRUE
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-05-18 17:45:30 UTC; wibeasley
+Repository: CRAN
+Date/Publication: 2017-05-18 18:16:00 UTC
+Built: R 3.5.0; ; 2018-04-25 02:35:50 UTC; unix

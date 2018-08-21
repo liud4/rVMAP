@@ -1,0 +1,29 @@
+Package: daff
+Version: 0.3.0
+Title: Diff, Patch and Merge for Data.frames
+Authors@R: c( person("Paul", "Fitzpatrick", email="paul@robotrebuilt.com", role=c("aut"),
+                     comment="JavaScript original, http://paulfitz.github.io/daff/"),
+              person("Edwin", "de Jonge", email="edwindjonge@gmail.com", role=c("aut","cre"),
+                     comment="R wrapper"),
+              person( c("Gregory", "R."), "Warnes", email="gwarnes@mdsol.com", role=c("aut"))
+              )
+Description: Diff, patch and merge for data frames. Document changes in data
+    sets and use them to apply patches. Changes to data can be made visible by using
+    render_diff. The V8 package is used to wrap the 'daff.js' JavaScript library
+    which is included in the package.
+License: MIT + file LICENSE
+LazyData: true
+Imports: V8 (>= 0.6), jsonlite, utils
+URL: http://github.com/edwindj/daff
+Suggests: testthat
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-05-10 08:09:32 UTC; edwin
+Author: Paul Fitzpatrick [aut] (JavaScript original,
+    http://paulfitz.github.io/daff/),
+  Edwin de Jonge [aut, cre] (R wrapper),
+  Gregory R. Warnes [aut]
+Maintainer: Edwin de Jonge <edwindjonge@gmail.com>
+Repository: CRAN
+Date/Publication: 2017-05-10 08:16:35 UTC
+Built: R 3.5.0; ; 2018-04-23 07:33:19 UTC; unix

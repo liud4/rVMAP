@@ -1,0 +1,9 @@
+daff                    Data diff, patch and merge for R
+diff_data               Do a data diff
+differs_from            differs from,
+merge_data              Merge two tables based on a parent version
+patch_data              patch data
+render_diff             Render a data_diff to html
+which_conflicts         return which rows of a merged 'data.frame'
+                        contain conflicts
+write_diff              Write or read a diff to or from a file

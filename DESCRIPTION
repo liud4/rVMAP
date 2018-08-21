@@ -1,9 +1,9 @@
 Package: rVMAP
 Type: Package
 Title: A research package for improving statistical collaboration between
-VMAC and VUMC Department of Biostatistics for the Vanderbilt Memory and Aging 
-Project (VMAP)
-Version: 0.1.0
+    VMAC and VUMC Department of Biostatistics for the Vanderbilt Memory and Aging 
+    Project (VMAP)
+Version: 0.9.0
 Authors@R: c(
     person(c("Omair", "A."), "Khan", 
       email = c("omair.a.khan@vumc.org", "omair@prettynumbe.rs"), 
@@ -23,3 +23,14 @@ BugReports: https://github.com/liud4/rVMAP/issues
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports: knitr,
+    dplyr,
+    lubridate,
+    tidyr,
+    stringr,
+    daff,
+    Hmisc,
+    formattable,
+    REDCapR,
+    secret,
+    magrittr
