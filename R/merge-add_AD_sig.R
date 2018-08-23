@@ -1,11 +1,10 @@
-#' A postprocessing function to derive and add AD signature McEvoy and Schwarz
+#' Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 #'
-#' @param dat A dataframe containing VMAC variables
-#' @return The input dataframe and two new variables (AD.sig.mcevoy and AD.sig.schwarz)
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added AD signature variables.
 #' @export
 
-addADsig <- function(dat) {
-
+derive_AD_signature <- function(data) {
   schwarz <- Hmisc::Cs(
     rh.entorhinal.thickness,
     rh.inferiortemporal.thickness,
@@ -35,7 +34,7 @@ addADsig <- function(dat) {
   mcevoy.coef <- c(0.709, 0.597, 0.506, 0.453, 0.395, 0.328, 0.269, 0.250)
 
   ## create mcevoy.Y variables
-  dat <- dat %>%
+  data <- data %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
       avg.hippocampus = mean(c(right.hippocampus, left.hippocampus)),
@@ -51,10 +50,10 @@ addADsig <- function(dat) {
   myfit <- paste0("fit.", 1:length(unique(mcevoy.Y)))
   mcevoy.all.temp <- NULL
 
-  #for (i in seq_along(unique(dat$epoch))) {
+  #for (i in seq_along(unique(data$epoch))) { # OAK 20180823: Once Epoch 4 data is available, this should be uncommented.
   for (i in 1:3) {
 
-    epoch.df <- dat %>%
+    epoch.df <- data %>%
       dplyr::filter(epoch == i) %>%
       select(
         one_of(
@@ -105,11 +104,11 @@ addADsig <- function(dat) {
     mcevoy.all.temp <- rbind(mcevoy.all.temp, mcevoy.temp)
   }
 
-  dat <- merge(dat, mcevoy.all.temp, by = c("map.id", "epoch"), all.x = TRUE)
+  data <- merge(data, mcevoy.all.temp, by = c("map.id", "epoch"), all.x = TRUE)
 
-  dat$AD.sig.schwarz <- rowSums(dat[, schwarz], na.rm = FALSE)
+  data$AD.sig.schwarz <- rowSums(data[, schwarz], na.rm = FALSE)
 
-  dat <- within(dat, {
+  data <- within(data, {
     label(avg.hippocampus) <- "Avg hippocampus vol - T1 3T FreeSurfer"
     label(avg.entorhinal.thickness) <- "Avg entorhinal cortex thickness - T1 3T FS"
     label(avg.middletemporal.thickness) <- "Avg middletemporal thickness - T1 3T FS"
@@ -122,4 +121,5 @@ addADsig <- function(dat) {
     label(AD.sig.schwarz) <- "AD signature - Schwarz"
   })
 
+  return(data)
 }

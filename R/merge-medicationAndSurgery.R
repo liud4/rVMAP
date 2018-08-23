@@ -1,14 +1,16 @@
-medicationAndSurgery <- function(
-  dat, diabFile, cholFile,
-  #antihypFile,
-  afibFile, afibsurgFile,
-  antihypBetaBlockerFile, antihypBetaBlockerIfNotDropFile,
-  antihypACEInhibFile,
-  antihypARBFile, antihypCCBFile, antihypKSDFile,
-  antihypOtherFile) {
-  # Returns dat with medication and surgery derived variables added
+#' Derive, label, and add medication and surgery variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added medication and surgery variables.
+#' @export
 
-  # Read the csv files to get the vectors of med/surg numbers
+derive_medication_surgery <- function(data, diabFile, cholFile,
+                                      #antihypFile,
+                                      afibFile, afibsurgFile,
+                                      antihypBetaBlockerFile, antihypBetaBlockerIfNotDropFile,
+                                      antihypACEInhibFile,
+                                      antihypARBFile, antihypCCBFile, antihypKSDFile,
+                                      antihypOtherFile) {
   diabNums <- diabFile[, 1]
   cholNums <- cholFile[, 1]
   afibNums <- afibFile[, 1]
@@ -27,7 +29,7 @@ medicationAndSurgery <- function(
   #antihypNums <- antihypFile[, 1]
 
   # dset consisting of all the medication columns
-  medFrame <- dat[, grepl("med[0-9][0-9]\\.name$", names(dat))]
+  medFrame <- data[, grepl("med[0-9][0-9]\\.name$", names(data))]
 
   diabetesrxPrep <- as.numeric(
     apply(medFrame, 1, function(x) any(x %in% diabNums))
@@ -63,13 +65,13 @@ medicationAndSurgery <- function(
   )
 
 
-  ahBetaBlockerIfNotDropPrep <- rep(0, nrow(dat))
-  for (i in 1:nrow(dat)) {
+  ahBetaBlockerIfNotDropPrep <- rep(0, nrow(data))
+  for (i in 1:nrow(data)) {
     possibleEyedropCols <- which(medFrame[i, ] %in% ahBetaBlockerIfNotDropNums)
     if (length(possibleEyedropCols) >= 1) {
       mednames <- names(medFrame)[possibleEyedropCols]
       unitnames <- gsub("name", "units.factor", mednames, fixed = TRUE)
-      vec <- dat[i, unitnames]
+      vec <- data[i, unitnames]
       # Note that it's important to use != rather than !%in% here
       notDrops <- vec != "drop(s)"
       if (any(notDrops)) {
@@ -98,15 +100,15 @@ medicationAndSurgery <- function(
   # dset consisting of all the surgery columns
   # This pulls the factors too (we do not create those for the meds,
   # so this step was not necessary above)
-  surgVars <- names(dat)[grep("surg[0-9][0-9]\\.name", names(dat))]
+  surgVars <- names(data)[grep("surg[0-9][0-9]\\.name", names(data))]
   surgVarsNumericOnly <- surgVars[!grepl("factor", surgVars)]
-  surgFrame <- dat[, surgVarsNumericOnly]
+  surgFrame <- data[, surgVarsNumericOnly]
 
   afibsurgPrep <- as.numeric(
     apply(surgFrame, 1, function(x) any(x %in% afibsurgNums))
   )
 
-  dat <- within(dat, {
+  data <- within(data, {
     diabetesrx <- ifelse(is.na(meds), NA, diabetesrxPrep)
     diabetesrx.factor <- factor(
       diabetesrx,
@@ -188,12 +190,12 @@ medicationAndSurgery <- function(
     label(rx.htn.other) <- label(rx.htn.other.factor) <- "Taking at least 1 antihyp. med of type 'Other'"
   })
 
-  ahSubtypeDat <- dat[, Hmisc::Cs(rx.htn.beta.blocker, rx.htn.ace.inhibit, rx.htn.arb, rx.htn.ccb, rx.htn.ksd, rx.htn.other)]
+  ahSubtypeDat <- data[, Hmisc::Cs(rx.htn.beta.blocker, rx.htn.ace.inhibit, rx.htn.arb, rx.htn.ccb, rx.htn.ksd, rx.htn.other)]
   GEOneAHSubtype <- as.numeric(
     apply(ahSubtypeDat, 1, function(vec) any(vec %in% 1))
   )
 
-  dat <- within(dat, {
+  data <- within(data, {
     #htnrx <- ifelse(is.na(meds), NA, htnrxPrep)
     #htnrx.factor <- factor(htnrx,
     #    levels= c(1, 0), labels= c("Yes", "No"))
@@ -225,5 +227,5 @@ medicationAndSurgery <- function(
     #    "For checking purposes: Taking at least 1 antihyp. med subtype, but htnrx != 1"
   })
 
-  dat
+  return(data)
 }

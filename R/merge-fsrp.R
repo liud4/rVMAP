@@ -1,18 +1,18 @@
-fsrp <- function(dat) {
-  # OAK 20180814: update this to use case_when
+#' Derive, label, and add FSRP variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added FSRP variables.
+#' @export
 
-  # returns dat with the addition of the derived variable "fsrp"
-  # as well as several other variables used in fsrp calculation.
+fsrp <- function(data) {
 
-
-  ######################################################
   # FSRP
   # directions are in the MAP Derived Variable Covariate List
   # also see email: On 07/29/2014 11:03 AM, Jefferson, Angela wrote:
   #1.      For men age 86 and older and women age 84 and older, I would assign the maximum # of points given for the upper limit of age
   #2.      For SBP, I would apply the max point value (ten) for SBP values that exceed 205 for men and 216 for women. I would apply the minimum point value (zero) for values that are below 97 for men and below 95 for women.
 
-  dat <- within(dat, {
+  data <- within(data, {
     age.integer <- round(age, 0)
 
     # sex: 1=Male; 2=Female
@@ -188,5 +188,6 @@ fsrp <- function(dat) {
 
     fsrp.2017.minus.age.points <- fsrp.2017 - fsrp.2017.age.pts
   })
-  dat
+
+  return(data)
 }

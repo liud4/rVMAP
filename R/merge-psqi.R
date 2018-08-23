@@ -1,10 +1,16 @@
-psqi <- function(dat) {
+#' Derive, label, and add PSQI variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added PSQI variables.
+#' @export
+
+derive_psqi <- function(data) {
   fakedate1 <- "2013-01-01"
   fakedate2 <- "2013-01-02"
   my.tz <- '' # Here I'm following the convention from the ABP program (from Xue?)
   # my.origin <- "1970-01-01" # we may not need this
 
-  dat <- within(dat, {
+  data <- within(data, {
     psqi.hrs.sleep <- as.numeric(as.character(psqi.hrs.sleep))
     psqi.duration <- dplyr::case_when(
       psqi.hrs.sleep < 5 ~ 3,
@@ -83,13 +89,13 @@ psqi <- function(dat) {
     psqi.waketime.prep <- NA
   })
 
-  psqi.bedtime.list <- strsplit(dat$psqi.bedtime, ":")
-  psqi.waketime.list <- strsplit(dat$psqi.waketime, ":")
+  psqi.bedtime.list <- strsplit(data$psqi.bedtime, ":")
+  psqi.waketime.list <- strsplit(data$psqi.waketime, ":")
 
-  for (i in 1:nrow(dat)) {
+  for (i in 1:nrow(data)) {
     # TODO: add handling of raw values of 24:00:00 for both variables
     if (length(psqi.bedtime.list[[i]]) >= 2) {
-      dat[i, 'psqi.bedtime.prep'] <- paste(
+      data[i, 'psqi.bedtime.prep'] <- paste(
         fakedate1,
         paste0(
           formatC(psqi.bedtime.list[[i]][1], width = 2, format = "d", flag = 0),
@@ -100,7 +106,7 @@ psqi <- function(dat) {
     }
 
     if (length(psqi.waketime.list[[i]]) >= 2) {
-      dat[i, 'psqi.waketime.prep'] <- paste(
+      data[i, 'psqi.waketime.prep'] <- paste(
         fakedate2, # one day later
         paste0(
           formatC(psqi.waketime.list[[i]][1], width = 2, format = "d", flag = 0),
@@ -111,7 +117,7 @@ psqi <- function(dat) {
     }
   }
 
-  dat <- within(dat, {
+  data <- within(data, {
     psqi.bedtime <- as.POSIXct(strptime(psqi.bedtime.prep, "%Y-%m-%d %H:%M", tz = my.tz))
     psqi.waketime <- as.POSIXct(strptime(psqi.waketime.prep, "%Y-%m-%d %H:%M", tz = my.tz))
     psqi.diffsec <- difftime(psqi.waketime, psqi.bedtime, units="secs")
@@ -152,10 +158,8 @@ psqi <- function(dat) {
     )
   })
 
-  # OAK 20171116 : below, changed alldat to dat
-
-  dat = upData(
-    dat,
+  data = upData(
+    data,
     labels = c(psqi.duration = "PSQI - Duration of Sleep",
                psqi.disturb = "PSQI - Sleep Disturbance",
                psqi.latency = "PSQI - Sleep Latency",
@@ -165,6 +169,5 @@ psqi <- function(dat) {
     )
   )
 
-  dat
+  return(data)
 }
-

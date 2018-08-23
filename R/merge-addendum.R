@@ -1,17 +1,12 @@
-# TODO: Add print statement to determine which columns are not numeric
+#' Derive, label, and add addendum variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added addendum variables.
+#' @export
 
-# 15 Dec 2016, LS:
-##  Changing processing to remove .addend and to have this function
-##     called by main merge program
+derive_addendum <- function(data) {
 
-addendum <- function(dat) {
-  # Returns dat (should be addendum data),
-  # with labels and derived variables added
-
-  # make sure to have sourced scoringFunctions and missingsFunctions
-  # before calling this function
-
-  dat <- within(dat, {
+  data <- within(data, {
     label(np.date.addend)="NP Assessment - date"
     label(np.pvlt1)="PVLT List A Trial 1 Correct"
     label(np.pvlt1.intrus)="PVLT List A Trial 1 Intrusions"
@@ -253,10 +248,8 @@ addendum <- function(dat) {
     label(np.digits.invalid)="Backward Digits Invalidated by Administrative Issue"
     label(np.notes.addend)="neuropsych examiner notes (addendum)"
     label(neuropsychological.assessment.complete.addend)="Complete? (addendum)"
-    #Setting Units
 
-
-    #Setting Factors(will create new variable for factors)
+    #Setting Factors (will create new variable for factors)
     np.pvlt.invalid.factor = factor(np.pvlt.invalid,levels=c("1","0"))
     np.mc.invalid.factor = factor(np.mc.invalid,levels=c("1","0"))
     np.symbol.invalid.factor = factor(np.symbol.invalid,levels=c("1","0"))
@@ -271,5 +264,5 @@ addendum <- function(dat) {
 
   })
 
-  dat
+  return(data)
 }

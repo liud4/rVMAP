@@ -1,4 +1,10 @@
-foodScan <- function(dat) {
+#' Derive, convert, label, and add food scan variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added food scan variables.
+#' @export
+
+derive_food_scan <- function(data) {
   foodvar <- paste0(
     "food01",
     formatC(c(letters[1:15]), width = 1, format = "d", flag = "0")
@@ -22,45 +28,45 @@ foodScan <- function(dat) {
     }
   }
 
-  pro.rate <- round(apply(dat[, foodvar], MARGIN = 1, FUN = avgscore))
+  pro.rate <- round(apply(data[, foodvar], MARGIN = 1, FUN = avgscore))
 
   for (j in 1:length(foodvar)) {
-    for (i in 1:nrow(dat)) {
-      dat[i, foodvar[j]] <- ifelse(is.na(dat[i, foodvar[j]]), pro.rate, dat[i, foodvar[j]])
+    for (i in 1:nrow(data)) {
+      data[i, foodvar[j]] <- ifelse(is.na(data[i, foodvar[j]]), pro.rate, data[i, foodvar[j]])
     }
   }
 
   # Create variables for frequency for each food
   for (i in 1:length(foodvar)) {
-    dat[, foodvar.freq[i]] = ifelse(dat[, foodvar[i]] == 0, 0,
-                                   ifelse(dat[, foodvar[i]] == 1, 0.018,
-                                          ifelse(dat[, foodvar[i]] == 2, 0.066,
-                                                 ifelse(dat[, foodvar[i]] == 3, 0.214,
-                                                        ifelse(dat[, foodvar[i]] == 4, 0.499,
-                                                               ifelse(dat[, foodvar[i]] == 5, 0.784,
-                                                                      ifelse(dat[, foodvar[i]] == 6, 1,
-                                                                             2)))))))
+    data[, foodvar.freq[i]] = ifelse(data[, foodvar[i]] == 0, 0,
+                                     ifelse(data[, foodvar[i]] == 1, 0.018,
+                                            ifelse(data[, foodvar[i]] == 2, 0.066,
+                                                   ifelse(data[, foodvar[i]] == 3, 0.214,
+                                                          ifelse(data[, foodvar[i]] == 4, 0.499,
+                                                                 ifelse(data[, foodvar[i]] == 5, 0.784,
+                                                                        ifelse(data[, foodvar[i]] == 6, 1,
+                                                                               2)))))))
   }
 
   # Total Fat
-  dat$totfat <- dat$food01e.freq + dat$food01k.freq + dat$food01o.freq
+  data$totfat <- data$food01e.freq + data$food01k.freq + data$food01o.freq
 
   # Reduced Fat
-  dat$regfat.freq <- dplyr::case_when(
-    is.na(dat$food02) ~ NA_real_,
-    dat$food02 == 0 | dat$food02 == 1 ~ 1,
-    dat$food02 == 2 ~ 0.75,
-    dat$food02 == 3 ~ 0.5,
-    dat$food02 == 4 ~ 0.25,
+  data$regfat.freq <- dplyr::case_when(
+    is.na(data$food02) ~ NA_real_,
+    data$food02 == 0 | data$food02 == 1 ~ 1,
+    data$food02 == 2 ~ 0.75,
+    data$food02 == 3 ~ 0.5,
+    data$food02 == 4 ~ 0.25,
     TRUE ~ 0
   )
 
-  dat$reg.fat <- dat$regfat.freq * dat$totfat
+  data$reg.fat <- data$regfat.freq * data$totfat
 
   # Create Age Categories (minimum age is 60 for inputted data)
-  dat$age.cat <- factor(
-    ifelse(dat$age > 58 & dat$age <= 67, 1,
-           ifelse(dat$age > 68 & dat$age <= 77, 2,
+  data$age.cat <- factor(
+    ifelse(data$age > 58 & data$age <= 67, 1,
+           ifelse(data$age > 68 & data$age <= 77, 2,
                   3)))
 
   # Create coefficient matrix for food and age categories
@@ -71,30 +77,31 @@ foodScan <- function(dat) {
   coef.sex1 <- c(-0.009666,0.10569,-0.022086,-0.009346,0.145026,0.114649,0.026997,-0.004946,0.040118,0.069945,0.024262,-0.167937,0.017017) #male
   coef.sex2 <- c(-0.010393,0.198808,-0.045171,-0.012103,0.287044,0.182758,0.036787,-0.010141,0.106686,0.103239,0.040374,0.326702,-0.014224) #female
 
-  x <- cbind(dat$food01b.freq,dat$food01d.freq,dat$food01a.freq,dat$food01g.freq,dat$food01l.freq,dat$food01m.freq,dat$food01c.freq,dat$food01f.freq,dat$food01h.freq,dat$food01i.freq,dat$food01j.freq,dat$reg.fat,dat$food01n.freq)
+  x <- cbind(data$food01b.freq,data$food01d.freq,data$food01a.freq,data$food01g.freq,data$food01l.freq,data$food01m.freq,data$food01c.freq,data$food01f.freq,data$food01h.freq,data$food01i.freq,data$food01j.freq,data$reg.fat,data$food01n.freq)
 
-  dat$food.percent.ener.fat <- rep(0, nrow(dat))
+  data$food.percent.ener.fat <- rep(0, nrow(data))
 
-  for (i in 1:nrow(dat)){
-    if(is.na(dat$sex[i]) | is.na(dat$age.cat[i])){
-      dat$food.percent.ener.fat[i] <- NA
-    } else if(dat$sex[i]==1 & dat$age.cat[i]==1){
-      dat$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[1,2:14])
-    } else if(dat$sex[i]==1 & dat$age.cat[i]==2){
-      dat$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[2,2:14])
-    } else if(dat$sex[i]==1 & dat$age.cat[i]==3){
-      dat$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[3,2:14])
-    } else if(dat$sex[i]==2 & dat$age.cat[i]==1){
-      dat$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[1,2:14])
-    } else if(dat$sex[i]==2 & dat$age.cat[i]==2){
-      dat$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[2,2:14])
-    } else if(dat$sex[i]==2 & dat$age.cat[i]==3){
-      dat$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[3,2:14])
+  for (i in 1:nrow(data)){
+    if(is.na(data$sex[i]) | is.na(data$age.cat[i])){
+      data$food.percent.ener.fat[i] <- NA
+    } else if(data$sex[i]==1 & data$age.cat[i]==1){
+      data$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[1,2:14])
+    } else if(data$sex[i]==1 & data$age.cat[i]==2){
+      data$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[2,2:14])
+    } else if(data$sex[i]==1 & data$age.cat[i]==3){
+      data$food.percent.ener.fat[i] <- 30.79765 + sum(x[i,]*coef.sex1*food.matrix.sex1[3,2:14])
+    } else if(data$sex[i]==2 & data$age.cat[i]==1){
+      data$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[1,2:14])
+    } else if(data$sex[i]==2 & data$age.cat[i]==2){
+      data$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[2,2:14])
+    } else if(data$sex[i]==2 & data$age.cat[i]==3){
+      data$food.percent.ener.fat[i] <- 29.86587 + sum(x[i,]*coef.sex2*food.matrix.sex2[3,2:14])
     } else {
-      dat$food.percent.ener.fat[i] <- NA
+      data$food.percent.ener.fat[i] <- NA
     }
   }
 
-  label(dat$food.percent.ener.fat) <- "Food-Percent Energy from Fat"
-  dat
+  label(data$food.percent.ener.fat) <- "Food-Percent Energy from Fat"
+
+  return(data)
 }

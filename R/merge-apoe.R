@@ -1,8 +1,10 @@
-apoe <- function(dat) {
-  # Returns dat with ApoE derived variables added
+#' Derive, label, and add ApoE variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added ApoE variables.
+#' @export
 
-  # I don't usually like defining functions inside functions, but really
-  # we don't need this one cluttering up the main environment
+derive_apoe <- function(data) {
   CountAlleles <- function(string, allele) {
     ifelse(
       is.na(string),
@@ -15,7 +17,7 @@ apoe <- function(dat) {
     )
   }
 
-  dat <- within(dat, {
+  data <- within(data, {
     # 02 Feb 2015:  The other APOE coding schemes from Tim's 18 Nov 2014 email
     # note misspelling of alleles in varname:
     apoe4count <- unlist(lapply(allelles, CountAlleles, "E4"))
@@ -43,5 +45,6 @@ apoe <- function(dat) {
     label(apoe4count) <- 'Count of ApoE E4 alleles'
     label(apoe2count) <- 'Count of ApoE E2 alleles'
   })
-  dat
+
+  return(data)
 }

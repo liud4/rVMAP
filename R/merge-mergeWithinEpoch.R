@@ -17,7 +17,7 @@
 #' @return A data frame with the above files merged together.
 #' @export
 
-mergeWithinEpoch <- function(
+merge_within_epoch <- function(
   epoch, save.file = NULL, main, abp = NULL, biomarkers = NULL,
   auto3T = NULL, auto3TBH = NULL, man3T = NULL, man3TBH = NULL,
   qmass = NULL, addendum = NULL, csf = NULL, srt = NULL,

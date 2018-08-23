@@ -1,8 +1,13 @@
-demog <- function(dat) {
-  # Returns dat with demographic derived variables added
+#' Derive, label, and add demographic variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added demographic variables.
+#' @export
+
+derive_demographics <- function(data) {
   days_in_one_year <- 365.25
 
-  dat <- within(dat, {
+  data <- within(data, {
     raceethnicity <- ifelse(
       is.na(race) | is.na(ethnicity),
       NA,
@@ -33,5 +38,6 @@ demog <- function(dat) {
 
     label(age) <- "Age at medhx.date, recalculated"
   })
-  dat
+
+  return(data)
 }

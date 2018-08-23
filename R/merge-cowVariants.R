@@ -1,9 +1,11 @@
-cowVariants <- function(dat) {
+#' Derive, label, and add Circle of Willis variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added Circle of Willis variables.
+#' @export
 
-  require(Hmisc)
-  require(dplyr)
-
-  dat <- dat %>%
+derive_cow_variants <- function(data) {
+  data <- data %>%
     mutate(
       cow.variant2 = case_when( # derive: cow.variant2, CoW variant Rivera-Rivera
         cow.variant %in% c(1, 3, 4, 5, 6, 7, 8, 9) ~ 0, # 0, textbook
@@ -94,7 +96,7 @@ cowVariants <- function(dat) {
       )
     )
 
-  dat <- within(dat, {
+  data <- within(data, {
     cow.variant2 <- factor(cow.variant2,
                            levels = c(0, 1, 2, 3),
                            labels = c("textbook",
@@ -207,5 +209,5 @@ cowVariants <- function(dat) {
     label(cow.variant13) <- 'COW variant Missing P1 Left'
   })
 
-  dat
+  return(data)
 }

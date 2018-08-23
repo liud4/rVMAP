@@ -1,40 +1,34 @@
-callFunction <- function(functionName, purpose, dat, ...){
-  # calls function functionName on dataset dat with arguments ...
+#' Calls a function on a data set and prints a table of added variables.
+#'
+#' @param function_name The name of a sourced function.
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} modified by \code{function_name} along with a data frame listing added variables.
+#' @export
 
-  cat("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
-
-  oldnames <- names(dat)
-
+call_function <- function(function_name, data, ...) {
+  oldnames <- names(data)
   otherArgs <- list(...)
 
-  # if that doesn't work:
-  #http://stackoverflow.com/questions/3142731/r-using-a-list-for-ellipsis-arguments
-  #otherArgs <- as.list(substitute(list(...)))[-1L]
+  # cat("Calling function ", functionName, "().",
+  #     "\n    Purpose: ", purpose, ".\n", sep= "")
 
-  cat("Calling function ", functionName, "().",
-      "\n    Purpose: ", purpose, ".\n", sep= "")
-  #source(file.path(filepath, paste0(functionName, ".R")))
-  dat <- do.call(functionName, c(list(dat= dat), otherArgs))
+  data <- do.call(function_name, c(list(data = data), otherArgs))
 
-  newnames <- names(dat)
-  cat("New variables:\n")
+  newnames <- names(data)
   addedvars <- setdiff(newnames, oldnames)
-  numAddedvars <- length(addedvars)
 
-  if (numAddedvars == 0) {
-    cat("None.\n")
+  # cat("New variables:\n")
+
+  if (length(addedvars) == 0) {
+    cat("This function did not create any new variables.\n")
   } else {
-    print(data.frame(addedvars))
+    addedvars <- data.frame(addedvars)
+    names(addedvars) <- "New Variables"
+    print(addedvars)
   }
-    #if (numAddedvars == 0) {
-    #    cat("None.\n")
-    #} else if (numAddedvars <= 100) {
-    #    print(data.frame(addedvars))
-    #} else {
-    #    cat("Added ", numAddedvars, " new variables.\n", sep= "")
-    #}
 
-    cat("\nCurrent dimensions:", dim(dat), "\n")
-    cat("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
-    dat
-  }
+  # cat("\nCurrent dimensions:", dim(dat), "\n")
+  # cat("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+
+  return(data)
+}

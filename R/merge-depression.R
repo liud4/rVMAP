@@ -1,32 +1,33 @@
-depression <- function(dat) {
-  # Returns dat with depression derived variables added
-  # and with some totals that were calculated in REDCap recalculated
-  # Code from LS & JN
-  # Make sure to source "scoringFunctions.R" before calling this function
+#' Derive, label, and add depression variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added depression variables.
+#' @export
 
+derive_depression <- function(data) {
   # 16 Jan 2015: re-calculating gds total score
   # 02 Mar 2015:  AJ and KG confirmed in meeting that they
   # want to use the 85% rule for this one
   gdsvars <- paste0("gds", 1:30)
-  dat$gds <- apply(dat[, gdsvars], 1, totscore)
+  data$gds <- apply(data[, gdsvars], 1, totscore)
 
   #QIDS
   qids.sub <- paste0("qids", formatC(1:16, width = 2, format = "d", flag = "0"))
   my.pmax <- function(x) {
     apply(x, MARGIN = 1, FUN = function(y) ifelse(sum(!is.na(y)) == 0, NA, max(y, na.rm = TRUE)))
   }
-  dat$qids <- rowSums(
+
+  data$qids <- rowSums(
     cbind(
-      my.pmax(dat[, qids.sub[1:4]]),
-      my.pmax(dat[, qids.sub[6:9]]),
-      my.pmax(dat[, qids.sub[15:16]]),
-      dat[, qids.sub[c(5, 10:14)]]
+      my.pmax(data[, qids.sub[1:4]]),
+      my.pmax(data[, qids.sub[6:9]]),
+      my.pmax(data[, qids.sub[15:16]]),
+      data[, qids.sub[c(5, 10:14)]]
     ),
     na.rm = TRUE
   )
-  # TODO: The above is probably not handling missing values correctly.  JN will check with VMAC.
 
-  dat <- within(dat, {
+  data <- within(data, {
     # 09 Jan 2015: modified gds variable for KG
     gds.minus.gds14 <- gds - gds14
     label(gds.minus.gds14) <- "GDS tot score minus gds14 (memory prob.)"
@@ -47,8 +48,8 @@ depression <- function(dat) {
                                   levels = c(1, 0), labels = c("Yes", "No"))
   })
 
-  dat <- Hmisc::upData(
-    dat,
+  data <- Hmisc::upData(
+    data,
     labels = c(
       gds                 = "GDS total score, recalculated",
       qids                = "QIDS total score, recalculated",
@@ -58,5 +59,5 @@ depression <- function(dat) {
       depress.qids.factor = "Depression - QIDS Definition"
     ))
 
-  dat
+  return(data)
 }

@@ -1,5 +1,11 @@
-cardiacStructure <- function(dat) {
-  dat <- within(dat, {
+#' Derive, label, and add cardiac structure variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added cardiac structure variables.
+#' @export
+
+derive_cardiac_structure <- function(data) {
+  data <- within(data, {
     echo.ef.calc <- (echo.edv - echo.esv)/echo.edv * 100
     label(echo.ef.calc) <- "Ejection Fraction (from echo)"
 
@@ -15,5 +21,6 @@ cardiacStructure <- function(dat) {
     echo.myocardial.contraction.fraction <- (echo.lv.stroke.volume) / (echo.lvmass * 1.05)
     label(echo.myocardial.contraction.fraction) <- "echo.myocardial.contraction.fraction"
   })
-  dat
+
+  return(data)
 }

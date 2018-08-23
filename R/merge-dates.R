@@ -1,39 +1,37 @@
-dates <- function(dat) {
-  # Returns dat with various date variables converted to class Date
-  # Note that this function is called within the Eligibility
-  # processing as well as within the main merge program
+#' Convert date variables to "Date" class.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with date variables converted to "Date" class.
+#' @export
 
-  datevars <- setdiff(names(dat)[grepl("\\.date", names(dat))], c("abp.date", "usa.date"))
-  # the eligibility dset doesn't have dob
-  if ("dob" %in% names(dat)) {
+convert_dates <- function(data) {
+  datevars <- setdiff(names(data)[grepl("\\.date", names(data))], c("abp.date", "usa.date"))
+
+  if ("dob" %in% names(data)) {
     datevars <- c(datevars, "dob")
   }
 
-  cat("~~~~~~~~~~~~~~~~~~~~~~~~~\n")
-  cat("Converting date variables\n")
-
   for (vname in datevars) {
-    datevar <- dat[, vname]
+    datevar <- data[, vname]
 
     if (is.factor(datevar)) {
       datevar <- as.character(datevar)
     }
 
     if (!is.character(datevar)) {
-      cat("        ", vname, " is not in character format and may not need to be converted.\n")
+      warning(paste0(vname, " is not in character format and may not need to be converted.\n"))
       next
     }
 
     datevar[datevar %in% c("1111-11-11", "")] <- NA
 
     if (any((!is.na(datevar)) & nchar(datevar) != 10)) {
-      cat("        ", vname, " is not in yyyy-mm-dd format.\n")
+      warning(paste0(vname, " is not in yyyy-mm-dd format.\n"))
       next
     }
 
-    dat[, vname] <- as.Date(datevar)
+    data[, vname] <- as.Date(datevar)
   }
-  cat("~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 
-  dat
+  return(data)
 }

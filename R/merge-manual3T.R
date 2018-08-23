@@ -1,7 +1,13 @@
-manual3T <- function(dat) {
-  # Returns dat with manual 3T imaging-related variables labeled
+#' Derive, label, and add manual 3T variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added manual 3T variables.
+#' @export
 
-  dat <- within(dat, {
+derive_manual_3T <- function(data) {
+  # Returns data with manual 3T imaging-related variables labeled
+
+  data <- within(data, {
     # label(session.id.2)="Session ID"
     # label(scan.date.2)="Scan date"
     # label(cow.primary)="primary data entry person"
@@ -220,5 +226,5 @@ manual3T <- function(dat) {
     label(vb.wall.ratio)        <- 'VB wall ratio'
   })
 
-  dat
+  return(data)
 }

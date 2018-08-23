@@ -1,7 +1,7 @@
-#' This function replaces underscores with periods in a dataframe's variable names.
+#' This function replaces underscores with periods in a data frame's variable names.
 #'
 #' @param data A data frame.
-#' @return The inputted data frame with underscores replaced with periods in the column names.
+#' @return \code{data} with underscores replaced with periods in the column names.
 #' @export
 
 fix_names <- function(data) {

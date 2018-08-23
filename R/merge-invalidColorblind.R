@@ -1,7 +1,10 @@
-invalidColorblind <- function(dat) {
-  # Sets selected variables for colorblind individuals to NA.
-  # Note that this happens regardless of epoch!
+#' Invalidate certain variables due to color blindness in certain participants in the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with invalidated color blindness-related variables.
+#' @export
 
+invalidate_color_blind <- function(data) {
   color_blind_id.list <- c("028", "033", "131", "169", "176", "201")
 
   color_blind.var <- Hmisc::Cs(
@@ -45,7 +48,7 @@ invalidColorblind <- function(dat) {
     np.strp.scerr.elig
   )
 
-  dat[dat$map.id %in% color_blind_id.list, color_blind.var] <- NA
+  data[data$map.id %in% color_blind_id.list, color_blind.var] <- NA
 
-  dat
+  return(data)
 }

@@ -1,23 +1,12 @@
-# Changes
+#' Derive, label, and add biomarker variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added biomarker variables.
+#' @export
 
-# 25 Feb 2015, LS:
-## Changed cutoffs for tau & ptau based on AJ email 23 Feb 2015
+derive_biomarkers <- function(data) {
 
-# 30 November 2015, JN:
-## Processed il6 and vegf, discussed in meeting 23 November 2015
-
-# 05 April 2016, JN:
-## Added label for csf.nfl - new variable
-
-# 01 Sep 2016, JN:
-## Added csf.abeta42.40.ratio, csf.snap, csf.snap.factor
-
-biomarkers <- function(dat) {
-  # Returns dat with biomarker-related derived variables added
-  # and also with labels for raw biomarker vars added
-
-  dat <- within(dat, {
-    # Labels for raw variables.
+  data <- within(data, {
     label(biomarkers.leptin)         <- "Leptin pg/ml"
     label(biomarkers.il6)            <- "IL-6 pg/ml"
     label(biomarkers.tnfalpha)       <- "TNFalpha pg/ml"
@@ -57,7 +46,6 @@ biomarkers <- function(dat) {
     tauPos <- ifelse(
       is.na(csf.tau),
       NA,
-      #ifelse(csf.tau > 350, 1, 0))
       ifelse(
         csf.tau > 400,
         1,
@@ -74,7 +62,6 @@ biomarkers <- function(dat) {
     ptauPos <- ifelse(
       is.na(csf.ptau),
       NA,
-      #ifelse(csf.ptau > 60, 1, 0))
       ifelse(
         csf.ptau > 80,
         1,
@@ -128,5 +115,5 @@ biomarkers <- function(dat) {
     label(csf.snap) <- label(csf.snap.factor) <- "CSF-defined SNAP based on AB and tau cutpoints"
   })
 
-  dat
+  return(data)
 }

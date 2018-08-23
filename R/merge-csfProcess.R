@@ -1,32 +1,28 @@
-# 20 July 2015, JN:
-# Removed code for numeric columns to mergeWithinEpoch, where it belongs 
+#' Derive, convert, label, and add CSF variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added CSF variables.
+#' @export
 
-# 09 Dec 2016, LS:
-#  Correcting code to handle correct map id's in multiple epochs
-csfProcess <- function(dat){
-    idsForConversion <- formatC(1:63, width= 3, format= "d", flag= "0")
+derive_csf <- function(data) {
+  idsForConversion <- formatC(1:63, width = 3, format = "d", flag = "0")
 
-
-  dat <- within(dat,{
-    
-        # CSF Conversions
-    
+  data <- within(data, {
     # To find cutoff date:
     # mydat$csf.date<"2013-09-23"
     # mydat$csf.date[63]
     # mydat[mydat$map.id=="063","csf.date"]
-    
+
     csf.c.protein.redcap <- csf.c.protein
     m <- (40-15)/(60-30)
     b <- 40 - m*60
 
-    #csf.c.protein <- ifelse(map.id %in% map.id[1:63] & epoch==1, m*csf.c.protein.redcap+b,csf.c.protein.redcap)
-    csf.c.protein <- ifelse(map.id %in% idsForConversion & epoch==1, m*csf.c.protein.redcap+b,csf.c.protein.redcap)
-    
-    csf.c.gluc <- ifelse(csf.c.gluc=="-9999"|csf.c.gluc=="-8888",NA,csf.c.gluc)
-    
+    csf.c.protein <- ifelse(map.id %in% idsForConversion & epoch == 1, m * csf.c.protein.redcap + b, csf.c.protein.redcap)
+
+    csf.c.gluc <- ifelse(csf.c.gluc == "-9999" | csf.c.gluc == "-8888", NA, csf.c.gluc)
+
     csf.c.insulin.redcap <- csf.c.insulin
-    csf.c.insulin <- ifelse(csf.c.insulin.redcap=="-9999"|csf.c.insulin.redcap=="-8888"|csf.c.insulin.redcap=="",NA,csf.c.insulin.redcap)
+    csf.c.insulin <- ifelse(csf.c.insulin.redcap == "-9999" | csf.c.insulin.redcap == "-8888" | csf.c.insulin.redcap == "", NA, csf.c.insulin.redcap)
     csf.c.insulin <- as.factor(csf.c.insulin)
 
     label(csf.date)="date - CSF"
@@ -57,18 +53,19 @@ csfProcess <- function(dat){
     label(csf.c.gluc) <- "glucose - clinical CSF, converted"
     label(csf.c.insulin) <- "insulin - clinical CSF, wrong assay used by lab"
 
-    
+
     csffast.waking.factor = factor(csffast.waking,levels=c("1","0","-9999"))
     csf.physician.factor = factor(csf.physician,levels=c("1","2"))
     csf.nurse.factor = factor(csf.nurse,levels=c("12","22","3","5","1","13","23","4","19","6","7","20","8","9","10","14","11","2","15"))
     csf.lab.staff.factor = factor(csf.lab.staff,levels=c("4","3","2","1","6","5"))
     clinical.cerebrospinal.fluid.complete.factor = factor(clinical.cerebrospinal.fluid.complete,levels=c("0","1","2"))
-    
+
     levels(csffast.waking.factor)=c("Yes","No","missing")
     levels(csf.physician.factor)=c("Susan Bell","Leah Acosta")
     levels(csf.nurse.factor)=c("Ben Small","Christa Hedstrom","Crystal Rice","Hal Bowman","Debbie King (Debbie Ragsdale)","Debra Poplar","Deloris Lee","Diane Anders","Lamar Bowman","Lana Howard","Lisa Sposa","Lori Quintana","Melissa Lehman","Robin Perkins","Samantha Saalwaechter","Sheila Beavers","Sherri Hails","Timothy Smith","Missing")
     levels(csf.lab.staff.factor)=c("Elleena Benson","Laura Fritzsche","Laura Logan","Melanie Leslie","Ray Romano","Missing")
     levels(clinical.cerebrospinal.fluid.complete.factor)=c("Incomplete","Unverified","Complete")
   })
-    dat
+
+  return(data)
 }

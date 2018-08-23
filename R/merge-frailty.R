@@ -1,5 +1,11 @@
-frailty <- function(dat) {
-  dat <- within(dat, {
+#' Derive, label, and add frailty variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added frailty variables.
+#' @export
+
+derive_frailty <- function(data) {
+  data <- within(data, {
     frail.grip.average <- (frail.grip01 + frail.grip02 + frail.grip03) / 3
     gripstrength.index <- frail.gripbest / bmi
     gait.speed <- 4.572 / frail.gait
@@ -9,19 +15,19 @@ frailty <- function(dat) {
                                ifelse(frailt.effort == 2 | frailt.effort == 3 | frail.going == 2 | frail.going == 3, 1,
                                       0))
 
-    frail.phys.active <- rep(0, nrow(dat))
+    frail.phys.active <- rep(0, nrow(data))
     frail.phys.active[sex == -999 | is.na(mlta.kcal)] <- NA
     frail.phys.active[sex == 1 & mlta.kcal <= 383] <- 1
     frail.phys.active[sex == 2 & mlta.kcal <= 270] <- 1
 
-    frail.walk <- rep(0, nrow(dat))
+    frail.walk <- rep(0, nrow(data))
     frail.walk[sex == -9999 | is.na(height) | is.na(frail.gait)] <- NA
     frail.walk[sex == 1 & height <= 173 & frail.gait >= 7] <- 1
     frail.walk[sex == 1 & height > 173 & frail.gait >= 6] <- 1
     frail.walk[sex == 2 & height <= 159 & frail.gait >= 7] <- 1
     frail.walk[sex == 2 & height > 159 & frail.gait >= 6] <- 1
 
-    frail.grip <- rep(0,nrow(dat))
+    frail.grip <- rep(0,nrow(data))
     frail.grip[sex == -9999 | is.na(bmi) | is.na(frail.gripbest)] <- NA
     frail.grip[sex == 1 & bmi <= 24 & frail.gripbest <= 29] <- 1
     frail.grip[sex == 1 & bmi >= 24.1 & bmi <= 26 & frail.gripbest <= 30] <- 1
@@ -67,8 +73,8 @@ frailty <- function(dat) {
     rm(df, x)
   })
 
-  dat = Hmisc::upData(
-    dat,
+  data = Hmisc::upData(
+    data,
     frail.exhaustion.factor = factor(frail.exhaustion, levels = c(1, 0), labels = c("Yes", "No")),
     frail.walk.factor = factor(frail.walk, levels = c(1, 0), labels = c("Yes", "No")),
     frail.grip.factor = factor(frail.grip, levels = c(1, 0), labels = c("Yes", "No")),
@@ -91,5 +97,5 @@ frailty <- function(dat) {
     )
   )
 
-  dat
+  return(data)
 }

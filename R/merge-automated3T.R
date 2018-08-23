@@ -1,28 +1,19 @@
-automated3T <- function(dat) {
-  # Returns dat with automated 3T imaging-related derived variables added
-  # and also with labels for raw automated 3T imaging vars added
+#' Derive, label, and add automated 3T variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added automated 3T variables.
+#' @export
 
-  # Removing 20 Oct 2016 (LS)
-  # session.id has different format in regular and Breath Hold
-  #dat$session.id <- as.numeric(as.character(dat$session.id))
+derive_automated_3T <- function(data) {
 
-  dat$icv <- rowSums(dat[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
-  dat$bHold.icv <- rowSums(dat[, Cs(bHold.vbmqa.gm.vol, bHold.vbmqa.wm.vol, bHold.vbmqa.csf.vol)])
-  label(dat$icv) <- "ICV (calculated)"
+  data$icv <- rowSums(data[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
+  data$bHold.icv <- rowSums(data[, Cs(bHold.vbmqa.gm.vol, bHold.vbmqa.wm.vol, bHold.vbmqa.csf.vol)])
+  label(data$icv) <- "ICV (calculated)"
 
-  dat <- within(dat, {
-    # OAK 20171116
-    # the + 0.0001 version will be deprecated soon as per biostat meeting on 20171114
-    # wml.volume.plus.0001.log <- log(wml.volume + 0.0001)
-    # bHold.wml.volume.plus.0001.log <- log(bHold.wml.volume + 0.0001)
-    # label(wml.volume.plus.0001.log) <- "[Deprecated] Log of wml.volume + 0.0001"
-
-    # OAK 20171116
-    # the + 1 version will be used instead of the 0.0001 version as per biostat meeting on 20171114
+  data <- within(data, {
     wml.volume.plus.1.log <- log(wml.volume + 1)
     bHold.wml.volume.plus.1.log <- log(bHold.wml.volume + 1)
     label(wml.volume.plus.1.log) <- "Log of wml.volume + 1"
-    # we do not need a label for the bHold version
 
     asl.3t.rest.etco2 <- (asl.3t.bl.etco2.1 + asl.3t.bl.etco2.2 + asl.3t.bl.etco2.3) / 3
     label(asl.3t.rest.etco2) <- "Resting EtCO2"
@@ -2530,13 +2521,5 @@ automated3T <- function(dat) {
     # label(veasl.stats.complete)="Complete?"
   })
 
-  #    bHoldnames <- names(dat)[grep("^bHold\\.", names(dat))]
-  #    bHoldnames <- bHoldnames[c(1:882,885:1237)]
-  #regnames <- gsub("^bHold\\.", "", bHoldnames)
-  #for(i in seq_along(bHoldnames)){
-  #    label(dat[, bHoldnames[i]]) <- paste0("Breath Hold: ",
-  #        label(dat[, regnames[i]]))
-  #}
-
-  dat
+  return(data)
 }

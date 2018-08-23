@@ -1,29 +1,31 @@
-neuropsych <- function(dat) {
-  # Returns dat with neuropsych derived variables added
-  # and with some totals that were calculated in REDCap recalculated
-  # Make sure to source "scoringFunctions.R" before calling this function
+#' Derive, label, and add neuropsychological variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added neuropsychological variables.
+#' @export
 
+derive_neuropsych <- function(data) {
   np.towervars <- paste0("np.tower", formatC(1:9, width = 2, flag = "0"))
-  dat$np.tower <- apply(dat[, np.towervars], 1, function(vec) {
+  data$np.tower <- apply(data[, np.towervars], 1, function(vec) {
     if (all(is.na(vec))) NA else sum(vec, na.rm = TRUE)
   })
 
   np.animvars <- paste0("np.anim.q", 1:4)
-  dat$np.anim <- apply(dat[, np.animvars], 1, totscore, threshold = 1)
+  data$np.anim <- apply(data[, np.animvars], 1, totscore, threshold = 1)
 
   np.anim.errvars <- Hmisc::Cs(np.anim.intrus, np.anim.rep)
-  dat$np.anim.err <- apply(dat[, np.anim.errvars], 1, totscore, threshold = 1)
+  data$np.anim.err <- apply(data[, np.anim.errvars], 1, totscore, threshold = 1)
 
   np.biber.t1to5vars <- paste0("np.biber", 1:5)
-  dat$np.biber.t1to5 <- apply(dat[, np.biber.t1to5vars], 1, totscore, threshold = 1)
+  data$np.biber.t1to5 <- apply(data[, np.biber.t1to5vars], 1, totscore, threshold = 1)
 
   #  22 Jan 2015: now some new vars for Leah's animal fluency project
   np.anim.repvars <- paste0("np.anim.", 1:8, "rep")
-  dat$np.anim.meanrep <- apply(dat[, np.anim.repvars], 1, function(vec) {
+  data$np.anim.meanrep <- apply(data[, np.anim.repvars], 1, function(vec) {
     if (all(is.na(vec))) NA else mean(vec, na.rm = TRUE)
   })
 
-  dat <- within(dat, {
+  data <- within(data, {
     np.bibercontrast.ldvs5 <- (np.biber.ld / np.biber5) * 100
     label(np.bibercontrast.ldvs5) <- "Biber Contrast: Long Delay v. Trial 5 (long-delay retention % change)"
 
@@ -54,5 +56,5 @@ neuropsych <- function(dat) {
 
   ###
 
-  dat
+  return(data)
 }

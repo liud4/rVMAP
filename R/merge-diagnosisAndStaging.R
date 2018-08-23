@@ -1,8 +1,11 @@
-diagnosisAndStaging <- function(dat) {
-  # Returns dat with diagnosis- and staging-related
-  # derived variables added
+#' Derive, label, and add diagnosis and staging variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added diagnosis and staging variables.
+#' @export
 
-  dat <- within(dat, {
+derive_diagnosis_staging <- function(data) {
+  data <- within(data, {
 
     # From Albert et al. 2011 Table 3
     # In a meeting (I think Feb 23, 2015),
@@ -45,9 +48,5 @@ diagnosisAndStaging <- function(dat) {
 
   })
 
-  dat
+  return(data)
 }
-
-
-
-

@@ -1,10 +1,16 @@
-medhxEtc <- function(dat) {
-  # Returns dat with medical-history derived variables added
+#' Derive, label, and add medical history variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added medical history variables.
+#' @export
+
+derive_medical_hx <- function(data) {
+  # Returns data with medical-history derived variables added
   # (the ones that are not derived previously elsewhere,
   #  like lab variables & medication/surgery variables)
   # and also various other medical-type vars (cmr, echo, etc.)
 
-  dat <- within(dat, {
+  data <- within(data, {
     # Current smoking
     # updated coding: use medhx.date (email from AJ, 17 Sep 2014)
     medhx.date.year <- lubridate::year(medhx.date)
@@ -65,10 +71,10 @@ medhxEtc <- function(dat) {
     label(cvd) <- "CVD, determined from variables in med hx"
   })
 
-  dat$sbp <- rowMeans(dat[, Cs(echo.sbp, echo.sbp2)], na.rm= TRUE)
-  dat$dbp <- rowMeans(dat[, Cs(echo.dbp, echo.dbp2)], na.rm= TRUE)
+  data$sbp <- rowMeans(data[, Cs(echo.sbp, echo.sbp2)], na.rm= TRUE)
+  data$dbp <- rowMeans(data[, Cs(echo.dbp, echo.dbp2)], na.rm= TRUE)
   # the above procedure introduces NaN's if both components are missing
-  dat <- within(dat, {
+  data <- within(data, {
     sbp <- ifelse(is.nan(sbp), NA, sbp)
     dbp <- ifelse(is.nan(dbp), NA, dbp)
     pp <- sbp-dbp
@@ -79,7 +85,7 @@ medhxEtc <- function(dat) {
   })
 
 
-  dat <- within(dat, {
+  data <- within(data, {
     # changed 2 Sep 2014 (email from AJ)
     dyslipidemia <-
       ifelse(bld.c.chol >= 200 | bld.c.hdlc < 40 |
@@ -374,5 +380,6 @@ medhxEtc <- function(dat) {
     anemic.factor <- factor(anemic, levels= c(1, 0), labels= c('Yes', 'No'))
     label(anemic) <- label(anemic.factor) <- "bld.c.hgb < 12.0 (F) or < 13.0 (M)"
   })
-  dat
+
+  return(data)
 }

@@ -7,30 +7,30 @@
 #' @examples
 #' test.df <- data_frame(a = 1:5, b = 2:6, c = rnorm(5), d = LETTERS[1:5])
 #'
-#' missingtoNA(test.df$b, mod.val = 3)
+#' missing_to_na(test.df$b, mod.val = 3)
 #'
 #' test.df %>% mutate_all(
-#'   ~ missingtoNA(., equal.val = 2)
+#'   ~ missing_to_na(., equal.val = 2)
 #' )
 #'
 #' test.df %>% mutate_if(
 #'  ~ any(class(.) %in% c("numeric", "integer", "character")),
-#'  ~ missingtoNA(., equal.val = c(2, 3))
+#'  ~ missing_to_na(., equal.val = c(2, 3))
 #' )
 #'
 #' test.df %>% mutate_at(
 #'   c("a", "b"),
-#'   ~ missingtoNA(., mod.val = 2, equal.val = c(2, 3, "E"))
+#'   ~ missing_to_na(., mod.val = 2, equal.val = c(2, 3, "E"))
 #' )
 #'
 #' epoch1.main.df %>% mutate_at(
 #'   grep("^ecogself\\_(mem|lang|vis|plan|org|attn)\\d{2}$", names(.)),
-#'    ~ missingtoNA(., equal.val = 0)
+#'    ~ missing_to_na(., equal.val = 0)
 #' )
 #'
 #' @export
 
-missingtoNA <- function(vec, mod.val, equal.val) {
+missing_to_na <- function(vec, mod.val, equal.val) {
   # output error if key arguments missing
   if (missing(vec)) {
     stop("Please specify a vector of data.")

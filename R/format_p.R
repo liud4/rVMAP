@@ -1,11 +1,12 @@
 #' Format a vector of p-values to be colored red if less than the specified alpha (default = 0.05).
 #'
-#' @param vector A vector containing p-values.
-#' @param alpha A number that specified significance.
-#' @return ???
+#' @param vector A numeric vector containing p-values.
+#' @param alpha A numeric significance value.
+#' @return A \code{formattable} object containing the formatted vector of p-values.
 #' @export
-
-# OAK 20180814: This function may need to be written for a data frame, not a vector.
+#'
+#' @examples
+#' formattable(summary.all.df, list(`p-Value` = formatP, `Total p-Value` = formatP))
 
 format_p <- function(vector, alpha = 0.05) {
   vector <- as.numeric(vector)

@@ -1,31 +1,37 @@
-preprocessingMain <- function(dat) {
-  # Returns dat with some preprocessing steps applied
+#' Apply various processing operations to the main data set.
+#'
+#' @param main_data A data frame containing VMAC main data.
+#' @return A processed version of \code{main_data}.
+#' @export
+
+process_main <- function(main_data) {
+  # Returns main_data with some preprocessing steps applied
   # To be called BEFORE the redcap-supplied R file
 
   # For any numeric variable, change value of -9999 to NA
-  dat <- dat %>%
+  main_data <- main_data %>%
     mutate_if(
       ~ any(class(.) %in% c("numeric", "integer", "character")),
       ~ missingtoNA(., equal.val = c(-9999, -7777))
     )
 
-  dat <- dat %>%
+  main_data <- main_data %>%
     mutate_at(
       grep("ccqself[0-9]+|ccqinform[0-9]+", names(.)),
       ~ missingtoNA(., equal.val = -2222)
     )
 
-  # numericCols <- names(dat)[sapply(dat, is.numeric)]
-  # dat[, numericCols] <- apply(dat[, numericCols], 2, minus9999)
-  # dat[, numericCols] <- apply(dat[, numericCols], 2, minus7777)
+  # numericCols <- names(main_data)[sapply(main_data, is.numeric)]
+  # main_data[, numericCols] <- apply(main_data[, numericCols], 2, minus9999)
+  # main_data[, numericCols] <- apply(main_data[, numericCols], 2, minus7777)
 
   # As of 17 Dec 2014, the ccqself and ccqinform vars have values of -2222,
   # which is equivalent to -8888 (& we want to count as missing)
   # colsFor2222 <- c(
-  #   names(dat)[grepl("ccqself[0-9]+", names(dat))],
-  #   names(dat)[grepl("ccqinform[0-9]+", names(dat))])
+  #   names(main_data)[grepl("ccqself[0-9]+", names(main_data))],
+  #   names(main_data)[grepl("ccqinform[0-9]+", names(main_data))])
   #
-  # dat[, colsFor2222] <- apply(dat[, colsFor2222], 2, minus2222)
+  # main_data[, colsFor2222] <- apply(main_data[, colsFor2222], 2, minus2222)
 
   # There is at least one variable for which we want to
   # preserve values of -8888 (i.e., we do not want to count -8888
@@ -43,7 +49,7 @@ preprocessingMain <- function(dat) {
 
   # Here are the numeric vars for which we want to preserve values of -8888:
 
-  dat <- dat %>%
+  main_data <- main_data %>%
     mutate_if(
       ~ any(class(.) %in% c("numeric", "integer", "character")) & any(!colnames(.) %in% "mhx_tobac_quit"),
       ~ missingtoNA(., equal.val = -8888)
@@ -53,14 +59,14 @@ preprocessingMain <- function(dat) {
   #   "mhx_tobac_quit"
   # )
   # colsFor8888 <- setdiff(numericCols, keep8888)
-  # dat[, colsFor8888] <- apply(dat[, colsFor8888], 2, minus8888)
+  # main_data[, colsFor8888] <- apply(main_data[, colsFor8888], 2, minus8888)
 
   if(FALSE){
     # temp code to help:
     has2222 <- function(vec){
       -2222 %in% vec | "-2222" %in% vec
     }
-    varsW2222 <- names(dat)[apply(dat, 2, has2222)]
+    varsW2222 <- names(main_data)[apply(main_data, 2, has2222)]
     varsW2222 <- varsW2222[!grepl("notes|comments", varsW2222)]
     cat("The following variables have values of -2222 that we haven't changed to missing:\n")
     print(varsW2222)
@@ -109,18 +115,18 @@ preprocessingMain <- function(dat) {
     ecogself_att
   )
 
-  # dat[, ecogself_underscore] <- apply(dat[, ecogself_underscore], 2, zeroNA)
+  # main_data[, ecogself_underscore] <- apply(main_data[, ecogself_underscore], 2, zeroNA)
 
-  dat <- dat %>%
+  main_data <- main_data %>%
     mutate_at(
       vars(ecogself_underscore),
       ~ missingtoNA(., equal.val = 0)
     )
 
   # 27 Feb 2015:  _notes variables
-  notesvars <- names(dat)[grepl("\\_notes\\>", names(dat))]
-  dat[, notesvars] <- apply(dat[, notesvars], 2, function(vec) {
+  notesvars <- names(main_data)[grepl("\\_notes\\>", names(main_data))]
+  main_data[, notesvars] <- apply(main_data[, notesvars], 2, function(vec) {
     ifelse(stringr::str_trim(vec) %in% c('-8888', '-9999', ""), NA, vec) })
 
-  dat
+  return(main_data)
 }

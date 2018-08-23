@@ -1,4 +1,10 @@
-invalidNeuropsychElig <- function(dat) {
+#' Invalidate certain neuropsychological eligibility variables for certain participants in the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with invalidated neuropsychological eligibility variables.
+#' @export
+
+invalidate_neuropsych_elig <- function(data) {
   x <- c(
     "np.srt6.elig",
     "np.srt.immed.elig",
@@ -14,7 +20,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Variables to set to NA for MAP 007
-  dat[dat$map.id == "007", x] <- NA
+  data[data$map.id == "007", x] <- NA
 
   x1 <- c(
     "np.blocks.elig",
@@ -22,7 +28,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Variables to set to NA for MAP 016 & MAP 213
-  dat[dat$map.id %in% c("016", "213"), x1] <- NA
+  data[data$map.id %in% c("016", "213"), x1] <- NA
 
   # MAP 025
   x2 <- c(
@@ -45,7 +51,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Variables to set to NA for MAP 025
-  dat[dat$map.id == "025", x2] <- NA
+  data[data$map.id == "025", x2] <- NA
 
   # Variables for MAP 039
   x3 <- c(
@@ -56,7 +62,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Set variables to missing for MAP 039
-  dat[dat$map.id == "039", x3] <- NA
+  data[data$map.id == "039", x3] <- NA
 
   # MAP 137
   x4 <- c(
@@ -69,7 +75,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Set variables to missing for MAP 137
-  dat[dat$map.id == "137", x4] <- NA
+  data[data$map.id == "137", x4] <- NA
 
   # MAP 201
   x5 <- c(
@@ -85,7 +91,7 @@ invalidNeuropsychElig <- function(dat) {
     "np.strp.scerr.elig")
 
   # Set variables to missing for MAP 201
-  dat[dat$map.id == "201", x5] <- NA
+  data[data$map.id == "201", x5] <- NA
 
   # MAP 212 & MAP 236
   x6 <- c(
@@ -100,7 +106,7 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Set variables to missing for MAP 212 & 236
-  dat[dat$map.id %in% c("212", "236"), x6] <- NA
+  data[data$map.id %in% c("212", "236"), x6] <- NA
 
   # MAP 299
   x7 <- c(
@@ -112,8 +118,8 @@ invalidNeuropsychElig <- function(dat) {
   )
 
   # Set variables to missing for MAP 299
-  dat[dat$map.id == "299", x7] <- NA
+  data[data$map.id == "299", x7] <- NA
 
   # Output
-  dat
+  return(data)
 }

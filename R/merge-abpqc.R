@@ -1,9 +1,11 @@
-abpqc <- function(dat) {
-  # Returns dat with additional ABP QC derived variables added
-  # (the ones that can't be derived in the ABP processing program
-  # because they need the REDCap data)
+#' Derive and add ABP QC derived variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added ABP QC derived variables.
+#' @export
 
-  dat <- within(dat, {
+derive_abp_qc <- function(data) {
+  data <- within(data, {
     # ABP QC:
     abp.within.90d.of.np <- ifelse(
       is.na(days.np.date.minus.abp.date),
@@ -38,5 +40,6 @@ abpqc <- function(dat) {
     )
     label(abp.passed.QC.factor) <- label(abp.passed.QC) <- "ABP: passed QC"
   })
-  dat
+
+  return(data)
 }

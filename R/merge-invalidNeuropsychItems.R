@@ -1,6 +1,10 @@
-# 04/06/2015 - Changed code with help from LS - no longer requires for loop
-# 04/09/2015 - DL helped put code into function, and can now easily be sourced!
-invalidNeuropsychItems <- function(dat) {
+#' Invalidate certain neuropsychological variables for certain participants in the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with invalidated neuropsychological variables.
+#' @export
+
+invalidate_neuropsych_items <- function(data) {
   x <- c(
     "np.tower01",
     "np.tower02",
@@ -19,7 +23,7 @@ invalidNeuropsychItems <- function(dat) {
   )
 
   # Variables to set to NA for MAP 007 1:14 of x
-  dat[dat$map.id == "007" & dat$epoch == 1, x] <- NA
+  data[data$map.id == "007" & data$epoch == 1, x] <- NA
 
   # MAP 035 and MAP 242 - All BFLT Items invalid
   x1 <- c(
@@ -67,7 +71,7 @@ invalidNeuropsychItems <- function(dat) {
     "np.biber.bias.unrelated"
   )
 
-  dat[dat$map.id %in% c("035", "242") & dat$epoch == 1, x1] <- NA
+  data[data$map.id %in% c("035", "242") & data$epoch == 1, x1] <- NA
 
   # MAP 065 - some BFLT recognition items are invalid (np_biber_hits is okay)
   x2 <- c(
@@ -86,7 +90,7 @@ invalidNeuropsychItems <- function(dat) {
     "np.biber.bias.unrelated"
   )
 
-  dat[dat$map.id == "065" & dat$epoch == 1, x2] <- NA
+  data[data$map.id == "065" & data$epoch == 1, x2] <- NA
 
   # MAP 135, 220, 234
   x3 <- c(
@@ -97,7 +101,7 @@ invalidNeuropsychItems <- function(dat) {
     "np.color.err"              , "np.color.cumpercerr"       ,
     "np.color.cumpercerr.factor"
   )
-  dat[dat$map.id %in% c("135","220","234") & dat$epoch==1,x3] <- NA
+  data[data$map.id %in% c("135","220","234") & data$epoch==1,x3] <- NA
 
   x4 <- c(
     "np.cvltrec.hits",
@@ -116,7 +120,7 @@ invalidNeuropsychItems <- function(dat) {
     "np.cvltrecog.responbias.z"
   )
 
-  dat[dat$map.id == 209 & dat$epoch == 1, x4] <- NA
+  data[data$map.id == 209 & data$epoch == 1, x4] <- NA
 
   ##
   ## below added by OAK 08/25/2017
@@ -129,7 +133,7 @@ invalidNeuropsychItems <- function(dat) {
     np.bnt.z
   )
 
-  dat[dat$map.id == '016' & dat$epoch == 2, x5] <- NA
+  data[data$map.id == '016' & data$epoch == 2, x5] <- NA
 
   # MAP 033, 176 - Color–word invalid
 
@@ -160,7 +164,7 @@ invalidNeuropsychItems <- function(dat) {
     np.inhibit.err.ss
   )
 
-  dat[dat$map.id %in% c("033", "176") & dat$epoch == 2, x6] <- NA
+  data[data$map.id %in% c("033", "176") & data$epoch == 2, x6] <- NA
 
   # MAP 111 – BNT VALID – originally marked invalid
 
@@ -192,25 +196,25 @@ invalidNeuropsychItems <- function(dat) {
     np.biber.bias.unrelated
   )
 
-  dat[dat$map.id %in% c("265", "266") & dat$epoch == 2, x7] <- NA
+  data[data$map.id %in% c("265", "266") & data$epoch == 2, x7] <- NA
 
   # 20171024 OAK: MAP 201 – All neuropsych variables from epoch 1 invalid
 
-  x8 <- grep("^np(?!.*elig$).*$", names(dat), value = TRUE, perl = TRUE) # 20180109 OAK: get names starting with np but not ending in elig
-  dat[dat$map.id == "201" & dat$epoch == 1, x8] <- NA
+  x8 <- grep("^np(?!.*elig$).*$", names(data), value = TRUE, perl = TRUE) # 20180109 OAK: get names starting with np but not ending in elig
+  data[data$map.id == "201" & data$epoch == 1, x8] <- NA
 
   ## OAK 20180224: This might be the issue since memory.composite isn't made until after this code. Commenting out.
   ## 20180115 OAK: MAP 209 - Set np.memory.composite from epoch 1 to missing
   # x9 <- Cs(np.memory.composite)
   #
-  # dat[dat$map.id == "209" & dat$epoch == 1, x9] <- NA
+  # data[data$map.id == "209" & data$epoch == 1, x9] <- NA
 
   # DELETE 20180124 OAK: while waiting on invalid np in epoch 3 from AJ, will try smaller than -7776 to NA
-  # DELETE dat[dat$epoch == 3, x10] <- lapply(dat[dat$epoch == 3, x10], function(x) ifelse(x < -7776, NA, x))
+  # DELETE data[data$epoch == 3, x10] <- lapply(data[data$epoch == 3, x10], function(x) ifelse(x < -7776, NA, x))
 
   # 20180201 OAK: after speaking to Kim, set epoch 3 np.* %in% c(-7777, -8888, -9999) to NA
-  x10 <- grep("^np(?!.*notes$).*$", names(dat[sapply(dat, is.numeric)]), value = TRUE, perl = TRUE)
-  dat[dat$epoch == 3, x10] <- lapply(dat[dat$epoch == 3, x10],
+  x10 <- grep("^np(?!.*notes$).*$", names(data[sapply(data, is.numeric)]), value = TRUE, perl = TRUE)
+  data[data$epoch == 3, x10] <- lapply(data[data$epoch == 3, x10],
                                      function(x) ifelse(x %in% c(-7777, -8888, -9999), NA, x))
 
   # 20180202 OAK: set epoch 3 calculated np vars to NA if components %in% c(-7777, -8888, -9999, NA)
@@ -238,14 +242,14 @@ invalidNeuropsychItems <- function(dat) {
   for (i in 1:length(x12)) {
     np.calc.var <- x12[i]
     np.calc.var.comp <- np.components[[i]]
-    dat[dat$epoch == 3, np.calc.var] <- ifelse(
-      apply(dat[dat$epoch == 3, np.calc.var.comp, drop = F], 1, function(x) any(x %in% c(-7777, -8888, -9999, NA))),
+    data[data$epoch == 3, np.calc.var] <- ifelse(
+      apply(data[data$epoch == 3, np.calc.var.comp, drop = F], 1, function(x) any(x %in% c(-7777, -8888, -9999, NA))),
       NA,
-      dat[dat$epoch == 3, np.calc.var]
+      data[data$epoch == 3, np.calc.var]
     )
   }
 
   #
 
-  dat
+  data
 }

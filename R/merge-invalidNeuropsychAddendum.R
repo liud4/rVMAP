@@ -1,4 +1,10 @@
-invalidNeuropsychAddendum <- function(dat) {
+#' Invalidate certain neuropsychological addendum variables for certain participants in the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with invalidated neuropsychological addendum variables.
+#' @export
+
+invalidate_neuropsych_addendum <- function(data) {
 
   nosuffix <- Hmisc::Cs(
     np.pvltrecog.m,
@@ -14,12 +20,12 @@ invalidNeuropsychAddendum <- function(dat) {
 
   withsuffix <- paste0(nosuffix, ".addend")
 
-  x <- intersect(names(dat), c(nosuffix, withsuffix))
+  x <- intersect(names(data), c(nosuffix, withsuffix))
 
-  #dat[dat$vmac.id.add == 1137 & dat$epoch == 1, x] <- NA
+  #data[data$vmac.id.add == 1137 & data$epoch == 1, x] <- NA
   # 22 May 2015: Kim confirmed in email
   #   that this is the right map.id
-  dat[dat$map.id == 194 & dat$epoch == 1, x] <- NA
+  data[data$map.id == 194 & data$epoch == 1, x] <- NA
 
   # 22 May 2015: Kim confirmed in email
   #   that this person is not a MAP participant
@@ -44,7 +50,7 @@ invalidNeuropsychAddendum <- function(dat) {
   #       np.pvlt5.pers,
   #       np.pvlt5.clust
   #), ".addend")
-  #dat[dat$vmac.id.addend == 2963 & dat$epoch == 1, x1] <- NA
+  #data[data$vmac.id.addend == 2963 & data$epoch == 1, x1] <- NA
 
-  dat
+  return(data)
 }

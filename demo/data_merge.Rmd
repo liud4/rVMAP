@@ -650,7 +650,7 @@ merged.df <- callFunction("cardiacStructure", "Derive a few echo variables", mer
 ## ABP QC
 
 ```{r derive-abpqc}
-merged.df <- callFunction("abpqc", "Derive ABP QC variables", merged.df)
+merged.df <- callFunction("derive_abp_qc", "Derive ABP QC variables", merged.df)
 ```
 
 ## FSRP
@@ -847,8 +847,8 @@ merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames
 merged.bh.df <- merged.bh.df[, -bHoldIndices]
 
 # Add AD signatures
-merged.fm.df <- addADsig(merged.fm.df)
-merged.bh.df <- addADsig(merged.bh.df)
+merged.fm.df <- derive_AD_sig(merged.fm.df)
+merged.bh.df <- derive_AD_sig(merged.bh.df)
 
 # Save the files in two formats.
 saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))

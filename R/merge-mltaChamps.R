@@ -1,15 +1,11 @@
-## Changes
+#' Derive, convert, label, and add MLTA and CHAMPS variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added MLTA and CHAMPS 3T variables.
+#' @export
 
-## 06 Apr 2105, LS:
-#  re-doing Champs individ kcal items so they are individually usable
-#  (request from Liz & AJ, 24 Mar 2015)
-
-mltaChamps <- function(dat) {
-  # Returns dat with MLTA & CHAMPS derived variables added
-  # and with some totals that were calculated in REDCap recalculated
-  # Make sure to source "scoringFunctions.R" before calling this function
-
-  dat <- within(dat, {
+derive_mlta_champs <- function(data) {
+  data <- within(data, {
 
     mlta01 <- as.numeric(mlta01)
 
@@ -70,17 +66,17 @@ mltaChamps <- function(dat) {
   })
 
   for(vname in paste0("mlta", formatC(1:25, width= 2, flag= 0))){
-    label(dat[, paste0(vname, ".kcal")]) <-
-      paste0(label(dat[, vname]), " (kcal, recalculated)")
+    label(data[, paste0(vname, ".kcal")]) <-
+      paste0(label(data[, vname]), " (kcal, recalculated)")
   }
 
-  dat$mlta.min <- apply(dat[, Hmisc::Cs(
+  data$mlta.min <- apply(data[, Hmisc::Cs(
     mlta01 , mlta02 , mlta03 , mlta04 , mlta05 , mlta06 , mlta07 ,
     mlta08 , mlta09 , mlta10 , mlta11 , mlta12 , mlta13 , mlta14 ,
     mlta15 , mlta16 , mlta17 , mlta18 , mlta19 , mlta20 , mlta21 ,
     mlta22 , mlta23 ,mlta24 , mlta25)], 1, totscore)
 
-  dat$mlta.kcal <- apply(dat[, Hmisc::Cs(
+  data$mlta.kcal <- apply(data[, Hmisc::Cs(
     mlta01.kcal , mlta02.kcal , mlta03.kcal , mlta04.kcal ,
     mlta05.kcal , mlta06.kcal , mlta07.kcal ,
     mlta08.kcal , mlta09.kcal , mlta10.kcal , mlta11.kcal ,
@@ -89,7 +85,7 @@ mltaChamps <- function(dat) {
     mlta19.kcal , mlta20.kcal , mlta21.kcal ,
     mlta22.kcal , mlta23.kcal , mlta24.kcal , mlta25.kcal)], 1, totscore)
 
-  dat$champs.caloricexpend.all <- apply(dat[, Hmisc::Cs(
+  data$champs.caloricexpend.all <- apply(data[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
     champs10.kcal, champs14.kcal,
     champs15.kcal, champs16.kcal, champs19.kcal,
@@ -100,7 +96,7 @@ mltaChamps <- function(dat) {
     champs40.kcal)], 1,
     totscore)
 
-  dat$champs.caloricexpend.mod <- apply(dat[, Hmisc::Cs(
+  data$champs.caloricexpend.mod <- apply(data[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
     champs14.kcal, champs15.kcal, champs16.kcal, champs19.kcal,
     champs21.kcal, champs23.kcal, champs24.kcal,
@@ -109,7 +105,7 @@ mltaChamps <- function(dat) {
     champs36.kcal, champs37.kcal, champs38.kcal,
     champs40.kcal)], 1, totscore)
 
-  dat$champs.freqall <- apply(dat[, Hmisc::Cs(
+  data$champs.freqall <- apply(data[, Hmisc::Cs(
     champs07.wk, champs09.wk,
     champs10.wk, champs14.wk, champs15.wk, champs16.wk, champs19.wk,
     champs20.wk, champs21.wk, champs22.wk, champs23.wk, champs24.wk,
@@ -118,7 +114,7 @@ mltaChamps <- function(dat) {
     champs35.wk, champs36.wk, champs37.wk, champs38.wk, champs39.wk,
     champs40.wk)], 1, totscore)
 
-  dat$champs.freqmod <- apply(dat[, Hmisc::Cs(
+  data$champs.freqmod <- apply(data[, Hmisc::Cs(
     champs07.wk, champs09.wk,
     champs14.wk, champs15.wk, champs16.wk, champs19.wk,
     champs21.wk, champs23.wk, champs24.wk,
@@ -127,7 +123,7 @@ mltaChamps <- function(dat) {
     champs36.wk, champs37.wk, champs38.wk,
     champs40.wk)], 1, totscore)
 
-  dat <- within(dat, {
+  data <- within(data, {
     label(mlta.min) <- "MLTA Total Minutes, recalculated"
     label(mlta.kcal) <- "MLTA Total Kcal, recalculated"
     label(champs.caloricexpend.all) <- "CHAMPS Caloric Expenditure Per Week in all Activities, recalculated"
@@ -137,13 +133,13 @@ mltaChamps <- function(dat) {
   })
 
   # Label the champs kcal vars
-  champs.kcal.names <- names(dat)[grepl("\\<champs[0-9][0-9]\\.kcal\\>",
-                                        names(dat))]
+  champs.kcal.names <- names(data)[grepl("\\<champs[0-9][0-9]\\.kcal\\>",
+                                        names(data))]
   champs.hrs.names <- gsub("kcal", "hrs", champs.kcal.names, fixed= TRUE)
   for(i in seq_along(champs.kcal.names)){
-    label(dat[, champs.kcal.names[i]]) <- gsub("hrs/wk", "kcal",
-                                               label(dat[, champs.hrs.names[i]]), fixed= TRUE)
+    label(data[, champs.kcal.names[i]]) <- gsub("hrs/wk", "kcal",
+                                               label(data[, champs.hrs.names[i]]), fixed= TRUE)
   }
 
-  dat
+  return(data)
 }

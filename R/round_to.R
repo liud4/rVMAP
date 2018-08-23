@@ -2,7 +2,7 @@
 #'
 #' @param x A numeric vector.
 #' @param k An integer indicating the number of decimals to show.
-#' @return A character vector of length as `x` containing the rounded numbers.
+#' @return A character vector of length as \code{x} containing the rounded numbers.
 #' @export
 #'
 #' @examples

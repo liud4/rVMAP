@@ -1,9 +1,15 @@
-pvlt <- function(dat) {
-  # OAK 20180626: For some reason, these variables are now character. They need to be set to numeric.
-  to_make_numeric <- names(which(lapply(dat[, grep("np\\.pvlt", names(dat), v = T)], function(x) "character" %in% class(x)) == TRUE))
-  dat[, setdiff(to_make_numeric, "np.pvlt.notes")] <- lapply(dat[, setdiff(to_make_numeric, "np.pvlt.notes")], as.numeric)
+#' Derive, label, and add PVLT variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added PVLT variables.
+#' @export
 
-  dat <- within(dat, {
+derive_pvlt <- function(data) {
+  # OAK 20180626: For some reason, these variables are now character. They need to be set to numeric.
+  to_make_numeric <- names(which(lapply(data[, grep("np\\.pvlt", names(data), v = T)], function(x) "character" %in% class(x)) == TRUE))
+  data[, setdiff(to_make_numeric, "np.pvlt.notes")] <- lapply(data[, setdiff(to_make_numeric, "np.pvlt.notes")], as.numeric)
+
+  data <- within(data, {
     np.pvlta.tot.redcap <- np.pvlta.tot
     np.pvlta.intrus.redcap <- np.pvlta.intrus
     np.pvlta.pers.redcap <- np.pvlta.pers
@@ -110,33 +116,33 @@ pvlt <- function(dat) {
   pvlt.intrus <- paste0("np.pvlt", formatC(1:10, digits = 0), ".intrus")
   pvlt.clust <- c(paste0("np.pvlt", formatC(1:7, digits = 0), ".clust"), "np.pvlt9.pers")
 
-  dat$np.pvlt.pers.total <- apply(dat[,pvlt.pers], 1, sum)
-  dat$np.pvlt.intrus.total <- apply(dat[,pvlt.intrus], 1, sum)
-  dat$np.pvlt.clust.total <- apply(dat[,pvlt.clust], 1, sum)
+  data$np.pvlt.pers.total <- apply(data[,pvlt.pers], 1, sum)
+  data$np.pvlt.intrus.total <- apply(data[,pvlt.intrus], 1, sum)
+  data$np.pvlt.clust.total <- apply(data[,pvlt.clust], 1, sum)
 
-  label(dat$np.pvlt.pers.total) <- "Total, np.pvlt.pers"
-  label(dat$np.pvlt.intrus.total) <- "Total, np.pvlt.intrus"
-  label(dat$np.pvlt.clust.total) <- "Total, np.pvlt.clust"
+  label(data$np.pvlt.pers.total) <- "Total, np.pvlt.pers"
+  label(data$np.pvlt.intrus.total) <- "Total, np.pvlt.intrus"
+  label(data$np.pvlt.clust.total) <- "Total, np.pvlt.clust"
 
-  dat$np.pvlt.proint <- dat$np.pvlt6 - dat$np.pvlt1
-  dat$np.pvlt.shortretention <- dat$np.pvlt7 - dat$np.pvlt5
-  dat$np.pvlt.longretention <- dat$np.pvlt9 - dat$np.pvlt5
-  dat$np.pvlt.freerecallint <- dat$np.pvlt7.intrus + dat$np.pvlt9.intrus
+  data$np.pvlt.proint <- data$np.pvlt6 - data$np.pvlt1
+  data$np.pvlt.shortretention <- data$np.pvlt7 - data$np.pvlt5
+  data$np.pvlt.longretention <- data$np.pvlt9 - data$np.pvlt5
+  data$np.pvlt.freerecallint <- data$np.pvlt7.intrus + data$np.pvlt9.intrus
 
-  label(dat$np.pvlt.proint) <- "PVLT6 - PVLT1"
-  label(dat$np.pvlt.shortretention) <- "PVLT7 - PVLT5"
-  label(dat$np.pvlt.longretention) <- "PVLT9 - PVLT5"
-  label(dat$np.pvlt.freerecallint) <- "pvlt7.intrus + pvlt9.intrus"
+  label(data$np.pvlt.proint) <- "PVLT6 - PVLT1"
+  label(data$np.pvlt.shortretention) <- "PVLT7 - PVLT5"
+  label(data$np.pvlt.longretention) <- "PVLT9 - PVLT5"
+  label(data$np.pvlt.freerecallint) <- "pvlt7.intrus + pvlt9.intrus"
 
-  dat$np.pvlt.cuedrecallint <- dat$np.pvlt8.intrus + dat$np.pvlt10.intrus
-  label(dat$np.pvlt.cuedrecallint) <- "pvlt8.intrus + pvlt10.intrus"
+  data$np.pvlt.cuedrecallint <- data$np.pvlt8.intrus + data$np.pvlt10.intrus
+  label(data$np.pvlt.cuedrecallint) <- "pvlt8.intrus + pvlt10.intrus"
 
-  regcoef <- rep(0, length(dat$map.id))
+  regcoef <- rep(0, length(data$map.id))
 
-  for (ep in unique(dat$epoch)) {
-    for (id in unique(dat[dat$epoch == ep, "map.id"])) {
-      y <- as.numeric(dat[dat$epoch == ep & dat$map.id == id,
-                          c("np.pvlt1", "np.pvlt2", "np.pvlt3", "np.pvlt4", "np.pvlt5")])
+  for (ep in unique(data$epoch)) {
+    for (id in unique(data[data$epoch == ep, "map.id"])) {
+      y <- as.numeric(data[data$epoch == ep & data$map.id == id,
+                           c("np.pvlt1", "np.pvlt2", "np.pvlt3", "np.pvlt4", "np.pvlt5")])
       if (sum(is.na(y)) != 5) {
         x <- seq(1:5)
         res <- lm(y ~ x)
@@ -144,10 +150,10 @@ pvlt <- function(dat) {
       } else {
         regcoef <- NA
       }
-      dat[dat$epoch == ep & dat$map.id == id, "np.pvlt.slope"] <- regcoef
+      data[data$epoch == ep & data$map.id == id, "np.pvlt.slope"] <- regcoef
     }
   }
-  label(dat$np.pvlt.slope) <- "PVLT Learning Slope"
+  label(data$np.pvlt.slope) <- "PVLT Learning Slope"
 
-  dat
+  data
 }

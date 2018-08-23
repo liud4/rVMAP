@@ -1,21 +1,23 @@
-#' Function to freeze data by downloading it from REDCap
+#' Function to freeze data by downloading it from REDCap. The API tokens must be unlocked from a secure, encrypted vault.
 #'
 #' @param box.dir User path to Box home directory (parent directory of "VMAC BIOSTAT").
-#' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (scheduled download = TRUE; interim download = FALSE). This variable determines the save location.
+#' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the save location.
 #' @param tokens.list The decrypted list of databases to download from REDCap.
 #' @param redcap.api.uri The URI for the REDCap API
-#' @param save A logical value indicating whether to save the output as an RDS file in the default directory
+#' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData" or "rawData/temp", depending on the value of \code{quarterly.download})
+#' @param return A logical value indicating whether to return the output.
 #' @return A comprehensive list object containing all the raw data necessary to perform a data merge.
 #' @export
 #'
 #' @examples
-#' data_freeze(quarterly.download = FALSE, save = TRUE)
+#' MAPfreeze_interim.list <- data_freeze(quarterly.download = FALSE, save = TRUE, return = TRUE)
 
 data_freeze <- function(box.dir = file.path("~", "box"),
                         quarterly.download,
                         tokens.list = secret::get_secret(name = "MAP_redcap_tokens.secret"),
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
-                        save = TRUE) {
+                        save = TRUE,
+                        return = TRUE) {
 
   # define important directories
   vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
@@ -336,5 +338,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     )
   }
 
-  return(MAPfreeze.list)
+  if (return == TRUE) {
+    return(MAPfreeze.list)
+  }
 }

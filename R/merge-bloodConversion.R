@@ -1,14 +1,16 @@
+#' Derive, convert, label, and add blood variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added blood variables.
+#' @export
 
-bloodConversion <- function(dat) {
+derive_blood <- function(data) {
   idsForConversion <- formatC(1:91, width = 3, format = "d", flag = "0")
 
-  dat <- within(dat, {
+  data <- within(data, {
     m <- (99 - 70)/(110 - 70)
     b <- 99 - m*110
     bld.c.glucose.redcap <- bld.c.glucose
-    # 07 Dec 2016, LS: I left the next line here as a reference but for all the others
-    #    I just went ahead and changed w/o copying and commenting out
-    #bld.c.glucose <- ifelse(map.id %in% map.id[1:91] & epoch==1, m*bld.c.glucose.redcap + b, bld.c.glucose.redcap)
     bld.c.glucose <- ifelse(map.id %in% idsForConversion & epoch == 1, m*bld.c.glucose.redcap + b, bld.c.glucose.redcap)
 
     m <- (23 - 0)/(16 - 0)
@@ -121,27 +123,6 @@ bloodConversion <- function(dat) {
     bld.c.igg <-
       ifelse(is.na(bld.c.igg) | bld.c.igg %in% c("-9999", ""), NA,
              ifelse(bld.c.igg %in% c(">80.0"), 80.1, as.numeric(as.character(bld.c.igg))))
-    # 13 Dec 2016, LS: this part was commented out, with no explanation
-    #    given.
-    #mf <- (1631 - 552)/(1618 - 694)
-    #bf <- 1631 - mf*1618
-    #mm <- (1822 - 540)/(1618 - 694)
-    #bm <- 1822 - mm*1618
-    #bld.c.igg.converted <- ifelse(map.id %in% idsForConversion & sex.factor=="Male",mm*bld.c.igg+bm,
-    #ifelse(map.id %in% idsForConversion & sex.factor=="Female",mf*bld.c.igg+bf,
-    #bld.c.igg))
-
-
-
-    #mf <- (293 - 33)/(263 - 60)
-    #bf <- 293 - mf*263
-    #mm <- (240 - 22)/(263 - 60)
-    #bm <- 240 - mm*263
-
-    #bld.c.iga.converted <- ifelse(map.id %in% idsForConversion & sex.factor=="Male",mm*bld.c.iga+bm,
-    #ifelse(map.id %in% idsForConversion & sex.factor=="Female",mf*bld.c.iga+bf,
-    #bld.c.iga))
-
 
     m1 <- (4.6 - 3.2)/(5 - 3.5)
     b1 <- 4.6 - m1*5
@@ -188,7 +169,6 @@ bloodConversion <- function(dat) {
 
     rm(mf,mm,m,m1,m2,b,b1,b2,bf,bm)
   })
-  dat
+
+  return(data)
 }
-
-

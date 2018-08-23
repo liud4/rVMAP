@@ -1,26 +1,10 @@
-#' Perform a variety of data cleaning on eligibility data.
+#' Apply various processing operations to the eligibility data set.
 #'
-#' @param elig_data The eligibility data frame
-#' @return The tidied eligibility data frame.
+#' @param elig_data A data frame containing VMAC eligibility data.
+#' @return A processed version of \code{elig_data}.
 #' @export
 
-modify_eligibility <- function(elig_data) {
-  # Returns data (should be eligibility data),
-  # keeping only the variables we want
-  # with derived variables added
-  # and with all variable names other than map.id having
-  # the postfix ".elig"
-
-  # make sure to have sourced scoringFunctions and missingsFunctions
-  # before calling this function
-
-  # For any numeric variable, change value of -9999 or -8888 to NA
-  # numericCols <- names(data)[sapply(data, is.numeric)]
-  # data[, numericCols] <- apply(data[, numericCols], 2,
-  #                              minus9999)
-  # data[, numericCols] <- apply(data[, numericCols], 2,
-  #                              minus8888)
-
+process_eligibility <- function(elig_data) {
   elig_data %<>% mutate_if(
     is.numeric,
     funs(
