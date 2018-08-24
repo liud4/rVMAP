@@ -4,7 +4,7 @@
 #' @return \code{data} with added FSRP variables.
 #' @export
 
-fsrp <- function(data) {
+derive_fsrp <- function(data) {
 
   # FSRP
   # directions are in the MAP Derived Variable Covariate List

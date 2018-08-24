@@ -1,12 +1,12 @@
 #' Derive, label, and add cardiac MRI variables to the merged data set.
 #'
-#' This function requires the variable `bsa` which is created in \code{derive_med_hx()}. This function also requires \code{invalid_cmr()} to be called before this one.
+#' This function requires the variable `bsa` which is created in \code{derive_med_hx()}.
 #'
 #' @param data A data frame containing VMAC variables.
 #' @return \code{data} with added cardiac MRI variables.
 #' @export
 
-derive_cardiac_MRI <- function(data) {
+derive_cardiac_mri <- function(data) {
   data <- within(data, {
     #label(scan.date)="Scan date"
     label(qmass.usable)="Is QMass data usable?"

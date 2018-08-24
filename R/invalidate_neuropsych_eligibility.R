@@ -4,7 +4,7 @@
 #' @return \code{data} with invalidated neuropsychological eligibility variables.
 #' @export
 
-invalidate_neuropsych_elig <- function(data) {
+invalidate_neuropsych_eligibility <- function(data) {
   x <- c(
     "np.srt6.elig",
     "np.srt.immed.elig",
