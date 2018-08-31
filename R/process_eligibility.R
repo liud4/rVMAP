@@ -6,10 +6,8 @@
 
 process_eligibility <- function(elig_data) {
   elig_data %<>% mutate_if(
-    is.numeric,
-    funs(
-      missingtoNA(., equal.val = c(-9999, -8888))
-    )
+    ~ any(class(.) %in% c("numeric", "integer", "character")),
+    ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
   )
 
   elig_data <- dates(elig_data)

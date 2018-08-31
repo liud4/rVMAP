@@ -1,7 +1,7 @@
-#' Derive, label, and add cognitive complaint variables to the merged data set.
+#' Derive, label, and add cognitive complaint, FCADL, and FAQ variables to the merged data set.
 #'
 #' @param data A data frame containing VMAC variables.
-#' @return \code{data} with added cognitive complaint variables.
+#' @return \code{data} with added cognitive complaint, FCADL, and FAQ variables.
 #' @export
 
 derive_cognitive_complaint <- function(data) {

@@ -8,6 +8,11 @@
 coerce_and_stack <- function(new_data, old_data) {
   shared.names <- intersect(names(new_data), names(old_data))
   if (length(shared.names) > 0) {
+    different_modes.df <-  rbind(c(
+      `Variable` = "delete",
+      `Mode in New Data Set` = "delete",
+      `Mode in Old Data Set` = "delete"
+    ))
     for (vname in shared.names) {
       new_vec <- new_data[[vname]]
       old_vec <- old_data[[vname]]
@@ -15,12 +20,14 @@ coerce_and_stack <- function(new_data, old_data) {
       # If all the values are NA, R thinks the mode is 'logical'.
       #   In that case we don't care whether the modes are different.
       if ((!identical(modes[1], modes[2])) & !(all(is.na(new_vec)) | all(is.na(old_vec)))) {
-        cat("\nThere are differences in the R storage modes of the following variables:\n")
-        cat("\n-----------------------------\n-->", vname, "\n")
-        cat("New:", mode(new_vec), "\n")
-        cat("Old:", mode(old_vec), "\n")
+        new_row <- c(
+          `Variable` = vname,
+          `Mode in New Data Set` = mode(new_vec),
+          `Mode in Old Data Set` = mode(old_vec)
+        )
+        different_modes.df <- rbind.data.frame(different_modes.df, new_row, make.row.names = FALSE, stringsAsFactors = FALSE)
+
         if (any(grepl("character", modes, fixed = TRUE)) & any(grepl("numeric", modes, fixed = TRUE))) {
-          cat("\nCoercing the numeric variable to character before stacking.\n")
           if (modes[1] == "numeric") {
             new_data[[vname]] <- as.character(new_data[[vname]])
           } else {
@@ -29,7 +36,15 @@ coerce_and_stack <- function(new_data, old_data) {
         }
       }
     }
-  }
 
+    if (!is.null(nrow(different_modes.df))) {
+      cat("There are differences in storage modes in the following variables:\n")
+      print(different_modes.df[-1, ])
+      cat("Numeric varibales were coerced to character.\n")
+    } else {
+      cat("Variables in the new and old data sets share the same storage modes.\n")
+    }
+
+  }
   return(dplyr::bind_rows(old_data, new_data))
 }

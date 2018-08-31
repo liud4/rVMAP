@@ -1,4 +1,4 @@
-#' Apply various processing operations to the main data set.
+#' DEPRECATED. Apply various processing operations to the main data set.
 #'
 #' @param main_data A data frame containing VMAC main data.
 #' @return A processed version of \code{main_data}.
