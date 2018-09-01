@@ -1,11 +1,13 @@
-#' Function for use in statistical reports to print MAP IDs excluded from a specific exclusion step.
+#' Use in statistical reports to print MAP IDs excluded from a specific exclusion step.
 #'
 #' @param step An integer specifying the exclusion step number (stored in a list called \code{id.excl}).
 #' @return A sentence stating that no participants were excluded in the specified step or a sentence with a comma separated list of excluded participants.
 #' @export
 #'
 #' @examples
-#' excl_map_id(2)
+#' \dontrun{
+#' excl_map_id(step = 2)
+#' }
 
 print_excluded_participants <- function(step) {
   if (all.equal(clear.labels(excl$id.excl[[step]]), character(0)) == TRUE) {

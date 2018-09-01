@@ -39,11 +39,8 @@ derive_medical_hx <- function(data) {
     # 20 Oct 2016: (Based on meeting, 17 Oct 2016)
     #   in epoch 1, we will count map id 293 as having missing
     #   mhx.tobac.pks (-6666 w/ note in redcap)
-    mhx.tobac.pks <- ifelse(epoch == 1 & map.id == "293", NA,
-                            mhx.tobac.pks)
-    cat("\n---->>> Note: We have set mhx.tobac.pks to NA for",
-        " map.id 293 in Epoch 1 (original value -6666;\n",
-        " see minutes from 17 Oct 2016 meeting).\n", sep= "")
+    mhx.tobac.pks <- ifelse(epoch == 1 & map.id == "293", NA, mhx.tobac.pks)
+    message("Note: In this function, we have manually set mhx.tobac.pks to NA for MAP ID 293 in Epoch 1 (as per discussion on 20161017).\n")
 
     # Pack years
     dob.year <- lubridate::year(dob)

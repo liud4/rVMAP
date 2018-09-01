@@ -1,4 +1,4 @@
-#' Function to merge raw, non-derived data within each epoch.
+#' Major function to merge raw, non-derived data within each epoch.
 #'
 #' @param epoch Epoch number
 #' @param save.file An optional file path to an RDS object where the merged data will be saved.
@@ -50,16 +50,16 @@ merge_within_epoch <- function(
 
   mydat <- mydat %>%
     mutate_at(
-      grep("notes|date", grep("^ecogself\\_", names(.), v = T), v = T, invert = T),
+      grep("notes|date", grep("^ecogself\\_", names(.), value = T), value = T, invert = T),
       ~ missing_to_na(., equal.val = 0)
     )
 
-  notes.var <- grep("\\_notes$", names(mydat), v = T)
+  notes.var <- grep("\\_notes$", names(mydat), value = T)
   mydat[, notes.var] <- apply(mydat[, notes.var], 2, function(vec) {
     ifelse(stringr::str_trim(vec) %in% c("-8888", "-9999", ""), NA, vec)
   })
 
-  mydat <- fix_names(mydat)
+  # mydat <- format_names(mydat)
 
   mydat <- format_id(mydat)
 
@@ -70,7 +70,10 @@ merge_within_epoch <- function(
 
   if (!is.null(abp)) {
 
-    abp.df <- abp %>%
+    abp.df <- abp
+    names(abp.df) <- gsub("\\.", "\\_", names(abp.df))
+
+    abp.df <- abp.df %>%
       clear_labels() %>%
       format_id() %>%
       mutate_if(
@@ -124,7 +127,7 @@ merge_within_epoch <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session_id", names(auto3T.df), v = T)
+    to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session_id", names(auto3T.df), value = T)
 
     if (length(to_rename_auto3T) > 0) {
       auto3T.df <- auto3T.df %>%
@@ -191,7 +194,7 @@ merge_within_epoch <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session_id", names(man3T.df), v = T)
+    to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session_id", names(man3T.df), value = T)
 
     if (length(to_rename_man3T) > 0) {
       man3T.df <- man3T.df %>%

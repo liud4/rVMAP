@@ -1,7 +1,7 @@
-#' Function to format MAP IDs to strings with three digits.
+#' Format MAP IDs to strings with three digits.
 #'
 #' @param data A data frame that contains the variable \code{map_id} or \code{map.id}.
-#' @return A data frame that contains the formatted variable \code{map_id} or \code{map.id}.
+#' @return \code{data} that contains the formatted variable \code{map_id} or \code{map.id}.
 #' @export
 
 format_id <- function(data) {

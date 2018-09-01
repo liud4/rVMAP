@@ -1,8 +1,8 @@
-#' Function to freeze data by downloading it from REDCap. The API tokens must be unlocked from a secure, encrypted vault.
+#' Freeze data by downloading it from REDCap. Static data sets are also added to the list object. The API tokens must be unlocked from a secure, encrypted vault.
 #'
 #' @param box.dir User path to Box home directory (parent directory of "VMAC BIOSTAT").
-#' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the save location.
-#' @param tokens.list The decrypted list of databases to download from REDCap.
+#' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the data freeze save location.
+#' @param tokens.list The decrypted list of databases and API tokens to download from REDCap.
 #' @param redcap.api.uri The URI for the REDCap API
 #' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData" or "rawData/temp", depending on the value of \code{quarterly.download})
 #' @param return A logical value indicating whether to return the output.
@@ -10,7 +10,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' MAPfreeze_interim.list <- data_freeze(quarterly.download = FALSE, save = TRUE, return = TRUE)
+#' }
 
 data_freeze <- function(box.dir = file.path("~", "box"),
                         quarterly.download,

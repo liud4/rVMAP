@@ -6,7 +6,7 @@
 
 derive_pvlt <- function(data) {
   # OAK 20180626: For some reason, these variables are now character. They need to be set to numeric.
-  to_make_numeric <- names(which(lapply(data[, grep("np\\.pvlt", names(data), v = T)], function(x) "character" %in% class(x)) == TRUE))
+  to_make_numeric <- names(which(lapply(data[, grep("np\\.pvlt", names(data), value = T)], function(x) "character" %in% class(x)) == TRUE))
   data[, setdiff(to_make_numeric, "np.pvlt.notes")] <- lapply(data[, setdiff(to_make_numeric, "np.pvlt.notes")], as.numeric)
 
   data <- within(data, {

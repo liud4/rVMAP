@@ -1,73 +1,73 @@
 #' Derive, label, and add medication and surgery variables to the merged data set.
 #'
 #' @param data A data frame containing VMAC variables.
+#' @param diabetes.file,cholesterol.file,afib.file,afib_surgery.file,AH_beta_blocker.file,AH_beta_blocker_if_not_drop.file,AH_ace_inhibitor.file,AH_arb.file,AH_ccb.file,AH_ksd.file,AH_other.file File paths to the respective data sets.
 #' @return \code{data} with added medication and surgery variables.
 #' @export
 
-derive_medication_surgery <- function(data, diabFile, cholFile,
-                                      #antihypFile,
-                                      afibFile, afibsurgFile,
-                                      antihypBetaBlockerFile, antihypBetaBlockerIfNotDropFile,
-                                      antihypACEInhibFile,
-                                      antihypARBFile, antihypCCBFile, antihypKSDFile,
-                                      antihypOtherFile) {
-  diabNums <- diabFile[, 1]
-  cholNums <- cholFile[, 1]
-  afibNums <- afibFile[, 1]
-  afibsurgNums <- afibsurgFile[, 1]
+derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
+                                      afib.file, afib_surgery.file,
+                                      AH_beta_blocker.file,
+                                      AH_beta_blocker_if_not_drop.file,
+                                      AH_ace_inhibitor.file,
+                                      AH_arb.file,
+                                      AH_ccb.file,
+                                      AH_ksd.file,
+                                      AH_other.file) {
+  diabetes.redcap.num <- diabetes.file[, 1]
+  cholesterol.redcap.num <- cholesterol.file[, 1]
+  afib.redcap.num <- afib.file[, 1]
+  afib_surgery.redcap.num <- afib_surgery.file[, 1]
 
   # anti-hyp. subtype files
-  ahBetaBlockerNums <- antihypBetaBlockerFile[, 1]
-  ahBetaBlockerIfNotDropNums <- antihypBetaBlockerIfNotDropFile[, 1]
-  ahACEInhibNums <- antihypACEInhibFile[, 1]
-  ahARBNums <- antihypARBFile[, 1]
-  ahCCBNums <- antihypCCBFile[, 1]
-  ahKSDNums <- antihypKSDFile[, 1]
-  ahOtherNums <- antihypOtherFile[, 1]
-
-  # 07 Oct 2016: now a med is antihyp only if it's in one of the subtypes
-  #antihypNums <- antihypFile[, 1]
+  AH_beta_blocker.redcap.num <- AH_beta_blocker.file[, 1]
+  AH_beta_blocker_if_not_drop.redcap.num <- AH_beta_blocker_if_not_drop.file[, 1]
+  AH_ace.redcap.num <- AH_ace_inhibitor.file[, 1]
+  AH_arb.redcap.num <- AH_arb.file[, 1]
+  AH_ccb.redcap.num <- AH_ccb.file[, 1]
+  AH_ksd.redcap.num <- AH_ksd.file[, 1]
+  AH_other.redcap.num <- AH_other.file[, 1]
 
   # dset consisting of all the medication columns
   medFrame <- data[, grepl("med[0-9][0-9]\\.name$", names(data))]
 
   diabetesrxPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% diabNums))
+    apply(medFrame, 1, function(x) any(x %in% diabetes.redcap.num))
   )
   cholesterolrxPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% cholNums))
+    apply(medFrame, 1, function(x) any(x %in% cholesterol.redcap.num))
   )
   #htnrxPrep <- as.numeric(
   #    apply(medFrame, 1, function(x) any(x %in% antihypNums)))
   afibrxPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% afibNums))
+    apply(medFrame, 1, function(x) any(x %in% afib.redcap.num))
   )
 
   # Antihypertensive med subtypes
   # note different name here--- we have further processing below
   ahBetaBlockerPrep0 <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahBetaBlockerNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_beta_blocker.redcap.num))
   )
   ahACEInhibPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahACEInhibNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_ace.redcap.num))
   )
   ahARBPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahARBNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_arb.redcap.num))
   )
   ahCCBPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahCCBNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_ccb.redcap.num))
   )
   ahKSDPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahKSDNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_ksd.redcap.num))
   )
   ahOtherPrep <- as.numeric(
-    apply(medFrame, 1, function(x) any(x %in% ahOtherNums))
+    apply(medFrame, 1, function(x) any(x %in% AH_other.redcap.num))
   )
 
 
   ahBetaBlockerIfNotDropPrep <- rep(0, nrow(data))
   for (i in 1:nrow(data)) {
-    possibleEyedropCols <- which(medFrame[i, ] %in% ahBetaBlockerIfNotDropNums)
+    possibleEyedropCols <- which(medFrame[i, ] %in% AH_beta_blocker_if_not_drop.redcap.num)
     if (length(possibleEyedropCols) >= 1) {
       mednames <- names(medFrame)[possibleEyedropCols]
       unitnames <- gsub("name", "units.factor", mednames, fixed = TRUE)
@@ -105,7 +105,7 @@ derive_medication_surgery <- function(data, diabFile, cholFile,
   surgFrame <- data[, surgVarsNumericOnly]
 
   afibsurgPrep <- as.numeric(
-    apply(surgFrame, 1, function(x) any(x %in% afibsurgNums))
+    apply(surgFrame, 1, function(x) any(x %in% afib_surgery.redcap.num))
   )
 
   data <- within(data, {

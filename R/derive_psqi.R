@@ -42,7 +42,7 @@ derive_psqi <- function(data) {
       psqi.other.often
     )
 
-    pro.rate <- round(apply(sleep.disturb.data, MARGIN = 1, FUN = avgscore))
+    pro.rate <- round(apply(sleep.disturb.data, MARGIN = 1, FUN = average_score))
 
     sleep.disturb.data[, 10] <- psqi.other.often.prorate <- ifelse(is.na(psqi.other.often), pro.rate, psqi.other.often)
 
@@ -158,16 +158,14 @@ derive_psqi <- function(data) {
     )
   })
 
-  data = upData(
-    data,
-    labels = c(psqi.duration = "PSQI - Duration of Sleep",
-               psqi.disturb = "PSQI - Sleep Disturbance",
-               psqi.latency = "PSQI - Sleep Latency",
-               psqi.dysfx = "PSQI - Daytime Dysfunction due to Sleepiness",
-               psqi.efficiency = "PSQI - Sleep Efficiency",
-               psqi = "PSQI - Total Score"
-    )
-  )
+  data <- within(data, {
+    label(psqi.duration) <- "PSQI - Duration of Sleep"
+    label(psqi.disturb) <- "PSQI - Sleep Disturbance"
+    label(psqi.latency) <- "PSQI - Sleep Latency"
+    label(psqi.dysfx) <- "PSQI - Daytime Dysfunction due to Sleepiness"
+    label(psqi.efficiency) <- "PSQI - Sleep Efficiency"
+    label(psqi) <- "PSQI - Total Score"
+  })
 
   return(data)
 }

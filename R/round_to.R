@@ -1,4 +1,4 @@
-#' A postprocessing function for rounding to a specified decimal place
+#' Round the elements of a numeric vector to a specified decimal place.
 #'
 #' @param x A numeric vector.
 #' @param k An integer indicating the number of decimals to show.

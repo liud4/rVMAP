@@ -1,4 +1,4 @@
-#' Check whether common variables in two data frames have different storage modes. If so, the numeric vector is coerced to character. The rows of the new data frame are added to the old data frame.
+#' Check whether variables with the same name in two data frames have different storage modes. If so, the numeric vector is coerced to character. The rows of the new data frame are then added to the old data frame.
 #'
 #' @param new_data A data frame to be bound to another data frame by rows.
 #' @param old_data A data frame to which \code{new_data} will be bound by rows.
@@ -39,8 +39,8 @@ coerce_and_stack <- function(new_data, old_data) {
 
     if (!is.null(nrow(different_modes.df))) {
       cat("There are differences in storage modes in the following variables:\n")
-      print(different_modes.df[-1, ])
-      cat("Numeric varibales were coerced to character.\n")
+      print(different_modes.df[-1, ], row.names = FALSE)
+      cat("Numeric variables were coerced to character.\n")
     } else {
       cat("Variables in the new and old data sets share the same storage modes.\n")
     }

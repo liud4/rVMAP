@@ -9,7 +9,7 @@ derive_depression <- function(data) {
   # 02 Mar 2015:  AJ and KG confirmed in meeting that they
   # want to use the 85% rule for this one
   gdsvars <- paste0("gds", 1:30)
-  data$gds <- apply(data[, gdsvars], 1, totscore)
+  data$gds <- apply(data[, gdsvars], 1, total_score)
 
   #QIDS
   qids.sub <- paste0("qids", formatC(1:16, width = 2, format = "d", flag = "0"))
@@ -46,18 +46,14 @@ derive_depression <- function(data) {
                                   ifelse(qids >= 6, 1, 0))
     depress.qids.factor <- factor(depress.qids,
                                   levels = c(1, 0), labels = c("Yes", "No"))
-  })
 
-  data <- Hmisc::upData(
-    data,
-    labels = c(
-      gds                 = "GDS total score, recalculated",
-      qids                = "QIDS total score, recalculated",
-      depress.gds         = "Depression - GDS Definition",
-      depress.gds.factor  = "Depression - GDS Definition",
-      depress.qids        = "Depression - QIDS Definition",
-      depress.qids.factor = "Depression - QIDS Definition"
-    ))
+    label(gds) <- "GDS total score, recalculated"
+    label(qids) <- "QIDS total score, recalculated"
+    label(depress.gds) <- "Depression - GDS Definition"
+    label(depress.gds.factor) <- "Depression - GDS Definition"
+    label(depress.qids) <- "Depression - QIDS Definition"
+    label(depress.qids.factor) <- "Depression - QIDS Definition"
+  })
 
   return(data)
 }

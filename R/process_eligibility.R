@@ -10,151 +10,151 @@ process_eligibility <- function(elig_data) {
     ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
   )
 
-  elig_data <- dates(elig_data)
+  elig_data <- convert_dates(elig_data)
 
   # data$faq.redcap <- data$faq
   faqvars <- paste0("faq", formatC(1:10, width = 2, flag = "0"))
 
-  elig_data$faq <- apply(elig_data[, faqvars], 1, totscore, threshold = 1)
+  elig_data$faq <- apply(elig_data[, faqvars], 1, total_score, threshold = 1)
 
-  elig_data$np.srt.immed.redcap <- elig_data$np.srt.immed
-  np.srt.immedvars <- paste0("np.srt", 1:6)
-  elig_data$np.srt.immed <- apply(elig_data[, np.srt.immedvars], 1, totscore, threshold = 1)
+  elig_data$np_srt_immed_redcap <- elig_data$np_srt_immed
+  np_srt_immedvars <- paste0("np_srt", 1:6)
+  elig_data$np_srt_immed <- apply(elig_data[, np_srt_immedvars], 1, total_score, threshold = 1)
 
-  elig_data$np.cfl.redcap <- elig_data$np.cfl
+  elig_data$np_cfl_redcap <- elig_data$np_cfl
   np.cflvars <- c(
-    paste0("np.cfl.fq", 1:4),
-    paste0("np.cfl.cq", 1:4),
-    paste0("np.cfl.lq", 1:4)
+    paste0("np_cfl_fq", 1:4),
+    paste0("np_cfl_cq", 1:4),
+    paste0("np_cfl_lq", 1:4)
   )
-  elig_data$np.cfl <- apply(elig_data[, np.cflvars], 1, totscore, threshold = 1)
+  elig_data$np_cfl <- apply(elig_data[, np.cflvars], 1, total_score, threshold = 1)
 
-  elig_data$np.veg.redcap <- elig_data$np.veg
-  np.vegvars <- paste0("np.vegq", 1:4)
-  elig_data$np.veg <- apply(elig_data[, np.vegvars], 1, totscore, threshold = 1)
+  elig_data$np_veg_redcap <- elig_data$np_veg
+  np.vegvars <- paste0("np_vegq", 1:4)
+  elig_data$np_veg <- apply(elig_data[, np.vegvars], 1, total_score, threshold = 1)
 
-  elig_data$np.bvrt.redcap <- elig_data$np.bvrt
-  np.bvrtvars <- paste0("np.bvrt", formatC(1:10, width = 2, flag = "0"))
-  elig_data$np.bvrt <- apply(elig_data[, np.bvrtvars], 1, totscore, threshold = 1)
+  elig_data$np_bvrt_redcap <- elig_data$np_bvrt
+  np.bvrtvars <- paste0("np_bvrt", formatC(1:10, width = 2, flag = "0"))
+  elig_data$np_bvrt <- apply(elig_data[, np.bvrtvars], 1, total_score, threshold = 1)
 
-  elig_data$np.tmta.trun <- ifelse(elig_data$np.tmta > 150, 150, elig_data$np.tmta)
-  elig_data$np.tmtb.trun <- ifelse(elig_data$np.tmtb > 240, 240, elig_data$np.tmtb)
+  elig_data$np_tmta_trun <- ifelse(elig_data$np_tmta > 150, 150, elig_data$np_tmta)
+  elig_data$np_tmtb_trun <- ifelse(elig_data$np_tmtb > 240, 240, elig_data$np_tmtb)
 
   elig_data <- within(elig_data, {
-    cdr.factor <- factor(
+    cdr_factor <- factor(
       cdr,
       levels = c(0, 1, 2, 4, 6),
       labels = c("0", "0.5", "1", "2", "3"),
       ordered = TRUE
     )
 
-    label(cdr.date)="CDR - Date of Administration, from Eligibility"
+    label(cdr_date)="CDR - Date of Administration, from Eligibility"
     label(cdr)="CDR Global Score- raw REDCap value. Probably not what you want."
-    label(cdr.factor)="CDR Global Score, from Eligibility, recoded"
-    label(faq.date)="FAQ Date of Administration, from Eligibility"
-    #label(faq.redcap)="FAQ Total Score, from Eligibility"
+    label(cdr_factor)="CDR Global Score, from Eligibility, recoded"
+    label(faq_date)="FAQ Date of Administration, from Eligibility"
+    #label(faq_redcap)="FAQ Total Score, from Eligibility"
     label(faq)="FAQ Total Score, from Eligibility, recalculated"
-    label(np.date)="NP Assessment - date of administration, from Eligibility"
-    label(np.moca)="MoCA total score, from Eligibility"
-    label(np.srt.immed.redcap)="SRT total immediate recall, from Eligibility"
-    label(np.srt.immed)="SRT total immediate recall, from Eligibility, recalculated"
-    label(np.srt.ldfr)="SRT long delay free recall, from Eligibility"
-    label(np.tmta)="Trails A time, from Eligibility"
-    label(np.tmtb)="Trails B time, from Eligibility"
-    label(np.digitsf)="Digit Span forward score, from Eligibility"
-    label(np.digitsb)="Digit Span backward score, from Eligibility"
-    label(np.blocks)="Block Design total score, from Eligibility"
-    label(np.strp.colorword)="Stroop color-word score, from Eligibility"
-    label(np.cfl.redcap)="CFL total score, from Eligibility"
-    label(np.cfl)="CFL total score, from Eligibility, recalculated"
-    label(np.veg.redcap)="Vegetable Naming total score, from Eligibility"
-    label(np.veg)="Vegetable Naming total score, from Eligibility, recalculated"
-    label(np.bnt)="BNT total, from Eligibility"
-    label(np.wrat)="WRAT Reading total score, from Eligibility"
-    label(np.wrat.ss)="WRAT Reading total standard score, from Eligibility"
-    label(np.bvrt.redcap)="BVRT total score, from Eligibility"
-    label(np.bvrt)="BVRT total score, from Eligibility, recalculated"
+    label(np_date)="NP Assessment - date of administration, from Eligibility"
+    label(np_moca)="MoCA total score, from Eligibility"
+    label(np_srt_immed_redcap)="SRT total immediate recall, from Eligibility"
+    label(np_srt_immed)="SRT total immediate recall, from Eligibility, recalculated"
+    label(np_srt_ldfr)="SRT long delay free recall, from Eligibility"
+    label(np_tmta)="Trails A time, from Eligibility"
+    label(np_tmtb)="Trails B time, from Eligibility"
+    label(np_digitsf)="Digit Span forward score, from Eligibility"
+    label(np_digitsb)="Digit Span backward score, from Eligibility"
+    label(np_blocks)="Block Design total score, from Eligibility"
+    label(np_strp_colorword)="Stroop color-word score, from Eligibility"
+    label(np_cfl_redcap)="CFL total score, from Eligibility"
+    label(np_cfl)="CFL total score, from Eligibility, recalculated"
+    label(np_veg_redcap)="Vegetable Naming total score, from Eligibility"
+    label(np_veg)="Vegetable Naming total score, from Eligibility, recalculated"
+    label(np_bnt)="BNT total, from Eligibility"
+    label(np_wrat)="WRAT Reading total score, from Eligibility"
+    label(np_wrat_ss)="WRAT Reading total standard score, from Eligibility"
+    label(np_bvrt_redcap)="BVRT total score, from Eligibility"
+    label(np_bvrt)="BVRT total score, from Eligibility, recalculated"
     label(age)="current age, from Eligibility"
-    label(np.tmta.trun) <- "Trails A time (s), truncated, from Eligibility"
-    label(np.tmtb.trun) <- "Trails B time (s), truncated, from Eligibility"
+    label(np_tmta_trun) <- "Trails A time (s), truncated, from Eligibility"
+    label(np_tmtb_trun) <- "Trails B time (s), truncated, from Eligibility"
   })
 
   keep.vars <- Cs(
     age,
-    cdr.date,
+    cdr_date,
     cdr,
-    cdr.factor,
-    faq.date,
-    # faq.redcap,
+    cdr_factor,
+    faq_date,
+    # faq_redcap,
     # faq,
-    np.date,
-    np.moca,
-    np.tmta,
-    np.tmtb,
-    np.tmtb.ss,
-    np.tmtb.seqerr,
-    np.tmtb.seterr,
-    np.digitsf,
-    np.digits,
-    np.digits.ss,
-    np.digitsf.span,
-    np.digitsf.span.z,
-    np.digitsb,
-    np.blocks,
-    np.blocks.ss,
-    np.strp.color,
-    np.strp.color.ss,
-    np.strp.color.ucerr,
-    np.strp.color.scerr,
-    np.strp.colorword,
-    np.strp.colorword.ss,
-    np.strp.colorword.ucerr,
-    np.strp.colorword.scerr,
-    np.strp.ucerr,
-    np.strp.scerr,
-    # np.cfl.redcap,
-    np.cfl,
-    # np.veg.redcap,
-    np.veg,
-    np.veg.z,
-    np.vegq1,
-    np.vegq2,
-    np.vegq3,
-    np.vegq4,
-    np.veg.reps,
-    np.veg.intrus,
-    np.bnt,
-    np.wrat,
-    np.wrat.ss,
-    # np.bvrt.redcap,
-    np.bvrt,
-    np.srt1,
-    np.srt2,
-    np.srt3,
-    np.srt4,
-    np.srt5,
-    np.srt6,
-    np.srt.immed,
-    np.srt.immed.z,
-    np.srt.sdcr,
-    np.srt.ldfr,
-    np.srt.ldfr.z,
-    np.srt.recog,
-    np.srt.recog.z,
-    np.srt.intrus,
-    np.srt.intrus.z,
-    np.srt.reps,
-    np.srt.immed.redcap,
-    np.strp.word,
-    np.strp.word.ss,
-    np.strp.word.ucerr,
-    np.strp.word.scerr,
-    np.tmta.trun,
-    np.tmtb.trun
+    np_date,
+    np_moca,
+    np_tmta,
+    np_tmtb,
+    np_tmtb_ss,
+    np_tmtb_seqerr,
+    np_tmtb_seterr,
+    np_digitsf,
+    np_digits,
+    np_digits_ss,
+    np_digitsf_span,
+    np_digitsf_span_z,
+    np_digitsb,
+    np_blocks,
+    np_blocks_ss,
+    np_strp_color,
+    np_strp_color_ss,
+    np_strp_color_ucerr,
+    np_strp_color_scerr,
+    np_strp_colorword,
+    np_strp_colorword_ss,
+    np_strp_colorword_ucerr,
+    np_strp_colorword_scerr,
+    np_strp_ucerr,
+    np_strp_scerr,
+    # np_cfl_redcap,
+    np_cfl,
+    # np_veg_redcap,
+    np_veg,
+    np_veg_z,
+    np_vegq1,
+    np_vegq2,
+    np_vegq3,
+    np_vegq4,
+    np_veg_reps,
+    np_veg_intrus,
+    np_bnt,
+    np_wrat,
+    np_wrat_ss,
+    # np_bvrt_redcap,
+    np_bvrt,
+    np_srt1,
+    np_srt2,
+    np_srt3,
+    np_srt4,
+    np_srt5,
+    np_srt6,
+    np_srt_immed,
+    np_srt_immed_z,
+    np_srt_sdcr,
+    np_srt_ldfr,
+    np_srt_ldfr_z,
+    np_srt_recog,
+    np_srt_recog_z,
+    np_srt_intrus,
+    np_srt_intrus_z,
+    np_srt_reps,
+    np_srt_immed_redcap,
+    np_strp_word,
+    np_strp_word_ss,
+    np_strp_word_ucerr,
+    np_strp_word_scerr,
+    np_tmta_trun,
+    np_tmtb_trun
   )
 
-  dataToKeep <- elig_data[, c("map.id", keep.vars)]
-  names(dataToKeep) <- c("map.id", paste0(keep.vars, ".elig"))
+  dataToKeep <- elig_data[, c("map_id", keep.vars)]
+  names(dataToKeep) <- c("map_id", paste0(keep.vars, "_elig"))
 
   dataToKeep
 }

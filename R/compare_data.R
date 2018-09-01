@@ -1,15 +1,20 @@
-#' Function to show comparison of two data frames with daff.
+#' Compare additions, modifications, and deletions between two data frames with \code{daff::diff_data}.
 #'
 #' @param data1 A data frame.
 #' @param data2 A second data frame.
-#' @param fragment A logical value indicating whether to return an HTML fragment for inclusion into the current report or a separate, temporary HTML file.
+#' @param file A path for where the output is saved.
 #' @return HTML formatted output summarizing differences between \code{data1} and \code{data2}.
+#' @family comparison functions
 
-compare_data <- function(data1, data2, fragment = TRUE) {
+compare_data <- function(data1, data2, file = paste0("data_comparison_", data.merge.bh.file, ".html")) {
   data1.name <- deparse(substitute(data1))
   data2.name <- deparse(substitute(data2))
   title <- paste0("Comparing datasets: ", data1.name, " and ", data2.name, ".")
 
-  data.diff <- daff::diff_data(data1, data2)
-  daff::render_diff(data.diff, fragment = fragment, pretty = TRUE, title = title)
+  data.diff <- daff::diff_data(
+    data1[, grep("notes|visit\\.flow", names(data1), invert = TRUE, value = T)],
+    data2[, grep("notes|visit\\.flow", names(data2), invert = TRUE, value = T)]
+  )
+
+  daff::render_diff(data.diff, file = file, view = FALSE, fragment = FALSE, pretty = TRUE, title = title)
 }

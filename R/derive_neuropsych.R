@@ -11,13 +11,13 @@ derive_neuropsych <- function(data) {
   })
 
   np.animvars <- paste0("np.anim.q", 1:4)
-  data$np.anim <- apply(data[, np.animvars], 1, totscore, threshold = 1)
+  data$np.anim <- apply(data[, np.animvars], 1, total_score, threshold = 1)
 
   np.anim.errvars <- Hmisc::Cs(np.anim.intrus, np.anim.rep)
-  data$np.anim.err <- apply(data[, np.anim.errvars], 1, totscore, threshold = 1)
+  data$np.anim.err <- apply(data[, np.anim.errvars], 1, total_score, threshold = 1)
 
   np.biber.t1to5vars <- paste0("np.biber", 1:5)
-  data$np.biber.t1to5 <- apply(data[, np.biber.t1to5vars], 1, totscore, threshold = 1)
+  data$np.biber.t1to5 <- apply(data[, np.biber.t1to5vars], 1, total_score, threshold = 1)
 
   #  22 Jan 2015: now some new vars for Leah's animal fluency project
   np.anim.repvars <- paste0("np.anim.", 1:8, "rep")

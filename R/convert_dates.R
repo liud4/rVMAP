@@ -18,12 +18,18 @@ convert_dates <- function(data) {
       datevar <- as.character(datevar)
     }
 
-    if (!is.character(datevar)) {
+    if (all(is.na(datevar))) {
+      warning(paste0(vname, " is entirely missing values.\n"))
+      next
+    }
+
+    if (!is.character(datevar) & !is.Date(datevar)) {
       warning(paste0(vname, " is not in character format and may not need to be converted.\n"))
       next
     }
 
-    datevar[datevar %in% c("1111-11-11", "")] <- NA
+    #datevar[datevar %in% c("1111-11-11", "", as.Date("1111-11-11"))] <- NA
+    ifelse(datevar %in% c("1111-11-11", as.Date("1111-11-11"), ""), NA, datevar)
 
     if (any((!is.na(datevar)) & nchar(datevar) != 10)) {
       warning(paste0(vname, " is not in yyyy-mm-dd format.\n"))

@@ -1,4 +1,4 @@
-#' A general-use function for loading packages, installing them from CRAN first if they are not installed.
+#' Load multiple packages, installing them from CRAN first if they are not already installed.
 #'
 #' @param pkg A character vector containing the names of local or CRAN packages.
 #' @export

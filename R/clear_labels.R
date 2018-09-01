@@ -1,11 +1,13 @@
-#' A function that removes Hmisc labels from a labelled data frame and returns the unlabelled data frame.
+#' Remove Hmisc labels from a labelled data frame and return the unlabelled data frame along with a list of the labels.
 #'
 #' @param data A labelled data frame or list
-#' @return The input data frame without labels and a named character vector containing the labels with object name \code{{data}_labels}.
+#' @return \code{data} without labels and a named character vector containing the labels with object name \code{{data}_labels}.
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' mydat.nolabels.df <- clear_labels(mydat)
+#' }
 
 clear_labels <- function(data) {
   labels.list.name <- paste0(deparse(substitute(data)), "_labels")

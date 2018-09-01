@@ -1,4 +1,4 @@
-#' A preprocessing function to check if two data frames both contain variables with the same name. If a warning is printed, merging the two data frames will result in variables with suffixes ".x" and ".y".
+#' Check if two data frames both contain variables with the same name. If so, a warning is printed and merging the two data frames will result in variables with suffixes ".x" and ".y".
 #'
 #' @param data1 A data frame.
 #' @param data2 A second data frame.

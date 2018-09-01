@@ -1,0 +1,904 @@
+---
+title: "MAP Data: Merge, Derive, and Label"
+author:
+- name: '[Omair A. Khan, MAS, GStat](omair.a.khan@vumc.org)'
+- name: '[Dandan Liu, PhD](dandan.liu@vanderbilt.edu)'
+date: "Created: `r format(Sys.time(), '%Y%m%d')`"
+output:
+  html_notebook:
+    code_folding: hide
+    theme: lumen
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: true
+---
+
+<!-- ##%#########################################################%## -->
+<!-- # Template: MAP Data: Merge, Derive, and Label                # -->
+<!-- #                                                             # -->
+<!-- # Description: This script is run quarterly to merge, derive, # -->
+<!-- #   and label the MAP data. The script requires the VMACr     # -->
+<!-- #   package. It is configured to optionally perform the data  # -->
+<!-- #   freeze as well.                                           # -->
+<!-- ##%#########################################################%## -->
+
+<style type="text/css">
+ #TOC{
+   position:fixed;
+   top:0;
+   // left:0;
+   right:0;
+   margin: 32px 20px 20px 20px;
+   z-index: 9;
+   // display:none;
+  }
+  #toc-toggle{
+    position:fixed;
+    top:0;
+    // left:0;
+    right:0;
+    margin: 5px 20px 5px 20px;
+  }
+  .col-md-3{
+    width: 0%;
+  }
+  .col-md-9{
+    width: 100%;
+  }
+  div.container-fluid.main-container{
+    max-width:none;
+    margin-left:0px;
+    margin-right:none;
+  }
+  div.plot-container{
+    margin-left:50px;
+    margin-bottom:20px;
+  }
+  h1.title{
+    max-width:950px;
+  }
+  li.tocify-item{
+    text-indent:0px;
+  }
+  #toc-toggle{
+    z-index:9;
+  }
+  .tocify-subheader, .tocify-item, .tocify, .list-group-item{
+  font-size:12pt;
+  }
+</style>
+
+<button id="toc-toggle" type="button" class="btn btn-default btn-xs code-folding-btn pull-right collapsed" onclick="toggletoc()"><span>Table of Contents (click to hide/show)</span></button>
+
+<script>
+function toggletoc(){
+$("#TOC").toggle();
+}
+</script>
+
+```{r setup, echo = TRUE, results = 'hide'}
+# define important directories
+## base directories
+box.dir  <- file.path("~", "box")
+vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
+## data directories
+data.dir <- file.path(vmac.dir, "DATA", "MAP")
+
+##%######################################################%##
+####                modifiable settings                 ####
+# quarterly scheduled merge, TRUE; off-cycle merge, FALSE
+quarterly.download <- TRUE
+# modify one of these variables to download data or specify a specific raw data file to use for merging
+download.data <- FALSE
+data.freeze.date <- NULL # in {yyyymmdd} format
+# modify both of these variables to specify a specific data merge file to compare the new one with
+last.data.download.date <- NULL # in {yyyymmdd} format
+last.data.merge.date <- NULL # in {yyyymmdd} format
+# specify the memory & executive function composite file
+composite.file <- file.path(data.dir, 'rawData', 'Composite_Scores_6-14-2018.csv')
+####                                                    ####
+##%######################################################%##
+
+packages <- Hmisc::Cs(
+  rVMAP,
+  knitr,
+  dplyr,
+  lubridate,
+  tidyr,
+  stringr,
+  magrittr,
+  daff,
+  Hmisc,
+  formattable,
+  REDCapR,
+  secret
+)
+
+load_pkg(packages)
+
+# set timezone
+Sys.setenv(TZ = 'US/Central')
+
+# set seed
+set.seed(20140728) # this number was set by L. Samuels in the previous version of this code
+
+# Hmisc options
+options(
+  prType = 'html', 
+  grType = 'plotly',
+  digits = 6,
+  contrasts = c("contr.treatment", "contr.treatment")
+)
+
+# define additional important directories
+## data directories
+data.raw.dir <- ifelse(quarterly.download,
+                       file.path(data.dir, "rawData"),
+                       file.path(data.dir, "rawData", "temp"))
+data.merge.dir <- file.path(data.dir, 'mergedData')
+```
+
+```{r finish-setup}
+if (download.data == TRUE) {
+  # specify data freeze date
+  data.freeze.date <- format(Sys.time(), "%Y%m%d")
+  # load raw data
+  MAPfreeze.list <- data_freeze(quarterly.download = quarterly.download, save = TRUE)
+} else if (download.data == FALSE & is.null(data.freeze.date)) {
+  # get path to most recent REDCap freeze
+  data.freeze.file <- file.info(
+    list.files(
+      path = data.raw.dir, 
+      pattern = "MAPfreeze_\\d{8}.rds",
+      full.names = T
+    )
+  ) %>%
+    tibble::rownames_to_column(., var = "path") %>%
+    arrange(desc(mtime)) %>% 
+    filter(row_number() == 1) %>%
+    pull(1)
+  # extract data freeze date
+  data.freeze.date <- stringr::str_extract(data.freeze.file, "\\d{8}")
+  # load raw data
+  MAPfreeze.list <- readRDS(data.freeze.file)
+} else if (download.data == FALSE & !is.null(data.freeze.date)) {
+  # data freeze date is user specified
+  # load raw data
+  MAPfreeze.list <- readRDS(
+    file.path(
+      data.raw.dir,
+      paste0(
+        "MAPfreeze_", 
+        data.freeze.date, 
+        ".rds"
+      )
+    )
+  )
+} else {
+  stop("Either `download.data` or `data.freeze.date` must be specified as TRUE or FALSE and a 8 digit yyyymmdd, respectively.")
+}
+
+# define paths for saving current merged files
+data.merge.date <- format(Sys.time(), "%Y%m%d")
+current.data.merge.suffix <- paste0("_d", data.freeze.date, "_m", data.merge.date)
+
+data.merge.fm.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_fm_d", data.freeze.date, "_m", data.merge.date)
+)
+data.merge.bh.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_bh_d", data.freeze.date, "_m", data.merge.date)
+)
+
+if (!is.null(last.data.download.date) & is.null(last.data.merge.date)) {
+  error("Please specify the last data merge date.")
+} else if (is.null(last.data.download.date) & !is.null(last.data.merge.date)) {
+  error("Please specify the last data download date.")
+} else if (is.null(last.data.download.date) & is.null(last.data.merge.date)) {
+  # extract date of previous data merge
+  last.data.merge.suffix <- file.info(
+    list.files(
+      path = data.merge.dir,
+      pattern = "MAP\\_bh\\_d\\d{8}\\_m\\d{8}.rds",
+      full.names = T
+    )
+  ) %>%
+    tibble::rownames_to_column(., var = "path") %>%
+    arrange(desc(mtime)) %>%
+    filter(row_number() == 1) %>%
+    pull(1) %>%
+    stringr::str_extract("(?<=(MAP\\_bh\\_))d\\d{8}\\_m\\d{8}")
+} else {
+  last.data.merge.suffix <- paste0("d_", last.data.download.date, "_m_", last.data.merge.date)
+}
+
+# define path to previous merged datasets
+last.data.merge.fm.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_fm_", last.data.merge.suffix)
+)
+last.data.merge.bh.file <- file.path(
+  data.merge.dir, 
+  paste0("MAP_bh_", last.data.merge.suffix)
+)
+```
+
+# Overview of Available Data
+
+The raw data to be used in this script was downloaded from REDCap on `r strsplit(MAPfreeze.list$general$timestamp, "\\ ")[[1]][1]` at `r strsplit(MAPfreeze.list$general$timestamp, "\\ ")[[1]][2]` by user `r MAPfreeze.list$general$sysinfo[["login"]]` using `r MAPfreeze.list$general$versions[["R"]]`.
+
+## Epoch Independent
+
+The following is a list of data sets to be merged that can be considered independent of any specific time period. The suffix, ".static", indicates that the data set was manually saved at some time and is therefore a static representation of the data.
+
+```{r list-projects-epoch0}
+list(
+  project = MAPfreeze.list[["epoch_0"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_0"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 1
+
+The following is a list of data sets to be merged that were collected during Epoch 1.
+
+```{r list-projects-epoch1}
+list(
+  project = MAPfreeze.list[["epoch_1"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_1"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 2
+
+The following is a list of data sets to be merged that were collected during Epoch 2.
+
+```{r list-projects-epoch2}
+list(
+  project = MAPfreeze.list[["epoch_2"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_2"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 3
+
+The following is a list of data sets to be merged that were collected during Epoch 3.
+
+```{r list-projects-epoch3}
+list(
+  project = MAPfreeze.list[["epoch_3"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_3"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+## Epoch 4
+
+The following is a list of data sets to be merged that were collected during Epoch 4.
+
+```{r list-projects-epoch4}
+list(
+  project = MAPfreeze.list[["epoch_4"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_4"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
+# Data Merge
+
+We begin by merging a subset of data sets together within each available epoch. The `merge_within_epoch()` function tidies each inputted data set, formats certain variables, sets some VMAC-specified values to missing, and merges them into a single data frame.
+
+## Merge within Epoch 1
+
+```{r merge-within-epoch1}
+epoch_1_merge.df <- merge_within_epoch(
+  epoch = 1,
+  main = MAPfreeze.list$epoch_1$data$main,
+  abp = MAPfreeze.list$epoch_1$data$abp.static,
+  biomarkers = MAPfreeze.list$epoch_1$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_1$data$auto3T,
+  auto3TBH = MAPfreeze.list$epoch_1$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_1$data$man3T,
+  man3TBH = MAPfreeze.list$epoch_1$data$man3T.bh,
+  qmass = MAPfreeze.list$epoch_1$data$cardiac.mri,
+  addendum = MAPfreeze.list$epoch_1$data$addendum,
+  csf = MAPfreeze.list$epoch_1$data$csf,
+  srt = MAPfreeze.list$epoch_1$data$srt.static
+)
+```
+
+## Merge within Epoch 2
+
+```{r merge-within-epoch2}
+epoch_2_merge.df <- merge_within_epoch(
+  epoch = 2,
+  main = MAPfreeze.list$epoch_2$data$main,
+  # abp = MAPfreeze.list$epoch_2$data$abp.static,
+  biomarkers = MAPfreeze.list$epoch_2$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_2$data$auto3T,
+  # auto3TBH = MAPfreeze.list$epoch_2$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_2$data$man3T,
+  # man3TBH = MAPfreeze.list$epoch_2$data$man3T.bh,
+  qmass = MAPfreeze.list$epoch_2$data$cardiac.mri,
+  # addendum = MAPfreeze.list$epoch_2$data$addendum,
+  csf = MAPfreeze.list$epoch_2$data$csf
+  # srt = MAPfreeze.list$epoch_2$data$srt.static
+)
+```
+
+## Merge within Epoch 3
+
+```{r merge-within-epoch3}
+epoch_3_merge.df <- merge_within_epoch(
+  epoch = 3,
+  main = MAPfreeze.list$epoch_3$data$main,
+  # abp = MAPfreeze.list$epoch_3$data$abp.static,
+  biomarkers = MAPfreeze.list$epoch_3$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_3$data$auto3T,
+  # auto3TBH = MAPfreeze.list$epoch_3$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_3$data$man3T,
+  # man3TBH = MAPfreeze.list$epoch_3$data$man3T.bh,
+  # qmass = MAPfreeze.list$epoch_3$data$cardiac.mri,
+  # addendum = MAPfreeze.list$epoch_3$data$addendum,
+  csf = MAPfreeze.list$epoch_3$data$csf
+  # srt = MAPfreeze.list$epoch_3$data$srt.static
+)
+```
+
+## Merge within Epoch 4
+
+```{r merge-within-epoch4}
+epoch_4_merge.df <- merge_within_epoch(
+  epoch = 4,
+  main = MAPfreeze.list$epoch_4$data$main,
+  # abp = MAPfreeze.list$epoch_4$data$abp.static,
+  # biomarkers = MAPfreeze.list$epoch_4$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_4$data$auto3T,
+  # auto3TBH = MAPfreeze.list$epoch_4$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_4$data$man3T,
+  # man3TBH = MAPfreeze.list$epoch_4$data$man3T.bh,
+  # qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
+  # addendum = MAPfreeze.list$epoch_4$data$addendum,
+  csf = MAPfreeze.list$epoch_4$data$csf
+  # srt = MAPfreeze.list$epoch_4$data$srt.static
+)
+```
+
+## Merge across all Epochs
+
+Now that we have created a single data frame for each available epoch, we will investigate any differences between the epochs and stack the four data frames into one longitudinal data set.
+
+### Compare and Stack: Epoch 2 with Epoch 1
+
+Here we refer to the Epoch 2 data as "new" and the previous epochs (Epoch 1) as "old."
+
+```{r compare-epoch1-epoch2}
+compare_variables(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
+compare_ids(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
+compare_factors(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
+```
+
+```{r coerce-stack-epoch1-epoch2}
+merged.df <- coerce_and_stack(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
+
+# variables with storage mode problems: med16_dose, med19_dose, med20_dose, famhx01_age_inf, bld_c_alt, bld_c_igg, bld_c_coag, bld_c_tsh, abp_date, np_mc_kaplan_ss, biomarkers_tau_plasma, csf_gap43, eve_session_id_auto3T, asl_session_id_auto3T, veasl_session_id_auto3T
+```
+
+### Compare and Stack: Epoch 3 with Epochs 1 and 2
+
+Here we refer to the Epoch 3 data as "new" and the previous epochs (Epochs 1 and 2) as "old."
+
+```{r compare-epoch12-epoch3}
+compare_variables(new_data = epoch_3_merge.df, old_data = merged.df)
+compare_ids(new_data = epoch_3_merge.df, old_data = merged.df)
+compare_factors(new_data = epoch_3_merge.df, old_data = merged.df)
+```
+
+```{r coerce-stack-epoch12-epoch3}
+merged.df <- coerce_and_stack(new_data = epoch_3_merge.df, old_data = merged.df)
+
+# variables with storage mode problems: med16_dose, med17_dose, bld_c_alt, bld_c_tsh, bld_c_insulin, cmr_findings_pulse, cmr_findings_dbp, freesurfer_2005_session_id_auto3T, freesurfer_2009_session_id_auto3T, freesurfer_lobes_session_id_auto3T, freesurfer_hippocampal_subfields_session_id_auto3T, freesurfer_brain_volume_session_id_auto3T, ma_session_id_auto3T, wml_session_id_auto3T, vbmqa_session_id_auto3T, fslfirst_session_id_auto3T
+```
+
+### Compare and Stack: Epoch 4 with Epochs 1, 2, and 3
+
+Here we refer to the Epoch 4 data as "new" and the previous epochs (Epochs 1, 2, and 3) as "old."
+
+```{r compare-epoch123-epoch4}
+compare_variables(new_data = epoch_4_merge.df, old_data = merged.df)
+compare_ids(new_data = epoch_4_merge.df, old_data = merged.df)
+compare_factors(new_data = epoch_4_merge.df, old_data = merged.df)
+```
+
+```{r coerce-stack-epoch123-epoch4}
+merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
+
+# variables with storage mode problems: med04_dose, med08_dose, med09_dose, med10_dose, med11_dose, med12_dose, med14_dose, med15_dose, mhx_other_add, mlta01, famhx02_age_ptp, famhx01_age_inf, bld_c_alt, bld_c_igm, echo_comments, cmr_findings_dbp, np_pvltrecog_falsepos, np_3digits_span, np_3digits_intrus, np_3digits_cap, np_3digits_frontal, np_3digits_errors, np_3digits_btcfor, np_3digits_btcback
+```
+
+As there are discrepancies in the storage modes of certain variables in the REDCap data sets, we will manually force some of these variables to be of numeric type. This temporary fix (implemented for the September 01, 2018 data freeze) allows the derivation code in an upcoming section to work properly. From a reproducibility standpoint, we recommend that the discrepancies be corrected in REDCap itself.
+
+```{r force-to-numeric, warning = FALSE, message = FALSE}
+force_to_numeric.var <- c(
+  "asl_session_id_auto3T", "biomarkers_tau_plasma", "bld_c_alt", 
+  "bld_c_coag", "bld_c_igg", "bld_c_igm", "bld_c_insulin", "bld_c_tsh", 
+  "cmr_findings_dbp", "cmr_findings_pulse", "csf_gap43", "eve_session_id_auto3T", 
+  "famhx01_age_inf", "famhx02_age_ptp", "freesurfer_2005_session_id_auto3T", 
+  "freesurfer_2009_session_id_auto3T", "freesurfer_brain_volume_session_id_auto3T", 
+  "freesurfer_hippocampal_subfields_session_id_auto3T", "freesurfer_lobes_session_id_auto3T", 
+  "fslfirst_session_id_auto3T", "ma_session_id_auto3T", "mlta01", 
+  "np_3digits_btcback", "np_3digits_btcfor", "np_3digits_cap", 
+  "np_3digits_errors", "np_3digits_frontal", "np_3digits_intrus", 
+  "np_3digits_span", "np_mc_kaplan_ss", "np_pvltrecog_falsepos", 
+  "vbmqa_session_id_auto3T", "veasl_session_id_auto3T", "wml_session_id_auto3T"
+)
+
+merged.df[, force_to_numeric.var] <- lapply(merged.df[, force_to_numeric.var], as.numeric)
+```
+
+## Merge Epoch-Independent Data
+
+### Add ABPM Consent Data
+
+```{r}
+tracking.static.df <- MAPfreeze.list$epoch_0$data$tracking.static %>%
+  select(
+    map_id, elig_visit_consent_abpm, elig_visit_consent_lp, elig_visit_consent_lp_ineligible
+  ) %>%
+  format_id(.) %>%
+  mutate_if(
+    ~ any(class(.) %in% c("numeric", "integer", "character")),
+    ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+  )
+
+check_shared_vars(merged.df, tracking.static.df, 'map_id')
+
+merged.df %<>% left_join(
+  tracking.static.df,
+  by = "map_id"
+) %>% 
+  mutate(
+    abp_consent = ifelse(epoch == 1, elig_visit_consent_abpm, NA),
+    abp_consent_factor = factor(abp_consent, levels = c(1, 0), labels = c("Yes", "No")) 
+  )
+```
+
+### Add Post-Fixed Eligibility Data
+
+```{r}
+eligibility.static.df <- MAPfreeze.list$epoch_0$data$eligibility.static %>%
+  format_id() %>%
+  process_eligibility()
+
+check_shared_vars(merged.df, eligibility.static.df, 'map_id')
+
+merged.df %<>% left_join(
+  eligibility.static.df,
+  by = "map_id"
+) 
+```
+
+## Format Variable Names and Apply Labels to each Variable
+
+```{r}
+merged.df <- format_names(merged.df)
+```
+
+```{r}
+merged.df <- call_function("add_main_labels_factors", merged.df)
+
+nolabel <- names(merged.df)[lapply(merged.df, function(x) label(x)) == ""]
+
+format_metadata <- function(data) {
+  data %>%
+    dplyr::select(
+      one_of(
+        c("field_name", "field_type", "field_label", "select_choices_or_calculations")
+      )
+    ) %>%
+    dplyr::mutate(
+      field_name = gsub("\\_", "\\.", field_name)
+    )
+}
+
+labels.0 <- lapply(MAPfreeze.list[["epoch_0"]][["metadata"]][c("eligibility", "apoe")], format_metadata) %>% bind_rows()
+labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "srt", "addendum")], format_metadata) %>% bind_rows()
+labels.2 <- lapply(MAPfreeze.list[["epoch_2"]][["metadata"]], format_metadata) %>% bind_rows()
+labels.3 <- lapply(MAPfreeze.list[["epoch_3"]][["metadata"]], format_metadata) %>% bind_rows()
+labels.4 <- lapply(MAPfreeze.list[["epoch_4"]][["metadata"]], format_metadata) %>% bind_rows()
+
+labels.all <- dplyr::bind_rows(labels.0, labels.1, labels.2, labels.3, labels.4) %>% 
+  dplyr::distinct() %>%
+  dplyr::filter(field_name %in% nolabel)
+
+duplicated.names <- labels.all$field_name[duplicated(labels.all$field_name)]
+
+labels.all %<>%
+  group_by(field_name) %>%
+  arrange(field_name) %>%
+  slice(1)
+
+# labels.all <- filter(labels.all, field_name %nin% duplicated.names)
+
+for (varname in labels.all$field_name) {
+  Hmisc::label(merged.df[, varname]) <- labels.all[labels.all$field_name == varname, "field_label", drop = TRUE] %>%
+    pull()
+}
+
+label(merged.df$epoch) <- "Epoch"
+```
+
+# Derivation of New Variables
+
+## Dates
+
+Variables that are formatted as dates will be encoded in the "Date" class and two date-related variables will be derived.
+
+```{r derive-dates}
+merged.df <- call_function("convert_dates", merged.df)
+merged.df <- call_function("derive_dates", merged.df)
+
+merged.df %<>%
+  mutate(
+    abp.date = ifelse(abp.date %in% c("1111-11-11", as.Date("1111-11-11")), NA, abp.date),
+    abp.date = as.Date(abp.date)
+  )
+```
+
+## Demographics
+
+Derive, label, and add demographic variables to the merged data set.
+
+```{r derive-demographic}
+merged.df <- call_function("derive_demographics", merged.df)
+```
+
+## ApoE
+
+Derive, label, and add ApoE variables to the merged data set.
+
+```{r derive-apoe}
+merged.df <- call_function("derive_apoe", merged.df)
+```
+
+## Medication and Surgery
+
+Derive, label, and add medication and surgery variables to the merged data set.
+
+```{r derive-medicationsAndSurgery}
+merged.df <- call_function("derive_medication_surgery", merged.df,
+  diabetes.file                    = MAPfreeze.list$epoch_0$data$diabetes.static,
+  cholesterol.file                 = MAPfreeze.list$epoch_0$data$cholesterol.static,
+  afib.file                        = MAPfreeze.list$epoch_0$data$afib.static,
+  afib_surgery.file                = MAPfreeze.list$epoch_0$data$afibsurg.static,
+  AH_beta_blocker.file             = MAPfreeze.list$epoch_0$data$antihypBetaBlocker.static,
+  AH_beta_blocker_if_not_drop.file = MAPfreeze.list$epoch_0$data$antihypBetaBlockerIfNotDrop.static,
+  AH_ace_inhibitor.file            = MAPfreeze.list$epoch_0$data$antihypACEInhib.static,
+  AH_arb.file                      = MAPfreeze.list$epoch_0$data$antihypARB.static,
+  AH_ccb.file                      = MAPfreeze.list$epoch_0$data$antihypCCB.static,
+  AH_ksd.file                      = MAPfreeze.list$epoch_0$data$antihypKSD.static,
+  AH_other.file                    = MAPfreeze.list$epoch_0$data$antihypOther.static
+)
+```
+
+## Blood Values
+
+Derive, convert, label, and add blood variables to the merged data set.
+
+```{r derive-bloodConversion}
+merged.df <- call_function("derive_blood", merged.df)
+```
+
+## Medical History
+
+Derive, label, and add medical history variables to the merged data set.
+
+```{r derive-medhxEtc}
+cmr.findings.rhythm.afib <- c(
+  "atrial fibrillation"
+)
+
+cmr.findings.rhythm.normal <- c(
+  "sinus"                                                ,
+  "sinus with frequent pvcs"                             ,
+  "sinus with frequent pvcs,"                            ,
+  "sinus with atrial bigeminy"                           ,
+  "sinus with frequent pacs"                             ,
+  "sinus arrhythmia"                                     ,
+  "sinus with intermittent second degree av block"       ,
+  "sinus with frequent pvcs (often in trigeminy)"        ,
+  "small"                                                ,
+  "sinus with ivcd"                                      ,
+  "sinus with frequent pvcs often in a trigeminy pattern"
+)
+
+merged.df <- call_function("derive_medical_hx", merged.df)
+```
+
+## Cardiac Structure
+
+Derive, label, and add cardiac structure variables to the merged data set.
+
+```{r derive-cardiacStructure}
+merged.df <- call_function("derive_cardiac_structure", merged.df)
+```
+
+## ABP QC
+
+Derive, label, and add ABP QC variables to the merged data set.
+
+```{r derive-abpqc}
+merged.df <- call_function("derive_abp_qc", merged.df)
+```
+
+## FSRP
+
+Derive, label, and add FSRP variables to the merged data set.
+
+```{r derive-fsrp}
+merged.df <- call_function("derive_fsrp", merged.df)
+```
+
+## Cognitive Complaint, FCADL, and FAQ
+
+Derive, label, and add cognitive complaint, FCADL, and FAQ variables to the merged data set.
+
+```{r derive-cognitiveComplaint}
+merged.df <- call_function("derive_cognitive_complaint", merged.df)
+```
+
+## Neuropsych
+
+Derive, label, and add neuropsych variables to the merged data set.
+
+```{r derive-neuropsych}
+merged.df <- call_function("derive_neuropsych", merged.df)
+```
+
+## Addendum
+
+Derive, label, and add addendum variables to the merged data set.
+
+```{r derive-addendum}
+merged.df <- call_function("derive_addendum", merged.df)
+```
+
+## MLTA and CHAMPS
+
+Derive, convert, label, and add MLTA and CHAMPS variables to the merged data set.
+
+```{r derive-mltaChamps}
+merged.df <- call_function("derive_mlta_champs", merged.df)
+```
+
+## Depression
+
+Derive, label, and add depression variables to the merged data set.
+
+```{r derive-depression}
+merged.df <- call_function("derive_depression", merged.df)
+```
+
+## Biomarkers
+
+Derive, label, and add biomarker variables to the merged data set.
+
+```{r derive-biomarkers}
+merged.df <- call_function("derive_biomarkers", merged.df)
+```
+
+## Informant Information
+
+Derive, label, and add informant information variables to the merged data set.
+
+```{r derive-informatInfo}
+merged.df <- call_function("derive_informant_info", merged.df)
+```
+
+## Automated 3T
+
+Derive, label, and add automated 3T variables to the merged data set.
+
+```{r derive-auto3T}
+merged.df <- call_function("derive_automated_3T", merged.df)
+```
+
+## Manual 3T
+
+Derive, label, and add manual 3T variables to the merged data set.
+
+```{r derive-man3T}
+merged.df <- call_function("derive_manual_3T", merged.df)
+```
+
+## Diagnosis and Staging
+
+Derive, label, and add diagnosis and staging variables to the merged data set.
+
+```{r derive-diagnosisAndStaging}
+merged.df <- call_function("derive_diagnosis_staging", merged.df)
+```
+
+## PSQI
+
+Derive, label, and add PSQI variables to the merged data set.
+
+```{r derive-psqi}
+merged.df <- call_function("derive_psqi", merged.df)
+```
+
+## Frailty
+
+Derive, label, and add frailty variables to the merged data set.
+
+```{r derive-frailty}
+merged.df <- call_function("derive_frailty", merged.df)
+```
+
+## Food Scan
+
+Derive, convert, label, and add food scan variables to the merged data set.
+
+```{r derive-foodScan}
+merged.df <- call_function("derive_food_scan", merged.df)
+```
+
+## CMR and QMass
+
+Derive, label, and add cardiac MRI variables to the merged data set.
+
+```{r derive-cardiacMRI}
+merged.df <- call_function("derive_cardiac_mri", merged.df)
+```
+
+## PVLT
+
+Derive, label, and add PVLT variables to the merged data set.
+
+```{r derive-pvlt}
+merged.df <- call_function("derive_pvlt", merged.df)
+```
+
+# Manual Invalidation
+
+In this section, we will run scripts to invalidate certain neuropsychological variables for certain individuals as requested by VMAC.
+
+```{r}
+merged.df <- call_function("invalidate_neuropsych_eligibility", merged.df)
+merged.df <- call_function("invalidate_neuropsych_addendum", merged.df)
+merged.df <- call_function("invalidate_neuropsych_items", merged.df)
+merged.df <- call_function("invalidate_color_blind", merged.df)
+```
+
+# Adding Baseline Variables to Each Epoch
+
+```{r repeatBaseline}
+enrollmentVarsThatShouldNotChange <- Cs(
+  dob,
+  education,
+  sex.factor,
+  raceethnicity.factor,
+  usa.born.factor,
+  lang.prim.factor
+)
+
+otherKeyEnrollmentVars <- Cs(
+  mci.stage.factor, 
+  albert.mci.stage.factor, 
+  age
+)
+
+epoch1ToRepeat <- merged.df[merged.df$epoch %in% 1, c('map.id', 'diagnosis.factor', enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)]
+
+for (vname in otherKeyEnrollmentVars) {
+  label(epoch1ToRepeat[[vname]]) <- paste0(label(epoch1ToRepeat[[vname]]), ", from Enrollment")
+}
+
+names(epoch1ToRepeat) <- c("map.id", "enrolled.dx.factor", 
+                           paste0("enrolled.", c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)))
+
+merged.df %<>% left_join(
+  epoch1ToRepeat,
+  by = "map.id"
+)
+
+cat("The following variables were added to each epoch for each participant:\n")
+print(data.frame(`New Variables` = setdiff(names(epoch1ToRepeat), "map.id")))
+```
+
+# Adding Memory and Executive Function Composite Scores
+
+These scores were provided to us in a CSV file dated June 14, 2018 by Timothy Hohman after calculating them in MPlus. We also manually set `np.memory.composite` to missing for MAP ID 209 in Epoch 1.
+
+```{r warning = FALSE, message = FALSE}
+composite.file <- file.path(
+  data.dir,
+  'rawData',
+  'Composite_Scores_6-14-2018.csv'
+)
+
+composite.df <- read.csv(
+  composite.file, 
+  header = TRUE
+) %>%
+  format_id() %>%
+  mutate(
+    epoch = as.numeric(epoch)
+  )
+
+colnames(composite.df) <- c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
+
+label(composite.df$np.memory.composite) <- 'Memory Composite'
+label(composite.df$np.executive.composite) <- 'EF Composite'
+
+merged.df %<>% left_join(
+  composite.df,
+  by = c("map.id", "epoch")
+)
+
+merged.df[merged.df$map.id == "209" & merged.df$epoch == 1, 'np.memory.composite'] <- NA
+```
+
+# Separating Breath Hold and Face Mask Data Sets
+
+In this step, we create separate data sets for the breath hold and face mask groups.
+
+```{r, separateBHfromFM}
+bHold.var <- setdiff(names(merged.df)[grep("^bHold\\.", names(merged.df))], "bHold.scan.date")
+bHold.index <- match(bHold.var, names(merged.df))
+
+bHoldnamesWithCounterparts.temp <- bHold.var[!(bHold.var %in% c("bHold.session.id.11", "bHold.scan.date.11"))]
+regnames.temp <- gsub("^bHold\\.", "", bHoldnamesWithCounterparts.temp)
+regnames <- regnames.temp[regnames.temp %in% names(merged.df)] # Identify counterpart that are actually in alldat
+bHoldnamesWithCounterparts <- bHoldnamesWithCounterparts.temp[regnames.temp %in% names(merged.df)]
+reglabels <- label(merged.df[, regnames])
+
+merged.fm.df <- merged.df[, -bHold.index]
+
+merged.bh.df <- merged.df
+merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames] <- merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, bHoldnamesWithCounterparts]
+merged.bh.df <- merged.bh.df[, -bHold.index]
+```
+
+# Derivation of AD signatures
+
+Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
+
+```{r, derive-AD-sig}
+merged.fm.df <- derive_AD_signature(merged.fm.df)
+merged.bh.df <- derive_AD_signature(merged.bh.df)
+```
+
+# Saving the Final Data
+
+We will save the Face Mask and Breath Hold data sets to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory as RDS and CSV files.
+
+```{r, save-data}
+saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))
+write.csv(merged.fm.df, file = paste0(data.merge.fm.file, ".csv"), row.names = FALSE)
+
+saveRDS(merged.bh.df, file = paste0(data.merge.bh.file, ".rds"))
+write.csv(merged.bh.df, file = paste0(data.merge.bh.file, ".csv"), row.names = FALSE)
+```
+
+# Generate Current vs Previous Data Comparison Report
+
+This report highlights any additions, modifications, or deletions between the current and previous data sets. For ease of use, "notes"-type variables are not included in the report. The file is saved by defualt to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory.
+
+```{r}
+if (is.null(last.data.download.date) | is.null(last.data.merge.date)) {
+  warning("Please specify the download and merge dates for the previous data set.\n")
+} else {
+  merged.fm.previous.df <- readRDS(paste0(last.data.merge.fm.file, ".rds"))
+  compare_data(merged.fm.df, merged.fm.previous.df)
+}
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+

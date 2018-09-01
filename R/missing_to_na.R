@@ -6,7 +6,7 @@
 #' @param restrict.sign A logical, to be paired with \code{mod.val}, indicating whether the numeric or integer value acted upon should have the same sign as \code{mod.val}.
 #' @return The input vector with all matching values set to missing.
 #' @examples
-#' test.df <- data_frame(a = 1:5, b = 2:6, c = rnorm(5), d = LETTERS[1:5])
+#' test.df <- data_frame(a = 1:5, b = -2:-6, c = rnorm(5), d = LETTERS[1:5])
 #'
 #' missing_to_na(test.df$b, mod.val = 3)
 #'
@@ -21,17 +21,18 @@
 #'
 #' test.df %>% mutate_at(
 #'   c("a", "b"),
-#'   ~ missing_to_na(., equal.val = c(2, 3, "E"), mod.val = 2, restrict.sign = FALSE)
+#'   ~ missing_to_na(., equal.val = c(2, 3, "E"), mod.val = -2, restrict.sign = TRUE)
 #' )
 #'
+#' \dontrun{
 #' epoch1.main.df %>% mutate_at(
 #'   grep("^ecogself\\_(mem|lang|vis|plan|org|attn)\\d{2}$", names(.)),
 #'    ~ missing_to_na(., equal.val = 0)
 #' )
-#'
+#' }
 #' @export
 
-missing_to_na <- function(vec, equal.val, mod.val, restrict.sign = FALSE) {
+missing_to_na <- function(vec, equal.val, mod.val, restrict.sign = TRUE) {
   # output error if key arguments missing
   if (missing(vec)) {
     stop("Please specify a vector of data.")

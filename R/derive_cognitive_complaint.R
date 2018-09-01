@@ -5,25 +5,15 @@
 #' @export
 
 derive_cognitive_complaint <- function(data) {
-  # Returns data with cognitive-complaint derived variables added
-  # and with some totals that were calculated in REDCap recalculated
-  # also: fcadl and faq
-  # original request from KG, 06 Aug 2014
-
-  # Make sure to source "scoringFunctions.R" before calling this function
-
-
-  # we will use these below
-  revSuffix <- ".r" # what we will append to reverse-coded vars
-  revPhrase <- "Reverse coding of " # what we will prepend to label
-
+  reverse_suffix <- ".r" # what we will append to reverse-coded vars
+  reverse_phrase <- "Reverse coding of " # what we will prepend to label
 
   ################################################################
   ## faq:  in meeting 09 Mar 2015, KG says it goes w/ complaint items
   faqvars <- paste0("faq", formatC(1:10, width = 2, flag = "0"))
   # 02 Mar 2015 (meeting): AJ and KG want to check IDs w/ any FAQ
   # items missing
-  data$faq <- apply(data[, faqvars], 1, totscore, threshold = 1)
+  data$faq <- apply(data[, faqvars], 1, total_score, threshold = 1)
   label(data$faq) = "FAQ Total Score, recalculated"
   ################################################################
 
@@ -32,10 +22,8 @@ derive_cognitive_complaint <- function(data) {
   ## fcadl:  in meeting 09 Mar 2015, KG says it goes w/ complaint itemaa
   # in email 04 Mar 2015, AJ says to apply 85% rule
   fcadlvars <- paste0("fcadl", formatC(1:50, width = 2, format = "d", flag = "0"))
-  data$fcadl <- apply(data[, fcadlvars], 1, totscore)
-
+  data$fcadl <- apply(data[, fcadlvars], 1, total_score)
   label(data$fcadl) <- "FCADL total score, recalculated"
-
   ################################################################
 
   ################################################################
@@ -46,9 +34,8 @@ derive_cognitive_complaint <- function(data) {
     scc06, scc07, scc08, scc09, scc10
   )
 
-  # I couldn't get 'within' to work here
-  data$scc.pnm <- apply(data[, scc], 1, propNonMissing)
-  data$scc.tot <- apply(data[, scc], 1, totscore)
+  data$scc.pnm <- apply(data[, scc], 1, proportion_non_missing)
+  data$scc.tot <- apply(data[, scc], 1, total_score)
   ################################################################
 
 
@@ -69,16 +56,16 @@ derive_cognitive_complaint <- function(data) {
     ccqself56, ccqself57, ccqself58, ccqself59
   )
 
-  data$ccqself.pnm <- apply(data[, ccqself], 1, propNonMissing)
-  data$ccqself.tot <- apply(data[, ccqself], 1, totscore)
+  data$ccqself.pnm <- apply(data[, ccqself], 1, proportion_non_missing)
+  data$ccqself.tot <- apply(data[, ccqself], 1, total_score)
 
   # For the short scale, all items are 01, non-reversed
   ccqself.short <- Hmisc::Cs(
     ccqself01, ccqself03, ccqself05, ccqself11, ccqself15,
     ccqself25, ccqself27, ccqself32, ccqself33, ccqself37
   )
-  data$ccqself.short.pnm <- apply(data[, ccqself.short], 1, propNonMissing)
-  data$ccqself.short.tot <- apply(data[, ccqself.short], 1, totscore)
+  data$ccqself.short.pnm <- apply(data[, ccqself.short], 1, proportion_non_missing)
+  data$ccqself.short.tot <- apply(data[, ccqself.short], 1, total_score)
   ################################################################
 
   # 21 Aug 2014: now make a combined "short" var (request from KG)
@@ -99,8 +86,8 @@ derive_cognitive_complaint <- function(data) {
     cogdif41
   )
 
-  data$cogdif.pnm <- apply(data[, cogdif], 1, propNonMissing)
-  data$cogdif.tot <- apply(data[, cogdif], 1, totscore)
+  data$cogdif.pnm <- apply(data[, cogdif], 1, proportion_non_missing)
+  data$cogdif.tot <- apply(data[, cogdif], 1, total_score)
   ################################################################
 
 
@@ -137,25 +124,25 @@ derive_cognitive_complaint <- function(data) {
   )
 
   for (vname in mfq.freqforgetToReverse) {
-    data[, paste0(vname, revSuffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, revSuffix)]) <- paste0(revPhrase, label(data[, vname]))
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
-  mfq.freqforget <- paste0(mfq.freqforgetToReverse, revSuffix)
+  mfq.freqforget <- paste0(mfq.freqforgetToReverse, reverse_suffix)
 
   for (vname in mfq.seriousforgetToReverse) {
-    data[, paste0(vname, revSuffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, revSuffix)]) <- paste0(revPhrase, label(data[, vname]))
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
-  mfq.seriousforget <- paste0(mfq.seriousforgetToReverse, revSuffix)
+  mfq.seriousforget <- paste0(mfq.seriousforgetToReverse, reverse_suffix)
 
   for(vname in mfq.retroToReverse) {
-    data[, paste0(vname, revSuffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, revSuffix)]) <- paste0(revPhrase, label(data[, vname]))
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
-  mfq.retro <- paste0(mfq.retroToReverse, revSuffix)
+  mfq.retro <- paste0(mfq.retroToReverse, reverse_suffix)
 
   mfq <- c(mfq.freqforget, mfq.seriousforget, mfq.retro)
 
@@ -163,26 +150,26 @@ derive_cognitive_complaint <- function(data) {
   # are auto-calculated by REDCap.
   # KG confirmed on 06 Aug 2014 that the REDCap formulas are wrong.
   # I'm renaming the redcap vars whose names match names I'm using.
-  data$mfq.freqforget.pnm <- apply(data[, mfq.freqforget], 1, propNonMissing)
-  data$mfq.freqforget.tot <- apply(data[, mfq.freqforget], 1, totscore)
-  data$mfq.freqforget.avg <- apply(data[, mfq.freqforget], 1, avgscore)
+  data$mfq.freqforget.pnm <- apply(data[, mfq.freqforget], 1, proportion_non_missing)
+  data$mfq.freqforget.tot <- apply(data[, mfq.freqforget], 1, total_score)
+  data$mfq.freqforget.avg <- apply(data[, mfq.freqforget], 1, average_score)
 
-  data$mfq.seriousforget.pnm <- apply(data[, mfq.seriousforget], 1, propNonMissing)
-  data$mfq.seriousforget.tot <- apply(data[, mfq.seriousforget], 1, totscore)
-  data$mfq.seriousforget.avg <- apply(data[, mfq.seriousforget], 1, avgscore)
+  data$mfq.seriousforget.pnm <- apply(data[, mfq.seriousforget], 1, proportion_non_missing)
+  data$mfq.seriousforget.tot <- apply(data[, mfq.seriousforget], 1, total_score)
+  data$mfq.seriousforget.avg <- apply(data[, mfq.seriousforget], 1, average_score)
 
-  #data$mfq.mnemonics.pnm <- apply(data[, mfq.mnemonics], 1, propNonMissing)
-  #data$mfq.mnemonics.tot <- apply(data[, mfq.mnemonics], 1, totscore)
-  #data$mfq.mnemonics.avg <- apply(data[, mfq.mnemonics], 1, avgscore)
+  #data$mfq.mnemonics.pnm <- apply(data[, mfq.mnemonics], 1, proportion_non_missing)
+  #data$mfq.mnemonics.tot <- apply(data[, mfq.mnemonics], 1, total_score)
+  #data$mfq.mnemonics.avg <- apply(data[, mfq.mnemonics], 1, average_score)
 
-  data$mfq.retro.pnm <- apply(data[, mfq.retro], 1, propNonMissing)
-  data$mfq.retro.tot <- apply(data[, mfq.retro], 1, totscore)
-  data$mfq.retro.avg <- apply(data[, mfq.retro], 1, avgscore)
+  data$mfq.retro.pnm <- apply(data[, mfq.retro], 1, proportion_non_missing)
+  data$mfq.retro.tot <- apply(data[, mfq.retro], 1, total_score)
+  data$mfq.retro.avg <- apply(data[, mfq.retro], 1, average_score)
 
   # See 7 Aug 2014 email from KG: use the individual items rather than the
   # subscales to calculate the total score for MFQ
-  data$mfq.pnm <- apply(data[, mfq], 1, propNonMissing)
-  data$mfq.tot <- apply(data[, mfq], 1, totscore)
+  data$mfq.pnm <- apply(data[, mfq], 1, proportion_non_missing)
+  data$mfq.tot <- apply(data[, mfq], 1, total_score)
   ################################################################
 
 
@@ -231,20 +218,20 @@ derive_cognitive_complaint <- function(data) {
     ecogself.att
   )
 
-  data$ecogself.pnm <- apply(data[, ecogself], 1, propNonMissing)
-  data$ecogself.tot <- apply(data[, ecogself], 1, totscore)
-  data$ecogself.mem.pnm <- apply(data[, ecogself.mem], 1, propNonMissing)
-  data$ecogself.mem.tot <- apply(data[, ecogself.mem], 1, totscore)
-  data$ecogself.lg.pnm <- apply(data[, ecogself.lg], 1, propNonMissing)
-  data$ecogself.lg.tot <- apply(data[, ecogself.lg], 1, totscore)
-  data$ecogself.vs.pnm <- apply(data[, ecogself.vs], 1, propNonMissing)
-  data$ecogself.vs.tot <- apply(data[, ecogself.vs], 1, totscore)
-  data$ecogself.plan.pnm <- apply(data[, ecogself.plan], 1, propNonMissing)
-  data$ecogself.plan.tot <- apply(data[, ecogself.plan], 1, totscore)
-  data$ecogself.org.pnm <- apply(data[, ecogself.org], 1, propNonMissing)
-  data$ecogself.org.tot <- apply(data[, ecogself.org], 1, totscore)
-  data$ecogself.att.pnm <- apply(data[, ecogself.att], 1, propNonMissing)
-  data$ecogself.att.tot <- apply(data[, ecogself.att], 1, totscore)
+  data$ecogself.pnm <- apply(data[, ecogself], 1, proportion_non_missing)
+  data$ecogself.tot <- apply(data[, ecogself], 1, total_score)
+  data$ecogself.mem.pnm <- apply(data[, ecogself.mem], 1, proportion_non_missing)
+  data$ecogself.mem.tot <- apply(data[, ecogself.mem], 1, total_score)
+  data$ecogself.lg.pnm <- apply(data[, ecogself.lg], 1, proportion_non_missing)
+  data$ecogself.lg.tot <- apply(data[, ecogself.lg], 1, total_score)
+  data$ecogself.vs.pnm <- apply(data[, ecogself.vs], 1, proportion_non_missing)
+  data$ecogself.vs.tot <- apply(data[, ecogself.vs], 1, total_score)
+  data$ecogself.plan.pnm <- apply(data[, ecogself.plan], 1, proportion_non_missing)
+  data$ecogself.plan.tot <- apply(data[, ecogself.plan], 1, total_score)
+  data$ecogself.org.pnm <- apply(data[, ecogself.org], 1, proportion_non_missing)
+  data$ecogself.org.tot <- apply(data[, ecogself.org], 1, total_score)
+  data$ecogself.att.pnm <- apply(data[, ecogself.att], 1, proportion_non_missing)
+  data$ecogself.att.tot <- apply(data[, ecogself.att], 1, total_score)
   ################################################################
 
 
@@ -266,8 +253,8 @@ derive_cognitive_complaint <- function(data) {
     ccqself52
   )
 
-  #data$gifford.pnm <- apply(data[, gifford], 1, propNonMissing)
-  data$tot.complaint.gifford <- apply(data[, gifford], 1, totscore)
+  #data$gifford.pnm <- apply(data[, gifford], 1, proportion_non_missing)
+  data$tot.complaint.gifford <- apply(data[, gifford], 1, total_score)
 
   # 24 Aug 2015: new variable from KG
   gifford25 <- Hmisc::Cs(
@@ -298,10 +285,9 @@ derive_cognitive_complaint <- function(data) {
     ecogself.org03
   )
 
-  data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, totscore)
-  ################################################################
+  data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
 
-
+################################################################
 
   data <- within(data, {
     label(scc.pnm) <- "Cog Complaint Quest. Self-Report Short Form: Prop. non-miss"

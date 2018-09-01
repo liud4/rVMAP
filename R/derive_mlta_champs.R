@@ -74,7 +74,7 @@ derive_mlta_champs <- function(data) {
     mlta01 , mlta02 , mlta03 , mlta04 , mlta05 , mlta06 , mlta07 ,
     mlta08 , mlta09 , mlta10 , mlta11 , mlta12 , mlta13 , mlta14 ,
     mlta15 , mlta16 , mlta17 , mlta18 , mlta19 , mlta20 , mlta21 ,
-    mlta22 , mlta23 ,mlta24 , mlta25)], 1, totscore)
+    mlta22 , mlta23 ,mlta24 , mlta25)], 1, total_score)
 
   data$mlta.kcal <- apply(data[, Hmisc::Cs(
     mlta01.kcal , mlta02.kcal , mlta03.kcal , mlta04.kcal ,
@@ -83,7 +83,7 @@ derive_mlta_champs <- function(data) {
     mlta12.kcal , mlta13.kcal , mlta14.kcal ,
     mlta15.kcal , mlta16.kcal , mlta17.kcal , mlta18.kcal ,
     mlta19.kcal , mlta20.kcal , mlta21.kcal ,
-    mlta22.kcal , mlta23.kcal , mlta24.kcal , mlta25.kcal)], 1, totscore)
+    mlta22.kcal , mlta23.kcal , mlta24.kcal , mlta25.kcal)], 1, total_score)
 
   data$champs.caloricexpend.all <- apply(data[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
@@ -94,7 +94,7 @@ derive_mlta_champs <- function(data) {
     champs30.kcal, champs31.kcal, champs32.kcal, champs33.kcal, champs34.kcal,
     champs35.kcal, champs36.kcal, champs37.kcal, champs38.kcal, champs39.kcal,
     champs40.kcal)], 1,
-    totscore)
+    total_score)
 
   data$champs.caloricexpend.mod <- apply(data[, Hmisc::Cs(
     champs07.kcal, champs09.kcal,
@@ -103,7 +103,7 @@ derive_mlta_champs <- function(data) {
     champs25.kcal, champs26.kcal, champs29.kcal,
     champs30.kcal, champs31.kcal, champs32.kcal, champs33.kcal,
     champs36.kcal, champs37.kcal, champs38.kcal,
-    champs40.kcal)], 1, totscore)
+    champs40.kcal)], 1, total_score)
 
   data$champs.freqall <- apply(data[, Hmisc::Cs(
     champs07.wk, champs09.wk,
@@ -112,7 +112,7 @@ derive_mlta_champs <- function(data) {
     champs25.wk, champs26.wk, champs27.wk, champs28.wk, champs29.wk,
     champs30.wk, champs31.wk, champs32.wk, champs33.wk, champs34.wk,
     champs35.wk, champs36.wk, champs37.wk, champs38.wk, champs39.wk,
-    champs40.wk)], 1, totscore)
+    champs40.wk)], 1, total_score)
 
   data$champs.freqmod <- apply(data[, Hmisc::Cs(
     champs07.wk, champs09.wk,
@@ -121,7 +121,7 @@ derive_mlta_champs <- function(data) {
     champs25.wk, champs26.wk, champs29.wk,
     champs30.wk, champs31.wk, champs32.wk, champs33.wk,
     champs36.wk, champs37.wk, champs38.wk,
-    champs40.wk)], 1, totscore)
+    champs40.wk)], 1, total_score)
 
   data <- within(data, {
     label(mlta.min) <- "MLTA Total Minutes, recalculated"

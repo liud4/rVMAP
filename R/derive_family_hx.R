@@ -57,20 +57,17 @@ derive_family_hx <- function(data) {
                                       levels = c(1, 0), labels = c("Yes", "No"))
     familyhxmemory.factor <- factor(data$familyhxmemory,
                                     levels = c(1, 0), labels = c("Yes", "No"))
+
+    label(familyhxad) <- "Family Hx of AD"
+    label(familyhxad.factor) <- "Family Hx of AD"
+    label(familyhxdementia) <- "Family Hx of Dementia"
+    label(familyhxdementia.factor) <- "Family Hx of Dementia"
+    label(familyhxmemory) <- "Family Hx of Memory Loss"
+    label(familyhxmemory.factor) <- "Family Hx of Memory Loss"
+    label(familyhxad.number) <- "Num. Family Members w/ Diagnosis of AD"
+    label(familyhxdementia.number) <- "Num. Family Members w/ Dementia"
+    label(familyhxmemory.number) <- "Num. Family Members w/ Memory Problems"
   })
 
-  data <- upData(data,
-                 labels = c(
-                   familyhxad              = "Family Hx of AD",
-                   familyhxad.factor       = "Family Hx of AD",
-                   familyhxdementia        = "Family Hx of Dementia",
-                   familyhxdementia.factor = "Family Hx of Dementia",
-                   familyhxmemory          = "Family Hx of Memory Loss",
-                   familyhxmemory.factor   = "Family Hx of Memory Loss",
-                   familyhxad.number       = "Num. Family Members w/ Diagnosis of AD",
-                   familyhxdementia.number = "Num. Family Members w/ Dementia",
-                   familyhxmemory.number   = "Num. Family Members w/ Memory Problems")
-  )
-
-  data
+  return(data)
 }

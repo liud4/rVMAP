@@ -71,31 +71,28 @@ derive_frailty <- function(data) {
     label(frailty.composite.score.four) <- "Frailty Composite Score (average of z-scores for 4 components)"
     #label(frail.gripbest.zscore) <- "Best Grip Strength of Three Attempts, z-score"
     rm(df, x)
-  })
 
-  data = Hmisc::upData(
-    data,
-    frail.exhaustion.factor = factor(frail.exhaustion, levels = c(1, 0), labels = c("Yes", "No")),
-    frail.walk.factor = factor(frail.walk, levels = c(1, 0), labels = c("Yes", "No")),
-    frail.grip.factor = factor(frail.grip, levels = c(1, 0), labels = c("Yes", "No")),
-    frail.phys.active.factor = factor(frail.phys.active, levels = c(1, 0), labels = c("Yes", "No")),
-    frail.category.factor = factor(frail.category, levels = c(1, 0), labels = c("Pre-frail/Frail", "Not Frail")),
-    frail.ordinal.factor= factor(frail.ordinal, levels = c(2, 1, 0), labels = c("Frail", "Pre-Frail", "Not Frail")),
-    labels = c(frail.gripbest = "Best Grip Strength of Three Attempts",
-               frail.grip.average = "Average Grip Strength over Three Attempts",
-               gripstrength.index = "Average Grip Strength Adjusted for BMI",
-               gait.speed = "Gait Speed in m/s",
-               gait.speed.index = "Gait Speed in m/s Adjusted for Height",
-               frail.exhaustion.cont = "Exhaustion, continuous",
-               frail.exhaustion.factor = "Patient considered frail based on exhaustion",
-               frail.phys.active.factor = "Patient considered frail based on physical activity",
-               frail.walk.factor = "Patient considered frail according to walk time",
-               frail.grip.factor = "Patient considered frail according to grip strength",
-               frail.range = "Frailty Range",
-               frail.category = "Frailty Category",
-               frail.ordinal = "Frailty Ordinal Score"
-    )
-  )
+    frail.exhaustion.factor <- factor(frail.exhaustion, levels = c(1, 0), labels = c("Yes", "No"))
+    frail.walk.factor <- factor(frail.walk, levels = c(1, 0), labels = c("Yes", "No"))
+    frail.grip.factor <- factor(frail.grip, levels = c(1, 0), labels = c("Yes", "No"))
+    frail.phys.active.factor <- factor(frail.phys.active, levels = c(1, 0), labels = c("Yes", "No"))
+    frail.category.factor <- factor(frail.category, levels = c(1, 0), labels = c("Pre-frail/Frail", "Not Frail"))
+    frail.ordinal.factor <- factor(frail.ordinal, levels = c(2, 1, 0), labels = c("Frail", "Pre-Frail", "Not Frail"))
+
+    label(frail.gripbest) <- "Best Grip Strength of Three Attempts"
+    label(frail.grip.average) <- "Average Grip Strength over Three Attempts"
+    label(gripstrength.index) <- "Average Grip Strength Adjusted for BMI"
+    label(gait.speed) <- "Gait Speed in m/s"
+    label(gait.speed.index) <- "Gait Speed in m/s Adjusted for Height"
+    label(frail.exhaustion.cont) <- "Exhaustion, continuous"
+    label(frail.exhaustion.factor) <- "Patient considered frail based on exhaustion"
+    label(frail.phys.active.factor) <- "Patient considered frail based on physical activity"
+    label(frail.walk.factor) <- "Patient considered frail according to walk time"
+    label(frail.grip.factor) <- "Patient considered frail according to grip strength"
+    label(frail.range) <- "Frailty Range"
+    label(frail.category) <- "Frailty Category"
+    label(frail.ordinal) <- "Frailty Ordinal Score"
+  })
 
   return(data)
 }
