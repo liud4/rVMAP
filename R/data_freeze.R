@@ -77,7 +77,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   ###
 
   # use REDCap API to download data
-  for (index.epoch in unique(tokens.list$epoch)){
+  for (index.epoch in unique(tokens.list$epoch)) {
     epoch <- paste0("epoch_", index.epoch)
 
     list.names <- MAPfreeze.list[[epoch]][["shortname"]]

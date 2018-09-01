@@ -18,5 +18,7 @@ A \code{formattable} object containing the formatted vector of p-values.
 Format a vector of p-values to be colored red if less than the specified alpha.
 }
 \examples{
+\dontrun{
 formattable::formattable(summary.all.df, list(`p-Value` = formatP, `Total p-Value` = formatP))
+}
 }
