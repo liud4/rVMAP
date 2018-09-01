@@ -40,9 +40,10 @@ test.df \%>\% mutate_at(
   ~ missing_to_na(., equal.val = c(2, 3, "E"), mod.val = -2, restrict.sign = TRUE)
 )
 
+\dontrun{
 epoch1.main.df \%>\% mutate_at(
   grep("^ecogself\\\\_(mem|lang|vis|plan|org|attn)\\\\d{2}$", names(.)),
    ~ missing_to_na(., equal.val = 0)
 )
-
+}
 }

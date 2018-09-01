@@ -29,5 +29,7 @@ A comprehensive list object containing all the raw data necessary to perform a d
 Freeze data by downloading it from REDCap. Static data sets are also added to the list object. The API tokens must be unlocked from a secure, encrypted vault.
 }
 \examples{
+\dontrun{
 MAPfreeze_interim.list <- data_freeze(quarterly.download = FALSE, save = TRUE, return = TRUE)
+}
 }

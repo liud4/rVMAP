@@ -16,5 +16,7 @@ A sentence stating that no participants were excluded in the specified step or a
 Use in statistical reports to print MAP IDs excluded from a specific exclusion step.
 }
 \examples{
+\dontrun{
 excl_map_id(step = 2)
+}
 }
