@@ -5,7 +5,7 @@
 #' @export
 
 convert_dates <- function(data) {
-  datevars <- setdiff(names(data)[grepl("\\.date", names(data))], c("abp.date", "usa.date"))
+  datevars <- setdiff(names(data)[grepl("\\.date", names(data))], "usa.date")
 
   if ("dob" %in% names(data)) {
     datevars <- c(datevars, "dob")
@@ -28,8 +28,8 @@ convert_dates <- function(data) {
       next
     }
 
-    #datevar[datevar %in% c("1111-11-11", "", as.Date("1111-11-11"))] <- NA
-    ifelse(datevar %in% c("1111-11-11", as.Date("1111-11-11"), ""), NA, datevar)
+    datevar[datevar %in% c("1111-11-11", "", as.Date("1111-11-11"))] <- NA
+    #ifelse(datevar %in% c("1111-11-11", ""), NA, datevar)
 
     if (any((!is.na(datevar)) & nchar(datevar) != 10)) {
       warning(paste0(vname, " is not in yyyy-mm-dd format.\n"))
