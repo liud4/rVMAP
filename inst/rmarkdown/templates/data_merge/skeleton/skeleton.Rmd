@@ -778,6 +778,7 @@ enrollmentVarsThatShouldNotChange <- Cs(
   dob,
   education,
   sex.factor,
+  apoe4Pos.factor,
   raceethnicity.factor,
   usa.born.factor,
   lang.prim.factor
@@ -795,8 +796,8 @@ for (vname in otherKeyEnrollmentVars) {
   label(epoch1ToRepeat[[vname]]) <- paste0(label(epoch1ToRepeat[[vname]]), ", from Enrollment")
 }
 
-names(epoch1ToRepeat) <- c("map.id", "enrolled.dx.factor", 
-                           paste0("enrolled.", c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)))
+names(epoch1ToRepeat) <- c(Cs(map.id, diagnosis.factor.base), 
+                           paste0(c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars), ".base"))
 
 merged.df %<>% left_join(
   epoch1ToRepeat,
