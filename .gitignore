@@ -44,3 +44,23 @@ vignettes/*.pdf
 
 # packrat
 .Rproj.user
+
+20180912_differing_variable_labels\.csv
+
+20180919_comprehensive_redcap_factors\.csv
+
+20180919_comprehensive_redcap_factors_d20180901\.csv
+
+abbreviated_differing_values_w_rounding\.csv
+
+abbreviated_differing_values\.csv
+
+differing_level_labels\.csv
+
+DocumentationPeek\.pdf
+
+full_differing_values\.csv
+
+variables_in_current_but_not_in_old\.txt
+
+variables_in_old_but_not_in_current\.txt
