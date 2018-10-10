@@ -369,6 +369,10 @@ derive_cognitive_complaint <- function(data) {
     }
   }
 
+  VTM <- function(vc, dm) {
+    matrix(vc, ncol = length(vc), nrow = dm, byrow = T)
+  }
+
   rescale.range<-function(v) {
     out<-matrix(0, ncol=length(v), nrow=2)
     out[, grepl('cogdif', v)]=c(0,4)
