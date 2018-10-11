@@ -106,7 +106,7 @@ derive_AD_signature <- function(data) {
 
   data <- merge(data, mcevoy.all.temp, by = c("map.id", "epoch"), all.x = TRUE)
 
-  data$AD.sig.schwarz <- rowSums(data[, schwarz], na.rm = FALSE)
+  data$AD.sig.schwarz <- rowMeans(data[, schwarz], na.rm = FALSE)
 
   data <- within(data, {
     label(avg.hippocampus) <- "Avg hippocampus vol - T1 3T FreeSurfer"
