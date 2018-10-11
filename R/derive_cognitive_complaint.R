@@ -396,7 +396,8 @@ derive_cognitive_complaint <- function(data) {
 
   ## Deriving tot.complaint.gifford.46
 
-  temp.df <- data %>%
+  temp.df <- data
+  temp.df <- temp.df %>%
     mutate(
       tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
     )
