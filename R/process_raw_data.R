@@ -13,7 +13,7 @@
 #' @param csf MAP Clinical CSF data
 #' @param srt MAP SRT Error Analysis data
 #' @param breathhold.prefix A string containing the temporary prefix to be added to the breath hold variables.
-#' @return A data frame with the above files merged together.
+#' @return MAPfreeze.list is updated with the processed data.
 #' @export
 
 process_raw_data <- function(
@@ -21,6 +21,8 @@ process_raw_data <- function(
   auto3T = NULL, auto3TBH = NULL, man3T = NULL, man3TBH = NULL,
   qmass = NULL, addendum = NULL, csf = NULL, srt = NULL,
   breathhold.prefix = "bHold.") {
+
+  current_epoch <- paste0("epoch_", epoch)
 
   #################################################################
   # Start with the main file for this epoch.
@@ -72,7 +74,8 @@ process_raw_data <- function(
     funs(missing_to_na(., equal.val = -99))
   )
 
-  assign(x = deparse(substitute(main)), value = mydat, envir = .GlobalEnv)
+  MAPfreeze.list[[current_epoch]][["data"]][["main"]] <- mydat
+  # assign(x = deparse(substitute(main)), value = mydat, envir = .GlobalEnv)
 
   #################################################################
   # Process ABP data if available.
@@ -89,7 +92,8 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    assign(x = deparse(substitute(abp)), value = abp.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["abp.static"]] <- abp.df
+    # assign(x = deparse(substitute(abp)), value = abp.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -104,7 +108,8 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    assign(x = deparse(substitute(biomarkers)), value = biomarkers.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["biomarkers"]] <- biomarkers.df
+    # assign(x = deparse(substitute(biomarkers)), value = biomarkers.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -135,7 +140,8 @@ process_raw_data <- function(
       auto3T.df <- auto3T.df[, -to_remove_auto3T]
     }
 
-    assign(x = deparse(substitute(auto3T)), value = auto3T.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["auto3T"]] <- auto3T.df
+    # assign(x = deparse(substitute(auto3T)), value = auto3T.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -156,7 +162,8 @@ process_raw_data <- function(
         function(x) paste0(breathhold.prefix, x)
       )
 
-    assign(x = deparse(substitute(auto3TBH)), value = auto3TBH.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["auto3T.bh"]] <- auto3TBH.df
+    # assign(x = deparse(substitute(auto3TBH)), value = auto3TBH.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -187,7 +194,8 @@ process_raw_data <- function(
       man3T.df <- man3T.df[, -to_remove_man3T]
     }
 
-    assign(x = deparse(substitute(man3T)), value = man3T.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["man3T"]] <- man3T.df
+    # assign(x = deparse(substitute(man3T)), value = man3T.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -208,7 +216,8 @@ process_raw_data <- function(
         function(x) paste0(breathhold.prefix, x)
       )
 
-    assign(x = deparse(substitute(man3TBH)), value = man3TBH.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["man3T.bh"]] <- man3TBH.df
+    # assign(x = deparse(substitute(man3TBH)), value = man3TBH.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -226,7 +235,8 @@ process_raw_data <- function(
     qmass.df %<>%
       select(-vmac_id)
 
-    assign(x = deparse(substitute(qmass)), value = qmass.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["cardiac.mri"]] <- qmass.df
+    # assign(x = deparse(substitute(qmass)), value = qmass.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -268,7 +278,8 @@ process_raw_data <- function(
       funs(missing_to_na(., equal.val = -99))
     )
 
-    assign(x = deparse(substitute(addendum)), value = addendum.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["addendum"]] <- addendum.df
+    # assign(x = deparse(substitute(addendum)), value = addendum.df, envir = .GlobalEnv)
   }
 
 
@@ -288,7 +299,8 @@ process_raw_data <- function(
       -one_of(Cs(vmac_id, entry_primary, entry_secondary, data_entry_complete))
     )
 
-    assign(x = deparse(substitute(csf)), value = csf.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["csf"]] <- csf.df
+    # assign(x = deparse(substitute(csf)), value = csf.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -303,6 +315,7 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    assign(x = deparse(substitute(srt)), value = srt.df, envir = .GlobalEnv)
+    MAPfreeze.list[[current_epoch]][["data"]][["srt.static"]] <- srt.df
+    # assign(x = deparse(substitute(srt)), value = srt.df, envir = .GlobalEnv)
   }
 }
