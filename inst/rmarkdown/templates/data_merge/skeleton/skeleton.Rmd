@@ -865,19 +865,19 @@ enrollmentVarsThatShouldNotChange <- Cs(
 )
 
 otherKeyEnrollmentVars <- Cs(
+  diagnosis.factor,
   mci.stage.factor, 
   albert.mci.stage.factor, 
   age
 )
 
-epoch1ToRepeat <- merged.df[merged.df$epoch %in% 1, c('map.id', 'diagnosis.factor', enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)]
+epoch1ToRepeat <- merged.df[merged.df$epoch %in% 1, c('map.id', enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)]
 
 for (vname in otherKeyEnrollmentVars) {
   label(epoch1ToRepeat[[vname]]) <- paste0(label(epoch1ToRepeat[[vname]]), ", from Enrollment")
 }
 
-names(epoch1ToRepeat) <- c(Cs(map.id, diagnosis.factor.base), 
-                           paste0(c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars), ".base"))
+names(epoch1ToRepeat) <- c('map.id', paste0(c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars), ".base"))
 
 merged.df %<>% left_join(
   epoch1ToRepeat,
@@ -906,9 +906,10 @@ composite.df <- read.csv(
   format_id() %>%
   mutate(
     epoch = as.numeric(epoch)
-  )
+  ) %>%
+  setNames(., c("map.id", "epoch", "np.memory.composite", "np.executive.composite"))
 
-colnames(composite.df) <- c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
+# colnames(composite.df) <- c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
 
 label(composite.df$np.memory.composite) <- 'Memory Composite'
 label(composite.df$np.executive.composite) <- 'EF Composite'
@@ -917,7 +918,9 @@ merged.df %<>% left_join(
   composite.df,
   by = c("map.id", "epoch")
 )
+```
 
+```{r}
 merged.df[merged.df$map.id == "209" & merged.df$epoch == 1, 'np.memory.composite'] <- NA
 ```
 
