@@ -355,7 +355,7 @@ derive_cognitive_complaint <- function(data) {
 
   totscore <- function(vec, threshold = 0.85) {
     # calc tot score only if >= <threshold> of items are nonmissing
-    if(propNonMissing(vec) < threshold) return(NA) else {
+    if(proportion_non_missing(vec) < threshold) return(NA) else {
       vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
       return(round(sum(vec), 1))
     }
@@ -363,7 +363,7 @@ derive_cognitive_complaint <- function(data) {
 
   totscore.impute <- function(vec, threshold = 0.85) {
     # calc tot score only if >= <threshold> of items are nonmissing
-    if(propNonMissing(vec) < threshold) return(vec) else {
+    if(proportion_non_missing(vec) < threshold) return(vec) else {
       vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
       return(vec)
     }
