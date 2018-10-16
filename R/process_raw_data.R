@@ -20,7 +20,7 @@ process_raw_data <- function(
   epoch, main, abp = NULL, biomarkers = NULL,
   auto3T = NULL, auto3TBH = NULL, man3T = NULL, man3TBH = NULL,
   qmass = NULL, addendum = NULL, csf = NULL, srt = NULL,
-  breathhold.prefix = "bHold.") {
+  breathhold.prefix = "bHold_") {
 
   current_epoch <- paste0("epoch_", epoch)
 
@@ -124,7 +124,7 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session_id", names(auto3T.df), value = T)
+    to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3T.df), value = T)
 
     if (length(to_rename_auto3T) > 0) {
       auto3T.df <- auto3T.df %>%
@@ -156,6 +156,16 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
+    to_rename_auto3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3TBH.df), value = T)
+
+    if (length(to_rename_auto3TBH) > 0) {
+      auto3TBH.df <- auto3TBH.df %>%
+        rename_at(
+          vars(to_rename_auto3TBH),
+          function(x) paste0(x, "_auto3T")
+        )
+    }
+
     auto3TBH.df <- auto3TBH.df %>%
       rename_at(
         vars(-map_id),
@@ -178,7 +188,7 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session_id", names(man3T.df), value = T)
+    to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3T.df), value = T)
 
     if (length(to_rename_man3T) > 0) {
       man3T.df <- man3T.df %>%
@@ -209,6 +219,16 @@ process_raw_data <- function(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
+
+    to_rename_man3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3TBH.df), value = T)
+
+    if (length(to_rename_man3TBH) > 0) {
+      man3TBH.df <- man3TBH.df %>%
+        rename_at(
+          vars(to_rename_man3TBH),
+          function(x) paste0(x, "_man3T")
+        )
+    }
 
     man3TBH.df <- man3TBH.df %>%
       rename_at(
