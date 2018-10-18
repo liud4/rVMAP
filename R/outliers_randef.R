@@ -1,10 +1,11 @@
 outliers_randef <- function(data, sd, outcome.var, predictor.var, time.var) {
-
   # inititalize tibble if running function for first time
   if (!exists("outliers_randef.df")) {
     outliers_randef.df <- tibble(
-      outcome = character(),
+      label = character(),
+      variable = character(),
       map.id = character(),
+      diagnosis.factor.base = character(),
       outlier_of = character(),
       intercept = numeric(),
       sd_from_intercept = numeric(),
@@ -42,32 +43,36 @@ outliers_randef <- function(data, sd, outcome.var, predictor.var, time.var) {
   map.id_slope <- rand_ef.df[abs(rand_ef.df[, 3]) > sd*sd_slope, "map.id"]
   map.id_all <- sort(unique(c(map.id_intercept, map.id_slope)))
 
-  new_rows <- tibble(
-    outcome = outcome.var,
-    map.id = map.id_all,
-    intercept = rand_ef.df[rand_ef.df$map.id %in% map.id_all, 2],
-    slope = rand_ef.df[rand_ef.df$map.id %in% map.id_all, 3],
-  )
-
-  new_rows <- new_rows %>%
-    mutate(
-      sd_from_intercept = (intercept - mean_intercept) / sd_intercept,
-      sd_from_slope = (slope - mean_slope) / sd_slope
-    ) %>%
-    mutate(
-      outlier_of = dplyr::case_when(
-        ((abs(sd_from_intercept) > sd) & (abs(sd_from_slope) > sd)) ~ "intercept & slope",
-        (abs(sd_from_intercept) > sd) ~ "intercept",
-        (abs(sd_from_slope) > sd) ~ "slope",
-        TRUE ~ NA_character_
-      )
-    ) %>%
-    select(
-      outcome, map.id, outlier_of, intercept, sd_from_intercept, slope, sd_from_slope
+  if (length(map.id_all) > 0) {
+    new_rows <- tibble(
+      variable = outcome.var,
+      map.id = map.id_all,
+      intercept = rand_ef.df[rand_ef.df$map.id %in% map.id_all, 2],
+      slope = rand_ef.df[rand_ef.df$map.id %in% map.id_all, 3]
     )
 
-  outliers_randef.df <<- bind_rows(
-    outliers_randef.df,
-    new_rows
-  )
+    new_rows <- new_rows %>%
+      mutate(
+        label = as.character(label(mydat[, variable])),
+        diagnosis.factor.base = as.character(mydat[mydat$map.id %in% map.id_all, 'diagnosis.factor.base']),
+        sd_from_intercept = (intercept - mean_intercept) / sd_intercept,
+        sd_from_slope = (slope - mean_slope) / sd_slope
+      ) %>%
+      mutate(
+        outlier_of = dplyr::case_when(
+          ((abs(sd_from_intercept) > sd) & (abs(sd_from_slope) > sd)) ~ "intercept & slope",
+          (abs(sd_from_intercept) > sd) ~ "intercept",
+          (abs(sd_from_slope) > sd) ~ "slope",
+          TRUE ~ NA_character_
+        )
+      ) %>%
+      select(
+        label, variable, map.id, diagnosis.factor.base, outlier_of, intercept, sd_from_intercept, slope, sd_from_slope
+      )
+
+    outliers_randef.df <<- bind_rows(
+      outliers_randef.df,
+      new_rows
+    )
+  }
 }
