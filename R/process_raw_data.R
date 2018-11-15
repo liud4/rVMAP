@@ -74,6 +74,25 @@ process_raw_data <- function(
     funs(missing_to_na(., equal.val = -99))
   )
 
+  var_w_comparison_operators <- NULL
+
+  var_w_comparison_operators <- grep(
+    "bld|np|csf|biomarkers",
+    grep(
+      "notes|flow|occup",
+      names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+      invert = T,
+      v = T),
+    v = T)
+
+  if (length(var_w_comparison_operators) > 0) {
+    for (var in var_w_comparison_operators) {
+      mydat[, var] <- sapply(mydat[, var], process_comparison_operators, USE.NAMES = FALSE)
+    }
+  }
+
+  var_w_comparison_operators <- NULL
+
   MAPfreeze.list[[current_epoch]][["data"]][["main"]] <<- mydat
   # assign(x = deparse(substitute(main)), value = mydat, envir = .GlobalEnv)
 
@@ -107,6 +126,23 @@ process_raw_data <- function(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
+
+    var_w_comparison_operators <- grep(
+      "bld|np|csf|biomarkers",
+      grep(
+        "notes|flow|occup",
+        names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+        invert = T,
+        v = T),
+      v = T)
+
+    if (length(var_w_comparison_operators) > 0) {
+      for (var in var_w_comparison_operators) {
+        biomarkers.df[, var] <- sapply(biomarkers.df[, var], process_comparison_operators, USE.NAMES = FALSE)
+      }
+    }
+
+    var_w_comparison_operators <- NULL
 
     MAPfreeze.list[[current_epoch]][["data"]][["biomarkers"]] <<- biomarkers.df
     # assign(x = deparse(substitute(biomarkers)), value = biomarkers.df, envir = .GlobalEnv)
@@ -318,6 +354,23 @@ process_raw_data <- function(
     csf.df %<>% select(
       -one_of(Cs(vmac_id, entry_primary, entry_secondary, data_entry_complete))
     )
+
+    var_w_comparison_operators <- grep(
+      "bld|np|csf|biomarkers",
+      grep(
+        "notes|flow|occup",
+        names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+        invert = T,
+        v = T),
+      v = T)
+
+    if (length(var_w_comparison_operators) > 0) {
+      for (var in var_w_comparison_operators) {
+        csf.df[, var] <- sapply(csf.df[, var], process_comparison_operators, USE.NAMES = FALSE)
+      }
+    }
+
+    var_w_comparison_operators <- NULL
 
     MAPfreeze.list[[current_epoch]][["data"]][["csf"]] <<- csf.df
     # assign(x = deparse(substitute(csf)), value = csf.df, envir = .GlobalEnv)
