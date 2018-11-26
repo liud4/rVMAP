@@ -55,7 +55,7 @@ process_raw_data <- function(
       ~ missing_to_na(., equal.val = 0)
     )
 
-  notes.var <- grep("\\_notes$", names(mydat), value = T)
+  notes.var <- grep("\\_notes", names(mydat), value = T)
   mydat[, notes.var] <- apply(mydat[, notes.var], 2, function(vec) {
     ifelse(stringr::str_trim(vec) %in% c("-8888", "-9999", ""), NA, vec)
   })
@@ -80,7 +80,7 @@ process_raw_data <- function(
     "bld|np|csf|biomarkers",
     grep(
       "notes|flow|occup",
-      names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+      names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", names(mydat))],
       invert = T,
       v = T),
     v = T)
@@ -93,8 +93,12 @@ process_raw_data <- function(
 
   var_w_comparison_operators <- NULL
 
+  mydat <- invalidate_raw_neuropsych_items(mydat)
+  mydat <- invalidate_color_blind(mydat)
+
+  mydat <- process_calculated_fields(data = mydat, data_label = "main", epoch = current_epoch)
+
   MAPfreeze.list[[current_epoch]][["data"]][["main"]] <<- mydat
-  # assign(x = deparse(substitute(main)), value = mydat, envir = .GlobalEnv)
 
   #################################################################
   # Process ABP data if available.
@@ -112,7 +116,6 @@ process_raw_data <- function(
       )
 
     MAPfreeze.list[[current_epoch]][["data"]][["abp.static"]] <<- abp.df
-    # assign(x = deparse(substitute(abp)), value = abp.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -124,14 +127,14 @@ process_raw_data <- function(
       format_id() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       )
 
     var_w_comparison_operators <- grep(
       "bld|np|csf|biomarkers",
       grep(
         "notes|flow|occup",
-        names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+        names(biomarkers.df)[grepl("(>|<)([[:space:]]*)(\\d+)", names(biomarkers.df))],
         invert = T,
         v = T),
       v = T)
@@ -143,6 +146,8 @@ process_raw_data <- function(
     }
 
     var_w_comparison_operators <- NULL
+
+    biomarkers.df <- process_calculated_fields(data = biomarkers.df, data_label = "biomarkers", epoch = current_epoch)
 
     MAPfreeze.list[[current_epoch]][["data"]][["biomarkers"]] <<- biomarkers.df
     # assign(x = deparse(substitute(biomarkers)), value = biomarkers.df, envir = .GlobalEnv)
@@ -176,6 +181,8 @@ process_raw_data <- function(
       auto3T.df <- auto3T.df[, -to_remove_auto3T]
     }
 
+    auto3T.df <- process_calculated_fields(data = auto3T.df, data_label = "auto3T", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["auto3T"]] <<- auto3T.df
     # assign(x = deparse(substitute(auto3T)), value = auto3T.df, envir = .GlobalEnv)
   }
@@ -208,8 +215,9 @@ process_raw_data <- function(
         function(x) paste0(breathhold.prefix, x)
       )
 
+    auto3TBH.df <- process_calculated_fields(data = auto3TBH.df, data_label = "auto3TBH", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["auto3T.bh"]] <<- auto3TBH.df
-    # assign(x = deparse(substitute(auto3TBH)), value = auto3TBH.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -240,8 +248,9 @@ process_raw_data <- function(
       man3T.df <- man3T.df[, -to_remove_man3T]
     }
 
+    man3T.df <- process_calculated_fields(data = man3T.df, data_label = "man3T", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["man3T"]] <<- man3T.df
-    # assign(x = deparse(substitute(man3T)), value = man3T.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -272,8 +281,9 @@ process_raw_data <- function(
         function(x) paste0(breathhold.prefix, x)
       )
 
+    man3TBH.df <- process_calculated_fields(data = man3TBH.df, data_label = "man3TBH", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["man3T.bh"]] <<- man3TBH.df
-    # assign(x = deparse(substitute(man3TBH)), value = man3TBH.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -291,8 +301,9 @@ process_raw_data <- function(
     qmass.df %<>%
       select(-vmac_id)
 
+    qmass.df <- process_calculated_fields(data = qmass.df, data_label = "qmass", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["cardiac.mri"]] <<- qmass.df
-    # assign(x = deparse(substitute(qmass)), value = qmass.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -319,7 +330,7 @@ process_raw_data <- function(
       ) %>%
       rename_at(
         vars(Hmisc::Cs(np_date, np_notes, neuropsychological_assessment_complete)),
-        function(x) paste0(x, ".addend")
+        function(x) paste0(x, "_addend")
       )
 
     addendum.df %<>% mutate_if(
@@ -334,8 +345,11 @@ process_raw_data <- function(
       funs(missing_to_na(., equal.val = -99))
     )
 
+    addendum.df <- invalidate_neuropsych_addendum(addendum.df)
+
+    addendum.df <- process_calculated_fields(data = addendum.df, data_label = "addendum", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["addendum"]] <<- addendum.df
-    # assign(x = deparse(substitute(addendum)), value = addendum.df, envir = .GlobalEnv)
   }
 
 
@@ -359,7 +373,7 @@ process_raw_data <- function(
       "bld|np|csf|biomarkers",
       grep(
         "notes|flow|occup",
-        names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
+        names(csf.df)[grepl("(>|<)([[:space:]]*)(\\d+)", names(csf.df))],
         invert = T,
         v = T),
       v = T)
@@ -372,8 +386,9 @@ process_raw_data <- function(
 
     var_w_comparison_operators <- NULL
 
+    csf.df <- process_calculated_fields(data = csf.df, data_label = "csf", epoch = current_epoch)
+
     MAPfreeze.list[[current_epoch]][["data"]][["csf"]] <<- csf.df
-    # assign(x = deparse(substitute(csf)), value = csf.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -389,6 +404,5 @@ process_raw_data <- function(
       )
 
     MAPfreeze.list[[current_epoch]][["data"]][["srt.static"]] <<- srt.df
-    # assign(x = deparse(substitute(srt)), value = srt.df, envir = .GlobalEnv)
   }
 }

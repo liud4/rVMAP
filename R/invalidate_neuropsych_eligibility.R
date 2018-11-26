@@ -1,4 +1,4 @@
-#' Invalidate certain neuropsychological eligibility variables for certain participants in the merged data set.
+#' Invalidate certain neuropsychological eligibility variables for certain participants in the post-fixed eligibility data set.
 #'
 #' @param data A data frame containing VMAC variables.
 #' @return \code{data} with invalidated neuropsychological eligibility variables.
@@ -6,25 +6,25 @@
 
 invalidate_neuropsych_eligibility <- function(data) {
   x <- c(
-    "np.srt6.elig",
-    "np.srt.immed.elig",
-    "np.srt.immed.z.elig",
-    "np.srt.sdcr.elig",
-    "np.srt.ldfr.elig",
-    "np.srt.ldfr.z.elig",
-    "np.srt.recog.elig",
-    "np.srt.recog.z.elig",
-    "np.srt.intrus.elig",
-    "np.srt.intrus.z.elig",
-    "np.srt.reps.elig"
+    "np_srt6_elig",
+    "np_srt_immed_elig",
+    "np_srt_immed_z_elig",
+    "np_srt_sdcr_elig",
+    "np_srt_ldfr_elig",
+    "np_srt_ldfr_z_elig",
+    "np_srt_recog_elig",
+    "np_srt_recog_z_elig",
+    "np_srt_intrus_elig",
+    "np_srt_intrus_z_elig",
+    "np_srt_reps_elig"
   )
 
   # Variables to set to NA for MAP 007
   data[data$map.id == "007", x] <- NA
 
   x1 <- c(
-    "np.blocks.elig",
-    "np.blocks.ss.elig"
+    "np_blocks_elig",
+    "np_blocks_ss_elig"
   )
 
   # Variables to set to NA for MAP 016 & MAP 213
@@ -32,22 +32,22 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   # MAP 025
   x2 <- c(
-    "np.srt1.elig",
-    "np.srt2.elig",
-    "np.srt3.elig",
-    "np.srt4.elig",
-    "np.srt5.elig",
-    "np.srt6.elig",
-    "np.srt.immed.elig",
-    "np.srt.immed.z.elig",
-    "np.srt.sdcr.elig",
-    "np.srt.ldfr.elig",
-    "np.srt.ldfr.z.elig",
-    "np.srt.recog.elig",
-    "np.srt.recog.z.elig",
-    "np.srt.intrus.elig",
-    "np.srt.intrus.z.elig",
-    "np.srt.reps.elig"
+    "np_srt1_elig",
+    "np_srt2_elig",
+    "np_srt3_elig",
+    "np_srt4_elig",
+    "np_srt5_elig",
+    "np_srt6_elig",
+    "np_srt_immed_elig",
+    "np_srt_immed_z_elig",
+    "np_srt_sdcr_elig",
+    "np_srt_ldfr_elig",
+    "np_srt_ldfr_z_elig",
+    "np_srt_recog_elig",
+    "np_srt_recog_z_elig",
+    "np_srt_intrus_elig",
+    "np_srt_intrus_z_elig",
+    "np_srt_reps_elig"
   )
 
   # Variables to set to NA for MAP 025
@@ -55,10 +55,10 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   # Variables for MAP 039
   x3 <- c(
-    "np.tmtb.elig",
-    "np.tmtb.ss.elig",
-    "np.tmtb.seqerr.elig",
-    "np.tmtb.seterr.elig"
+    "np_tmtb_elig",
+    "np_tmtb_ss_elig",
+    "np_tmtb_seqerr_elig",
+    "np_tmtb_seterr_elig"
   )
 
   # Set variables to missing for MAP 039
@@ -66,12 +66,12 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   # MAP 137
   x4 <- c(
-    "np.srt.ldfr.elig",
-    "np.srt.ldfr.z.elig",
-    "np.srt.recog.elig",
-    "np.srt.recog.z.elig",
-    "np.srt.intrus.elig",
-    "np.srt.intrus.z.elig"
+    "np_srt_ldfr_elig",
+    "np_srt_ldfr_z_elig",
+    "np_srt_recog_elig",
+    "np_srt_recog_z_elig",
+    "np_srt_intrus_elig",
+    "np_srt_intrus_z_elig"
   )
 
   # Set variables to missing for MAP 137
@@ -79,30 +79,30 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   # MAP 201
   x5 <- c(
-    "np.strp.color.elig",
-    "np.strp.color.ss.elig",
-    "np.strp.color.ucerr.elig",
-    "np.strp.color.scerr.elig",
-    "np.strp.colorword.elig",
-    "np.strp.colorword.ss.elig",
-    "np.strp.colorword.ucerr.elig",
-    "np.strp.colorword.scerr.elig",
-    "np.strp.ucerr.elig",
-    "np.strp.scerr.elig")
+    "np_strp_color_elig",
+    "np_strp_color_ss_elig",
+    "np_strp_color_ucerr_elig",
+    "np_strp_color_scerr_elig",
+    "np_strp_colorword_elig",
+    "np_strp_colorword_ss_elig",
+    "np_strp_colorword_ucerr_elig",
+    "np_strp_colorword_scerr_elig",
+    "np_strp_ucerr_elig",
+    "np_strp_scerr_elig")
 
   # Set variables to missing for MAP 201
   data[data$map.id == "201", x5] <- NA
 
   # MAP 212 & MAP 236
   x6 <- c(
-    "np.vegq1.elig",
-    "np.vegq2.elig",
-    "np.vegq3.elig",
-    "np.vegq4.elig",
-    "np.veg.elig",
-    "np.veg.z.elig",
-    "np.veg.reps.elig",
-    "np.veg.intrus.elig"
+    "np_vegq1_elig",
+    "np_vegq2_elig",
+    "np_vegq3_elig",
+    "np_vegq4_elig",
+    "np_veg_elig",
+    "np_veg_z_elig",
+    "np_veg_reps_elig",
+    "np_veg_intrus_elig"
   )
 
   # Set variables to missing for MAP 212 & 236
@@ -110,11 +110,11 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   # MAP 299
   x7 <- c(
-    "np.digitsf.elig",
-    "np.digits.elig",
-    "np.digits.ss.elig",
-    "np.digitsf.span.elig",
-    "np.digitsf.span.z.elig"
+    "np_digitsf_elig",
+    "np_digits_elig",
+    "np_digits_ss_elig",
+    "np_digitsf_span_elig",
+    "np_digitsf_span_z_elig"
   )
 
   # Set variables to missing for MAP 299
