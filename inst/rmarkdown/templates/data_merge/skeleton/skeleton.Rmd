@@ -116,7 +116,7 @@ packages <- Hmisc::Cs(
   secret
 )
 
-load_pkg(packages)
+rVMAP::load_pkg(packages)
 
 # set timezone
 Sys.setenv(TZ = 'US/Central')
@@ -289,7 +289,7 @@ list(
 
 We begin by processing a subset of raw data sets within each available epoch. The `process_raw_data()` function tidies each inputted data set, formats certain variables, and sets some VMAC-specified values to missing.
 
-# Process Epoch 1 Raw Data
+## Process Epoch 1 Raw Data
 
 ```{r process-epoch1}
 process_raw_data(
@@ -308,7 +308,7 @@ process_raw_data(
 )
 ```
 
-# Process Epoch 2 Raw Data
+## Process Epoch 2 Raw Data
 
 ```{r process-epoch2}
 process_raw_data(
@@ -517,7 +517,7 @@ force_to_numeric.var <- c(
 merged.df[, force_to_numeric.var] <- lapply(merged.df[, force_to_numeric.var], as.numeric)
 ```
 
-## Merge Epoch-Independent Data
+## Merge Additional Epoch-Independent Data
 
 ### Add ABPM Consent Data
 
@@ -549,7 +549,8 @@ merged.df %<>% left_join(
 ```{r}
 eligibility.static.df <- MAPfreeze.list$epoch_0$data$eligibility.static %>%
   format_id() %>%
-  process_eligibility()
+  process_eligibility() %>%
+  invalidate_color_blind()
 
 check_shared_vars(merged.df, eligibility.static.df, 'map_id')
 
@@ -559,7 +560,7 @@ merged.df %<>% left_join(
 ) 
 ```
 
-## Format Variable Names and Apply Labels to each Variable
+# Format Variable Names and Apply Labels to each Variable
 
 ```{r}
 merged.df <- format_names(merged.df)
@@ -845,8 +846,8 @@ merged.df <- call_function("derive_pvlt", merged.df)
 In this section, we will run scripts to invalidate certain neuropsychological variables for certain individuals as requested by VMAC.
 
 ```{r}
-merged.df <- call_function("invalidate_neuropsych_eligibility", merged.df)
-merged.df <- call_function("invalidate_neuropsych_addendum", merged.df)
+# merged.df <- call_function("invalidate_neuropsych_eligibility", merged.df)
+# merged.df <- call_function("invalidate_neuropsych_addendum", merged.df)
 merged.df <- call_function("invalidate_neuropsych_items", merged.df)
 merged.df <- call_function("invalidate_color_blind", merged.df)
 ```
