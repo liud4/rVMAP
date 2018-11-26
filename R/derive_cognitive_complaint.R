@@ -404,7 +404,7 @@ derive_cognitive_complaint <- function(data) {
       tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
     )
 
-    junk <- t(apply(rescale(tot.complaint.gifford.46, temp.df), MARGIN = 1, totscore.impute))
+  junk <- t(apply(rescale(tot.complaint.gifford.46, temp.df), MARGIN = 1, totscore.impute))
   junk.rescaled <- rescale2(tot.complaint.gifford.46, junk)
 
   data$tot.complaint.rescale <- temp.df$tot.complaint.rescale
@@ -469,8 +469,8 @@ derive_cognitive_complaint <- function(data) {
 
     label(tot.complaint) <- "Tot cognitive complaint score"
     label(tot.complaint.short) <- "Tot cognitive complaint score using short scale"
-    #label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
-    #label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
+    # label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
+    # label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
 
     label(tot.complaint.rescale) <- "Tot cognitive complaint score (rescaled)"
     label(tot.complaint.gifford.46) <- "Tot Gifford-46 cognitive complaint score"
