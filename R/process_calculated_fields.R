@@ -11,7 +11,9 @@ process_calculated_fields <- function(data, data_label, epoch = current_epoch) {
       ) %>%
       as_tibble()
 
-    metadata.df <- ifelse(dim(metadata.df)[1] > 0, metadata.df, NULL)
+    if (dim(metadata.df)[1] == 0) {
+      metadata.df <- NULL
+    }
 
     if (!is.null(metadata.df)) {
       metadata.df$element_variables <- purrr::map(  # extract variables used in calculation of this variable
