@@ -134,7 +134,7 @@ process_raw_data <- function(
       "bld|np|csf|biomarkers",
       grep(
         "notes|flow|occup",
-        names(biomarkers.df)[grepl("(>|<)([[:space:]]*)(\\d+)", names(biomarkers.df))],
+        names(biomarkers.df)[grepl("(>|<)([[:space:]]*)(\\d+)", biomarkers.df)],
         invert = T,
         v = T),
       v = T)
@@ -150,7 +150,6 @@ process_raw_data <- function(
     biomarkers.df <- process_calculated_fields(data = biomarkers.df, data_label = "biomarkers", epoch = current_epoch)
 
     MAPfreeze.list[[current_epoch]][["data"]][["biomarkers"]] <<- biomarkers.df
-    # assign(x = deparse(substitute(biomarkers)), value = biomarkers.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -165,15 +164,17 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3T.df), value = T)
-
-    if (length(to_rename_auto3T) > 0) {
-      auto3T.df <- auto3T.df %>%
-        rename_at(
-          vars(to_rename_auto3T),
-          function(x) paste0(x, "_auto3T")
-        )
-    }
+    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
+    #
+    # to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3T.df), value = T)
+    #
+    # if (length(to_rename_auto3T) > 0) {
+    #   auto3T.df <- auto3T.df %>%
+    #     rename_at(
+    #       vars(to_rename_auto3T),
+    #       function(x) paste0(x, "_auto3T")
+    #     )
+    # }
 
     to_remove_auto3T <- which(names(auto3T.df) %in% c("vmac_id", "entry_primary", "entry_secondary", "data_entry_complete"))
 
@@ -184,7 +185,6 @@ process_raw_data <- function(
     auto3T.df <- process_calculated_fields(data = auto3T.df, data_label = "auto3T", epoch = current_epoch)
 
     MAPfreeze.list[[current_epoch]][["data"]][["auto3T"]] <<- auto3T.df
-    # assign(x = deparse(substitute(auto3T)), value = auto3T.df, envir = .GlobalEnv)
   }
 
   #################################################################
@@ -199,15 +199,17 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_auto3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3TBH.df), value = T)
-
-    if (length(to_rename_auto3TBH) > 0) {
-      auto3TBH.df <- auto3TBH.df %>%
-        rename_at(
-          vars(to_rename_auto3TBH),
-          function(x) paste0(x, "_auto3T")
-        )
-    }
+    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
+    #
+    # to_rename_auto3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3TBH.df), value = T)
+    #
+    # if (length(to_rename_auto3TBH) > 0) {
+    #   auto3TBH.df <- auto3TBH.df %>%
+    #     rename_at(
+    #       vars(to_rename_auto3TBH),
+    #       function(x) paste0(x, "_auto3T")
+    #     )
+    # }
 
     auto3TBH.df <- auto3TBH.df %>%
       rename_at(
@@ -232,15 +234,17 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3T.df), value = T)
+    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
+    #
+    # to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3T.df), value = T)
 
-    if (length(to_rename_man3T) > 0) {
-      man3T.df <- man3T.df %>%
-        rename_at(
-          vars(to_rename_man3T),
-          function(x) paste0(x, "_man3T")
-        )
-    }
+    # if (length(to_rename_man3T) > 0) {
+    #   man3T.df <- man3T.df %>%
+    #     rename_at(
+    #       vars(to_rename_man3T),
+    #       function(x) paste0(x, "_man3T")
+    #     )
+    # }
 
     to_remove_man3T <- which(names(man3T.df) %in% c("vmac_id", "entry_primary", "entry_secondary", "data_entry_complete"))
 
@@ -265,15 +269,17 @@ process_raw_data <- function(
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    to_rename_man3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3TBH.df), value = T)
-
-    if (length(to_rename_man3TBH) > 0) {
-      man3TBH.df <- man3TBH.df %>%
-        rename_at(
-          vars(to_rename_man3TBH),
-          function(x) paste0(x, "_man3T")
-        )
-    }
+    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
+    #
+    # to_rename_man3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3TBH.df), value = T)
+    #
+    # if (length(to_rename_man3TBH) > 0) {
+    #   man3TBH.df <- man3TBH.df %>%
+    #     rename_at(
+    #       vars(to_rename_man3TBH),
+    #       function(x) paste0(x, "_man3T")
+    #     )
+    # }
 
     man3TBH.df <- man3TBH.df %>%
       rename_at(
@@ -373,7 +379,7 @@ process_raw_data <- function(
       "bld|np|csf|biomarkers",
       grep(
         "notes|flow|occup",
-        names(csf.df)[grepl("(>|<)([[:space:]]*)(\\d+)", names(csf.df))],
+        names(csf.df)[grepl("(>|<)([[:space:]]*)(\\d+)", csf.df)],
         invert = T,
         v = T),
       v = T)
