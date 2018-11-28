@@ -447,7 +447,7 @@ epoch_4_merge.df <- merge_within_epoch(
 
 ## Merge across all Epochs
 
-Now that we have created a single data frame for each available epoch, we will investigate any differences between the epochs and stack the four data frames into one longitudinal data set.
+Now that we have created a single data frame for each available epoch, we will investigate any differences between the epochs and stack the data frames into one longitudinal data set.
 
 ### Compare and Stack: Epoch 2 with Epoch 1
 
