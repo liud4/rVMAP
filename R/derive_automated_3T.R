@@ -7,13 +7,17 @@
 derive_automated_3T <- function(data) {
 
   data$icv <- rowSums(data[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
-  data$bHold.icv <- rowSums(data[, Cs(bHold.vbmqa.gm.vol, bHold.vbmqa.wm.vol, bHold.vbmqa.csf.vol)])
   label(data$icv) <- "ICV (calculated)"
+
+  data$bHold.icv <- rowSums(data[, Cs(bHold.vbmqa.gm.vol, bHold.vbmqa.wm.vol, bHold.vbmqa.csf.vol)])
+  label(data$bHold.icv) <- "ICV (calculated)"
 
   data <- within(data, {
     wml.volume.plus.1.log <- log(wml.volume + 1)
-    bHold.wml.volume.plus.1.log <- log(bHold.wml.volume + 1)
     label(wml.volume.plus.1.log) <- "Log of wml.volume + 1"
+
+    bHold.wml.volume.plus.1.log <- log(bHold.wml.volume + 1)
+    label(bHold.wml.volume.plus.1.log) <- "Log of wml.volume + 1"
 
     asl.3t.rest.etco2 <- (asl.3t.bl.etco2.1 + asl.3t.bl.etco2.2 + asl.3t.bl.etco2.3) / 3
     label(asl.3t.rest.etco2) <- "Resting EtCO2"

@@ -15,12 +15,14 @@ derive_demographics <- function(data) {
         race == 1 & ethnicity == 0,
         1,
         ifelse(
-          (race %in% c(0,2,3,4) & ethnicity %in% c(0,1)) | (race ==1 & ethnicity ==1),
+          (race %in% c(0, 2, 3, 4) & ethnicity %in% c(0, 1)) | (race == 1 & ethnicity == 1),
           2,
           NA
         )
       )
     )
+
+    label(raceethnicity) <- "Two-level race/ethnicity"
 
     raceethnicity.factor <- factor(
       raceethnicity,
@@ -28,12 +30,12 @@ derive_demographics <- function(data) {
       labels = c("Non-Hispanic White", "Other")
     )
 
-    label(raceethnicity) <- label(raceethnicity.factor) <-"Two-level race/ethnicity"
+    label(raceethnicity.factor) <- "Two-level race/ethnicity"
 
     age.redcap <- age
 
     age <- floor(
-      as.numeric(difftime(medhx.date, dob, units= "days")) / days_in_one_year
+      as.numeric(difftime(medhx.date, dob, units = "days")) / days_in_one_year
     )
 
     label(age) <- "Age at medhx.date, recalculated"

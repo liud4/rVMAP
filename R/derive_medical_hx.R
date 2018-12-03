@@ -27,8 +27,7 @@ derive_medical_hx <- function(data) {
                                                mhx.tobac.quit >= medhx.date.year - 1), 1, 0)))
     currentsmoking.factor <- factor(currentsmoking, levels= c(1, 0),
                                     labels= c("Yes", "No"))
-    label(currentsmoking) <- label(currentsmoking.factor) <-
-      "Current smoker (or quit in this or last calendar yr)"
+    label(currentsmoking) <- label(currentsmoking.factor) <- "Current smoker (or quit in this or last calendar yr)"
 
     # 17 Oct 2016: Angela wants to see tobac variables w/o negative numbers
     mhx.tobac.quit.formersmokers <- ifelse(is.na(mhx.tobac), NA,
@@ -50,6 +49,7 @@ derive_medical_hx <- function(data) {
                                           ((mhx.tobac.quit - dob.year) - mhx.tobac.age),
                                           ((medhx.date.year - dob.year) - mhx.tobac.age))))
     label(smoking.years) <- "Number of years smoked"
+
     pack.years <- ifelse(is.na(mhx.tobac), NA,
                          ifelse(mhx.tobac == 0, 0,
                                 ifelse(smoking.years == 0, 0,

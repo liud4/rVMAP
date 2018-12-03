@@ -160,7 +160,6 @@ derive_blood <- function(data) {
     label(bld.c.creatinine) = "Converted Creatinine (mg/dL)"
     label(bld.c.alkphos) = "Converted Alkaline Phosphatase (U/L)"
     label(bld.c.crp) = "Set to 0.1 if `<0.2', Converted C-Reactive Protein HS - Cardiac (mg/L)"
-    # label(creatinine.clearance)
     label(bld.c.egfr) <- "Clinical Blood - eGFR, recalculated"
     label(bld.c.egfraa) <- "Clinical Blood - eGFRAA, recalculated"
     label(bld.c.homair) <- "Clinical Blood - HOMA-IR (m/dL), recalculated"
