@@ -11,16 +11,24 @@ process_factor_variables <- function(data, data_label, epoch = current_epoch) {
       ) %>%
       as_tibble()
 
-    metadata.df <- ifelse(dim(metadata.df)[1] > 0, metadata.df, NULL)
+    if (!dim(metadata.df)[1] > 0) {
+      metadata.df <- NULL
+    }
 
     if (!is.null(metadata.df)) {
-      for (factor_var.i in 1:dim(metadata.df)[1]) {
-        current_var <- metadata.df[factor_var.i, "field_name"]
-        levels.list <- as.list(REDCapR::checkbox_choices(metadata.df[factor_var.i, "select_choices_or_calculations"]))
-        levels.list$id <- as.character(1 + as.numeric(levels.list$id))
+      metadata.df <- metadata.df %>%
+        filter(
+          field_name %in% names(current_data.df)
+        )
 
-        current_data.df[, current_var] <- factor(current_data.df[, current_var], levels = levels.list$id, labels = levels.list$label)
-        # current_data.df[, paste0(current_var, "_factor")] <- factor(current_data.df[, current_var], levels = levels.list$id, labels = levels.list$label)
+      for (factor_var.i in metadata.df$field_name) {
+        # current_var <- metadata.df[factor_var.i, "field_name"]
+        current_var <- factor_var.i
+        levels.list <- as.list(REDCapR::checkbox_choices(metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"]))
+        # levels.list$id <- as.character(1 + as.numeric(levels.list$id))
+
+        # current_data.df[, current_var] <- factor(current_data.df[, current_var], levels = levels.list$id, labels = levels.list$label)
+        current_data.df[[paste0(current_var, "_factor")]] <- factor(current_data.df[[current_var]], levels = levels.list$id, labels = levels.list$label)
       }
     }
   }

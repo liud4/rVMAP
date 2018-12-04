@@ -1,4 +1,6 @@
 process_calculated_fields <- function(data, data_label, epoch = current_epoch) {
+  current_data.df <- data
+
   if (!grepl("\\.static$", data_label)) {
     metadata.df <- MAPfreeze.list[[epoch]][["metadata"]][[data_label]] %>%
       filter(
@@ -27,7 +29,7 @@ process_calculated_fields <- function(data, data_label, epoch = current_epoch) {
       )
 
       # current_data.df <- MAPfreeze.list[[epoch]][["data"]][[data_label]]
-      current_data.df <- data
+      # current_data.df <- data
 
       for (redcap_calculated_variables.i in 1:dim(metadata.df)[1]) {
         current.var <- pull(metadata.df[redcap_calculated_variables.i, "field_name"])

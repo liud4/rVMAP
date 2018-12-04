@@ -44,7 +44,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in ABP data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in ABP data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -60,7 +60,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in biomarker data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in biomarker data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -76,7 +76,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in automated 3T data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in automated 3T data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -92,7 +92,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in automatic 3T (breath hold) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in automatic 3T (breath hold) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -108,7 +108,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in manual 3T data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in manual 3T data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -124,7 +124,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in manual 3T (breath hold) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in manual 3T (breath hold) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -140,7 +140,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in cardiac MRI (qmass) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in cardiac MRI (qmass) data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -156,7 +156,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in addendum data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in addendum data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   ###############################################################
@@ -172,7 +172,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("The merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("The merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################
@@ -188,7 +188,7 @@ merge_within_epoch <- function(
       by = "map_id"
     )
 
-    cat(paste0("After adding in SRT data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns."))
+    cat(paste0("After adding in SRT data, the merged data now has ", nrow(mydat), " rows and ", ncol(mydat), " columns.\n\n"))
   }
 
   #################################################################

@@ -46,3 +46,9 @@ variables_in_old_but_not_in_current\.txt
 redcap_api_tokens.R
 test_merge_20181127.Rmd
 test_merge_20181127.nb.html
+20181201_processed_data.rds
+epoch4aslmanualscandate.csv
+epoch_4_asl_manual_scan_date.csv
+merged_finally.rds
+mergedacrossepochs.rds
+processed_dec_data.rds

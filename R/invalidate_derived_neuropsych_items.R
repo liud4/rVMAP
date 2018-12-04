@@ -21,7 +21,7 @@ invalidate_derived_neuropsych_items <- function(data) {
 
   # MAP 135, 220, 234
   x3 <- c(
-    "np.color.cumpercerr.factor"
+    "np.color.cumpercerr"
   )
 
   data[data$map.id %in% c("135","220","234") & data$epoch == 1, x3] <- NA

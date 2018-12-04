@@ -29,7 +29,8 @@ process_raw_data <- function(
 
   mydat <- main %>%
     clear_labels() %>%
-    format_id()
+    format_id() %>%
+    remove_unnecesary_vars()
 
   mydat <- mydat %>%
     mutate_if(
@@ -60,8 +61,6 @@ process_raw_data <- function(
     ifelse(stringr::str_trim(vec) %in% c("-8888", "-9999", ""), NA, vec)
   })
 
-  # mydat <- format_id(mydat) # OAK 20181009: is this even needed? This is alraedy being done at the beginning.
-
   mydat %<>% mutate_if(
     names(.) %in% Cs(
       np_pvlt1, np_pvlt2, np_pvlt3, np_pvlt4, np_pvlt5, np_pvlta_tot,
@@ -80,10 +79,12 @@ process_raw_data <- function(
     "bld|np|csf|biomarkers",
     grep(
       "notes|flow|occup",
-      names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", names(mydat))],
+      names(mydat)[grepl("(>|<)([[:space:]]*)(\\d+)", mydat)],
       invert = T,
       v = T),
     v = T)
+
+  var_w_comparison_operators <- setdiff(var_w_comparison_operators, "bld_c_coag")
 
   if (length(var_w_comparison_operators) > 0) {
     for (var in var_w_comparison_operators) {
@@ -98,6 +99,22 @@ process_raw_data <- function(
 
   mydat <- process_calculated_fields(data = mydat, data_label = "main", epoch = current_epoch)
 
+  mydat <- process_factor_variables(data = mydat, data_label = "main", epoch = current_epoch)
+
+  mydat <- mydat %>%
+    mutate_at(
+      vars(matches("session_id$")),
+      as.character
+    )
+
+  mydat <- mydat %>%
+    mutate_at(
+      vars(matches("_dose$")),
+      as.character
+    )
+
+  mydat <- convert_dates(mydat)
+
   MAPfreeze.list[[current_epoch]][["data"]][["main"]] <<- mydat
 
   #################################################################
@@ -110,10 +127,13 @@ process_raw_data <- function(
     abp.df <- abp.df %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
+
+    abp.df <- convert_dates(abp.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["abp.static"]] <<- abp.df
   }
@@ -125,6 +145,7 @@ process_raw_data <- function(
     biomarkers.df <- biomarkers %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
@@ -149,6 +170,10 @@ process_raw_data <- function(
 
     biomarkers.df <- process_calculated_fields(data = biomarkers.df, data_label = "biomarkers", epoch = current_epoch)
 
+    biomarkers.df <- process_factor_variables(data = biomarkers.df, data_label = "biomarkers", epoch = current_epoch)
+
+    biomarkers.df <- convert_dates(biomarkers.df)
+
     MAPfreeze.list[[current_epoch]][["data"]][["biomarkers"]] <<- biomarkers.df
   }
 
@@ -159,6 +184,7 @@ process_raw_data <- function(
     auto3T.df <- auto3T %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
@@ -176,13 +202,17 @@ process_raw_data <- function(
     #     )
     # }
 
-    to_remove_auto3T <- which(names(auto3T.df) %in% c("vmac_id", "entry_primary", "entry_secondary", "data_entry_complete"))
-
-    if (length(to_remove_auto3T) > 0) {
-      auto3T.df <- auto3T.df[, -to_remove_auto3T]
-    }
+    auto3T.df <- auto3T.df %>%
+      mutate_at(
+        vars(matches("session_id$")),
+        as.character
+      )
 
     auto3T.df <- process_calculated_fields(data = auto3T.df, data_label = "auto3T", epoch = current_epoch)
+
+    auto3T.df <- process_factor_variables(data = auto3T.df, data_label = "auto3T", epoch = current_epoch)
+
+    auto3T.df <- convert_dates(auto3T.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["auto3T"]] <<- auto3T.df
   }
@@ -194,6 +224,7 @@ process_raw_data <- function(
     auto3TBH.df <- auto3TBH %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
@@ -212,12 +243,22 @@ process_raw_data <- function(
     # }
 
     auto3TBH.df <- auto3TBH.df %>%
+      mutate_at(
+        vars(matches("session_id$")),
+        as.character
+      )
+
+    auto3TBH.df <- process_calculated_fields(data = auto3TBH.df, data_label = "auto3T.bh", epoch = current_epoch)
+
+    auto3TBH.df <- process_factor_variables(data = auto3TBH.df, data_label = "auto3T.bh", epoch = current_epoch)
+
+    auto3TBH.df <- convert_dates(auto3TBH.df)
+
+    auto3TBH.df <- auto3TBH.df %>%
       rename_at(
         vars(-map_id),
         function(x) paste0(breathhold.prefix, x)
       )
-
-    auto3TBH.df <- process_calculated_fields(data = auto3TBH.df, data_label = "auto3TBH", epoch = current_epoch)
 
     MAPfreeze.list[[current_epoch]][["data"]][["auto3T.bh"]] <<- auto3TBH.df
   }
@@ -229,6 +270,7 @@ process_raw_data <- function(
     man3T.df <- man3T %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
@@ -246,13 +288,17 @@ process_raw_data <- function(
     #     )
     # }
 
-    to_remove_man3T <- which(names(man3T.df) %in% c("vmac_id", "entry_primary", "entry_secondary", "data_entry_complete"))
-
-    if (length(to_remove_man3T) > 0) {
-      man3T.df <- man3T.df[, -to_remove_man3T]
-    }
+    man3T.df <- man3T.df %>%
+      mutate_at(
+        vars(matches("session_id$")),
+        as.character
+      )
 
     man3T.df <- process_calculated_fields(data = man3T.df, data_label = "man3T", epoch = current_epoch)
+
+    man3T.df <- process_factor_variables(data = man3T.df, data_label = "man3T", epoch = current_epoch)
+
+    man3T.df <- convert_dates(man3T.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["man3T"]] <<- man3T.df
   }
@@ -264,6 +310,7 @@ process_raw_data <- function(
     man3TBH.df <- man3TBH %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
@@ -282,12 +329,22 @@ process_raw_data <- function(
     # }
 
     man3TBH.df <- man3TBH.df %>%
+      mutate_at(
+        vars(matches("session_id$")),
+        as.character
+      )
+
+    man3TBH.df <- process_calculated_fields(data = man3TBH.df, data_label = "man3T.bh", epoch = current_epoch)
+
+    man3TBH.df <- process_factor_variables(data = man3TBH.df, data_label = "man3T.bh", epoch = current_epoch)
+
+    man3TBH.df <- convert_dates(man3TBH.df)
+
+    man3TBH.df <- man3TBH.df %>%
       rename_at(
         vars(-map_id),
         function(x) paste0(breathhold.prefix, x)
       )
-
-    man3TBH.df <- process_calculated_fields(data = man3TBH.df, data_label = "man3TBH", epoch = current_epoch)
 
     MAPfreeze.list[[current_epoch]][["data"]][["man3T.bh"]] <<- man3TBH.df
   }
@@ -299,15 +356,17 @@ process_raw_data <- function(
     qmass.df <- qmass %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
-    qmass.df %<>%
-      select(-vmac_id)
+    qmass.df <- process_calculated_fields(data = qmass.df, data_label = "cardiac.mri", epoch = current_epoch)
 
-    qmass.df <- process_calculated_fields(data = qmass.df, data_label = "qmass", epoch = current_epoch)
+    qmass.df <- process_factor_variables(data = qmass.df, data_label = "cardiac.mri", epoch = current_epoch)
+
+    qmass.df <- convert_dates(qmass.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["cardiac.mri"]] <<- qmass.df
   }
@@ -319,6 +378,7 @@ process_raw_data <- function(
     addendum.df <- addendum %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
@@ -328,7 +388,6 @@ process_raw_data <- function(
       select(
         -one_of(
           Hmisc::Cs(
-            vmac_id, entry_primary, entry_secondary, data_entry_complete,
             enrollment, diagnosis, diagnosis_date, nc_type, mci_amnestic,
             mci_domain, mci_stage, mci_notes, diagnosis_complete, np_examiner
           )
@@ -351,9 +410,32 @@ process_raw_data <- function(
       funs(missing_to_na(., equal.val = -99))
     )
 
+    var_w_comparison_operators <- NULL
+
+    var_w_comparison_operators <- grep(
+      "bld|np|csf|biomarkers",
+      grep(
+        "notes|flow|occup",
+        names(addendum.df)[grepl("(>|<)([[:space:]]*)(\\d+)", addendum.df)],
+        invert = T,
+        v = T),
+      v = T)
+
+    if (length(var_w_comparison_operators) > 0) {
+      for (var in var_w_comparison_operators) {
+        addendum.df[, var] <- sapply(addendum.df[, var], process_comparison_operators, USE.NAMES = FALSE)
+      }
+    }
+
+    var_w_comparison_operators <- NULL
+
     addendum.df <- invalidate_neuropsych_addendum(addendum.df)
 
     addendum.df <- process_calculated_fields(data = addendum.df, data_label = "addendum", epoch = current_epoch)
+
+    addendum.df <- process_factor_variables(data = addendum.df, data_label = "addendum", epoch = current_epoch)
+
+    addendum.df <- convert_dates(addendum.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["addendum"]] <<- addendum.df
   }
@@ -366,14 +448,11 @@ process_raw_data <- function(
     csf.df <- csf %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
-
-    csf.df %<>% select(
-      -one_of(Cs(vmac_id, entry_primary, entry_secondary, data_entry_complete))
-    )
 
     var_w_comparison_operators <- grep(
       "bld|np|csf|biomarkers",
@@ -394,6 +473,10 @@ process_raw_data <- function(
 
     csf.df <- process_calculated_fields(data = csf.df, data_label = "csf", epoch = current_epoch)
 
+    csf.df <- process_factor_variables(data = csf.df, data_label = "csf", epoch = current_epoch)
+
+    csf.df <- convert_dates(csf.df)
+
     MAPfreeze.list[[current_epoch]][["data"]][["csf"]] <<- csf.df
   }
 
@@ -404,10 +487,13 @@ process_raw_data <- function(
     srt.df <- srt %>%
       clear_labels() %>%
       format_id() %>%
+      remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
         ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
+
+    srt.df <- convert_dates(srt.df)
 
     MAPfreeze.list[[current_epoch]][["data"]][["srt.static"]] <<- srt.df
   }
