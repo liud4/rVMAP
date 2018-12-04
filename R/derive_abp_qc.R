@@ -8,10 +8,10 @@ derive_abp_qc <- function(data) {
   data <- within(data, {
     # ABP QC:
     abp.within.90d.of.np <- ifelse(
-      is.na(days.np.date.minus.abp.date),
+      is.na(days.np.date.minus.abp.date.diff),
       NA,
       ifelse(
-        abs(days.np.date.minus.abp.date) <= 90,
+        abs(days.np.date.minus.abp.date.diff) <= 90,
         1,
         0
       )

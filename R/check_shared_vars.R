@@ -12,13 +12,13 @@ check_shared_vars <- function(data1, data2, merge.by) {
     warning(
       paste0(
         "[warning] The datasets (", deparse(substitute(data1)), " and ", deparse(substitute(data2)), ") share the following variable names: ",
-        paste(sharedNames, collapse = ", "), ". \n"
+        paste(sharedNames, collapse = ", "), ". \n\n"
       ),
       immediate. = TRUE
     )
   } else {
-    message(
-      paste0("The datasets (", deparse(substitute(data1)), " and ", deparse(substitute(data2)), ") do not share any variable names except: ", deparse(substitute(merge.by)), ". \n")
+    cat(
+      paste0("The datasets (", deparse(substitute(data1)), " and ", deparse(substitute(data2)), ") do not share any variable names except: ", deparse(substitute(merge.by)), ". \n\n")
     )
   }
 }

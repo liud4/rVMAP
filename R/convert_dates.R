@@ -5,39 +5,38 @@
 #' @export
 
 convert_dates <- function(data) {
-  datevars <- setdiff(names(data)[grepl("\\.date", names(data))], "usa.date")
+  current_data.df <- data
 
-  if ("dob" %in% names(data)) {
-    datevars <- c(datevars, "dob")
+  date.var <- setdiff(names(current_data.df)[grepl("(\\_|\\.)date$", names(current_data.df))], c("usa.date", "usa_date"))
+
+  if ("dob" %in% names(current_data.df)) {
+    date.var <- c(date.var, "dob")
   }
 
-  for (vname in datevars) {
-    datevar <- data[, vname]
+  if (length(date.var) > 0) {
+    for (var.i in date.var) {
+      current_date.var <- current_data.df[, var.i]
 
-    if (is.factor(datevar)) {
-      datevar <- as.character(datevar)
+      if (is.factor(current_date.var)) {
+        current_date.var <- as.character(current_date.var)
+      }
+
+      if (!is.character(current_date.var) & !is.Date(current_date.var) & !all(is.na(current_date.var))) {
+        warning(paste0(var.i, " is not formatted properly and will not be converted to 'Date' class. This variable should be manually checked.\n\n"))
+        next
+      }
+
+      if (!is.Date(current_date.var) & any(nchar(na.omit(current_date.var)) %nin% c(0, 10))) {
+        warning(paste0(var.i, " has non-date values and will not be converted to 'Date' class. This variable should be manually checked.\n\n"))
+        next
+      }
+
+      current_date.var[nchar(current_date.var) == 0] <- NA
+      current_date.var[grep("1111", current_date.var)] <- NA
+
+      current_data.df[, var.i] <- lubridate::as_date(current_date.var)
     }
-
-    if (all(is.na(datevar))) {
-      warning(paste0(vname, " is entirely missing values.\n"))
-      next
-    }
-
-    if (!is.character(datevar) & !is.Date(datevar)) {
-      warning(paste0(vname, " is not in character format and may not need to be converted.\n"))
-      next
-    }
-
-    datevar[datevar %in% c("1111-11-11", "", as.Date("1111-11-11"))] <- NA
-    #ifelse(datevar %in% c("1111-11-11", ""), NA, datevar)
-
-    if (any((!is.na(datevar)) & nchar(datevar) != 10)) {
-      warning(paste0(vname, " is not in yyyy-mm-dd format.\n"))
-      next
-    }
-
-    data[, vname] <- as.Date(datevar)
   }
 
-  return(data)
+  return(current_data.df)
 }

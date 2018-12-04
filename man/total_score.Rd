@@ -5,7 +5,7 @@
 \alias{average_score}
 \title{Calculate the total (sum) or the average (mean) score of a numeric vector.}
 \usage{
-total_score(vec, threshold = 0.85, digits = 1)
+total_score(vec, threshold = 0.85)
 
 average_score(vec, threshold = 0.85, digits = 1)
 }

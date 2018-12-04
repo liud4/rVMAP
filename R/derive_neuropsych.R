@@ -43,10 +43,12 @@ derive_neuropsych <- function(data) {
     # 21 July 2015: truncated tmta and tmtb as requested by VMAC
     np.tmta.trun <- ifelse(np.tmta > 150, 150, np.tmta)
     np.tmtb.trun <- ifelse(np.tmtb > 240, 240, np.tmtb)
+    np.tmta.trun.log <- log(np.tmta.trun)
     np.tmtb.trun.log <- log(np.tmtb.trun)
 
     label(np.tmta.trun) <- "Trails A time (s), truncated"
     label(np.tmtb.trun) <- "Trails B time (s), truncated"
+    label(np.tmta.trun.log) <- "Log of Trails A time (s), truncated"
     label(np.tmtb.trun.log) <- "Log of Trails B time (s), truncated"
 
     # OAK 20180613 add np.inhibit.trun as per Katie's instructions on 20180612

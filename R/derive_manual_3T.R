@@ -163,8 +163,6 @@ derive_manual_3T <- function(data) {
     vwi.aca.id                <- (vwi.right.aca.id + vwi.left.aca.id) / 2
     vwi.mca.id                <- (vwi.right.mca.id + vwi.left.mca.id) / 2
 
-
-
     vwi.right.ica.id.adj      <- ica.right.thickness.total / 2 / vwi.right.ica.id
     vwi.left.ica.id.adj       <- ica.left.thickness.total / 2 / vwi.left.ica.id
     vwi.right.aca.id.adj      <- aca.right.thickness.total / 2 / vwi.right.aca.id

@@ -7,24 +7,24 @@
 derive_biomarkers <- function(data) {
 
   data <- within(data, {
-    label(biomarkers.leptin)         <- "Leptin pg/ml"
-    label(biomarkers.il6)            <- "IL-6 pg/ml"
-    label(biomarkers.tnfalpha)       <- "TNFalpha pg/ml"
-    # As of 16 Feb 2015, we are not using <allelles> from this file.
-    #label(allelles)                  <- "Genotype- Alleles"
-    label(biomarkers.vegf)           <- "VEGF pg/ml"
-    label(biomarkers.notes)          <- "Biomarkers notes"
-    label(blood.biomarkers.complete) <- "Complete?"
-    label(csf.labid)                 <- "Lab ID"
-    label(csf.abx42)                 <- "Ab X-42 (ng/L)"
-    label(csf.abx40)                 <- "Ab X-40 (ng/L)"
-    label(csf.abx42.abx40.ratio)     <- "Ab X- 42/Ab X-40"
-    label(csf.ab1.42)                <- "Ab 1-42 (ng/L)"
-    label(csf.tau)                   <- "Tau (ng/L)"
-    label(csf.ptau)                  <- "P-Tau (ng/L)"
-    label(csf.notes)                 <- "CSF notes"
-    label(csf.biomarkers.complete)   <- "Complete?"
-    label(csf.nfl)                   <- "Sweden Neurofilament Light (pg/mL)"
+    # label(biomarkers.leptin)         <- "Leptin pg/ml"
+    # label(biomarkers.il6)            <- "IL-6 pg/ml"
+    # label(biomarkers.tnfalpha)       <- "TNFalpha pg/ml"
+    # # As of 16 Feb 2015, we are not using <allelles> from this file.
+    # #label(allelles)                  <- "Genotype- Alleles"
+    # label(biomarkers.vegf)           <- "VEGF pg/ml"
+    # label(biomarkers.notes)          <- "Biomarkers notes"
+    # label(blood.biomarkers.complete) <- "Complete?"
+    # label(csf.labid)                 <- "Lab ID"
+    # label(csf.abx42)                 <- "Ab X-42 (ng/L)"
+    # label(csf.abx40)                 <- "Ab X-40 (ng/L)"
+    # label(csf.abx42.abx40.ratio)     <- "Ab X- 42/Ab X-40"
+    # label(csf.ab1.42)                <- "Ab 1-42 (ng/L)"
+    # label(csf.tau)                   <- "Tau (ng/L)"
+    # label(csf.ptau)                  <- "P-Tau (ng/L)"
+    # label(csf.notes)                 <- "CSF notes"
+    # label(csf.biomarkers.complete)   <- "Complete?"
+    # label(csf.nfl)                   <- "Sweden Neurofilament Light (pg/mL)"
 
     # Variables requested by AJ in email, 13 Feb 2015:
     amyloidPos <- ifelse(

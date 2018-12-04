@@ -4,8 +4,8 @@
 \alias{compare_data}
 \title{Compare additions, modifications, and deletions between two data frames with \code{daff::diff_data}.}
 \usage{
-compare_data(data1, data2, file = paste0("data_comparison_",
-  data.merge.bh.file, ".html"))
+compare_data(data1, data2, file = paste0(data.merge.bh.file,
+  "_data_comparison.html"))
 }
 \arguments{
 \item{data1}{A data frame.}

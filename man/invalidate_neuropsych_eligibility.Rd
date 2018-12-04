@@ -2,7 +2,7 @@
 % Please edit documentation in R/invalidate_neuropsych_eligibility.R
 \name{invalidate_neuropsych_eligibility}
 \alias{invalidate_neuropsych_eligibility}
-\title{Invalidate certain neuropsychological eligibility variables for certain participants in the merged data set.}
+\title{Invalidate certain neuropsychological eligibility variables for certain participants in the post-fixed eligibility data set.}
 \usage{
 invalidate_neuropsych_eligibility(data)
 }
@@ -13,5 +13,5 @@ invalidate_neuropsych_eligibility(data)
 \code{data} with invalidated neuropsychological eligibility variables.
 }
 \description{
-Invalidate certain neuropsychological eligibility variables for certain participants in the merged data set.
+Invalidate certain neuropsychological eligibility variables for certain participants in the post-fixed eligibility data set.
 }

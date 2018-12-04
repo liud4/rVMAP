@@ -36,10 +36,11 @@ coerce_and_stack <- function(new_data, old_data) {
         }
       }
     }
+    different_modes.df <- different_modes.df[-1, ]
 
-    if (!is.null(nrow(different_modes.df))) {
+    if (all(!is.null(nrow(different_modes.df)) & nrow(different_modes.df) > 0)) {
       cat("There are differences in storage modes in the following variables:\n")
-      print(different_modes.df[-1, ], row.names = FALSE)
+      print(different_modes.df, row.names = FALSE)
       cat("Numeric variables were coerced to character.\n")
     } else {
       cat("Variables in the new and old data sets share the same storage modes.\n")

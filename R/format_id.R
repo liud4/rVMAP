@@ -16,7 +16,7 @@ format_id <- function(data) {
         !is.na(map_id) & map_id > 0
       ) %>%
       dplyr::mutate(
-        map_id = formatC(map_id, width = 3, format = "d", flag = "0")
+        map_id = as.character(formatC(map_id, width = 3, format = "d", flag = "0"))
       ) %>%
       dplyr::distinct(map_id, .keep_all = TRUE)
   } else if ("map.id" %in% names(data)) {
@@ -30,7 +30,7 @@ format_id <- function(data) {
         !is.na(map.id) & map.id > 0
       ) %>%
       dplyr::mutate(
-        map.id = formatC(map.id, width = 3, format = "d", flag = "0")
+        map.id = as.character(formatC(map.id, width = 3, format = "d", flag = "0"))
       ) %>%
       dplyr::distinct(map.id, .keep_all = TRUE)
   } else {

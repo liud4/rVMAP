@@ -6,13 +6,13 @@
 #' @return The sum or mean of the numbers contained in \code{vec} rounded to \code{round} digits. If the proportion of non-missing values in \code{vec} is less than \code{threshhold}, the functions will return NA.
 #' @family scoring functions
 
-total_score <- function(vec, threshold = 0.85, digits = 1) {
+total_score <- function(vec, threshold = 0.85) {
   # calc tot score only if >= <threshold> of items are non-missing
   if (proportion_non_missing(vec) < threshold) {
     return(NA)
   } else {
     vec[is.na(vec)] <- mean(vec, na.rm = TRUE)
-    return(round(sum(vec), digits))
+    return(sum(vec))
   }
 }
 
@@ -24,6 +24,6 @@ average_score <- function(vec, threshold = 0.85, digits = 1) {
   if (proportion_non_missing(vec) < threshold) {
     return(NA)
   } else {
-    return(round(mean(vec, na.rm = TRUE), digits))
+    return(mean(vec, na.rm = TRUE))
   }
 }

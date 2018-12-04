@@ -110,84 +110,104 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
 
   data <- within(data, {
     diabetesrx <- ifelse(is.na(meds), NA, diabetesrxPrep)
+    label(diabetesrx) <- 'Taking at least 1 diabetes med'
+
     diabetesrx.factor <- factor(
       diabetesrx,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(diabetesrx) <- label(diabetesrx.factor) <- 'Taking at least 1 diabetes med'
+    label(diabetesrx.factor) <- 'Taking at least 1 diabetes med'
 
     cholesterolrx <- ifelse(is.na(meds), NA, cholesterolrxPrep)
+    label(cholesterolrx) <- 'Taking at least 1 cholesterol med'
+
     cholesterolrx.factor <- factor(
       cholesterolrx,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(cholesterolrx) <- label(cholesterolrx.factor) <-'Taking at least 1 cholesterol med'
+    label(cholesterolrx.factor) <- 'Taking at least 1 cholesterol med'
 
     afibrx <- ifelse(is.na(meds), NA, afibrxPrep)
+    label(afibrx) <- 'Taking at least 1 afib med'
+
     afibrx.factor <- factor(
       afibrx,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(afibrx) <- label(afibrx.factor) <- 'Taking at least 1 afib med'
+    label(afibrx.factor) <- 'Taking at least 1 afib med'
 
     afibsurg <- ifelse(is.na(surg01), NA, afibsurgPrep)
+    label(afibsurg) <- 'At least 1 afib surgery'
+
     afibsurg.factor <- factor(
       afibsurg,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(afibsurg) <- label(afibsurg.factor) <- 'At least 1 afib surgery'
+    label(afibsurg.factor) <- 'At least 1 afib surgery'
 
     rx.htn.beta.blocker <- ifelse(is.na(meds), NA, ahBetaBlockerPrep)
+    label(rx.htn.beta.blocker) <- 'Taking at least 1 beta-blocker'
+
     rx.htn.beta.blocker.factor <- factor(
       rx.htn.beta.blocker,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.beta.blocker) <- label(rx.htn.beta.blocker.factor) <- 'Taking at least 1 beta-blocker'
+    label(rx.htn.beta.blocker.factor) <- 'Taking at least 1 beta-blocker'
 
     rx.htn.ace.inhibit <- ifelse(is.na(meds), NA, ahACEInhibPrep)
+    label(rx.htn.ace.inhibit) <- 'Taking at least 1 ACE inhibitor'
+
     rx.htn.ace.inhibit.factor <- factor(
       rx.htn.ace.inhibit,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.ace.inhibit) <- label(rx.htn.ace.inhibit.factor) <- 'Taking at least 1 ACE inhibitor'
+    label(rx.htn.ace.inhibit.factor) <- 'Taking at least 1 ACE inhibitor'
 
     rx.htn.arb <- ifelse(is.na(meds), NA, ahARBPrep)
+    label(rx.htn.arb) <- 'Taking at least 1 ARB'
+
     rx.htn.arb.factor <- factor(
       rx.htn.arb,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.arb) <- label(rx.htn.arb.factor) <- 'Taking at least 1 ARB'
+    label(rx.htn.arb.factor) <- 'Taking at least 1 ARB'
 
     rx.htn.ccb <- ifelse(is.na(meds), NA, ahCCBPrep)
+    label(rx.htn.ccb) <- 'Taking at least 1 Ca channel blocker'
+
     rx.htn.ccb.factor <- factor(
       rx.htn.ccb,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.ccb) <- label(rx.htn.ccb.factor) <- 'Taking at least 1 Ca channel blocker'
+    label(rx.htn.ccb.factor) <- 'Taking at least 1 Ca channel blocker'
 
     rx.htn.ksd <- ifelse(is.na(meds), NA, ahKSDPrep)
+    label(rx.htn.ksd) <- 'Taking at least 1 K-sparing diuretic'
+
     rx.htn.ksd.factor <- factor(
       rx.htn.ksd,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.ksd) <- label(rx.htn.ksd.factor) <- 'Taking at least 1 K-sparing diuretic'
+    label(rx.htn.ksd.factor) <- 'Taking at least 1 K-sparing diuretic'
 
     rx.htn.other <- ifelse(is.na(meds), NA, ahOtherPrep)
+    label(rx.htn.other) <- "Taking at least 1 antihyp. med of type 'Other'"
+
     rx.htn.other.factor <- factor(
       rx.htn.other,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(rx.htn.other) <- label(rx.htn.other.factor) <- "Taking at least 1 antihyp. med of type 'Other'"
+    label(rx.htn.other.factor) <- "Taking at least 1 antihyp. med of type 'Other'"
   })
 
   ahSubtypeDat <- data[, Hmisc::Cs(rx.htn.beta.blocker, rx.htn.ace.inhibit, rx.htn.arb, rx.htn.ccb, rx.htn.ksd, rx.htn.other)]
@@ -196,35 +216,15 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
   )
 
   data <- within(data, {
-    #htnrx <- ifelse(is.na(meds), NA, htnrxPrep)
-    #htnrx.factor <- factor(htnrx,
-    #    levels= c(1, 0), labels= c("Yes", "No"))
-    #label(htnrx) <- label(htnrx.factor) <-
-    #    'Taking at least 1 anti-hypertensive med'
-
     htnrx <- ifelse(is.na(meds), NA, GEOneAHSubtype)
+    label(htnrx) <- 'Taking at least 1 anti-hypertensive med'
+
     htnrx.factor <- factor(
       htnrx,
       levels = c(1, 0),
       labels = c("Yes", "No")
     )
-    label(htnrx) <- label(htnrx.factor) <- 'Taking at least 1 anti-hypertensive med'
-
-    # These checks are useful if we have separate lists for htnrx and the subtypes
-    #rx.htn.NOS <-
-    #    ifelse(is.na(htnrx), NA,
-    #    ifelse(htnrx == 1, 1 - GEOneSubtype, 0))
-    #rx.htn.NOS.factor <- factor(rx.htn.NOS,
-    #    levels= c(1, 0), labels= c("Yes", "No"))
-    #label(rx.htn.NOS) <- label(rx.htn.NOS.factor) <-
-    #    "For checking purposes: Taking at least 1 antihyp. med, type NOS"
-
-    #rx.htn.Problem <-
-    #    ifelse(htnrx %in% 1, 0, GEOneSubtype)
-    #rx.htn.Problem.factor <- factor(rx.htn.Problem,
-    #    levels= c(1, 0), labels= c("Yes", "No"))
-    #label(rx.htn.Problem) <- label(rx.htn.Problem.factor) <-
-    #    "For checking purposes: Taking at least 1 antihyp. med subtype, but htnrx != 1"
+    label(htnrx.factor) <- 'Taking at least 1 anti-hypertensive med'
   })
 
   return(data)

@@ -241,53 +241,183 @@ derive_cognitive_complaint <- function(data) {
   data$tot.complaint <- rowSums(data[, Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot)])
   data$tot.complaint.short <- rowSums(with(data, cbind(ecogself.tot, mfq.tot, cogdif.tot, scc.or.ccqself.short.tot)))
 
-  gifford <- Hmisc::Cs(
-    ccqself01,
-    ccqself03,
-    ccqself05,
-    ccqself16,
-    ccqself21,
-    ccqself31,
-    ccqself47,
-    ccqself50,
-    ccqself52
+  # OAK 20181126: Commented out as per https://github.com/liud4/rVMAP/issues/8#issuecomment-435089293
+  #
+  # gifford <- Hmisc::Cs(
+  #   ccqself01,
+  #   ccqself03,
+  #   ccqself05,
+  #   ccqself16,
+  #   ccqself21,
+  #   ccqself31,
+  #   ccqself47,
+  #   ccqself50,
+  #   ccqself52
+  # )
+  #
+  # #data$gifford.pnm <- apply(data[, gifford], 1, proportion_non_missing)
+  # data$tot.complaint.gifford <- apply(data[, gifford], 1, total_score)
+  #
+  # # 24 Aug 2015: new variable from KG
+  # gifford25 <- Hmisc::Cs(
+  #   ecogself.mem01,
+  #   ccqself01,
+  #   ccqself02,
+  #   ccqself07,
+  #   ccqself12,
+  #   ccqself15,
+  #   ccqself16,
+  #   ccqself20,
+  #   ccqself43,
+  #   cogdif08,
+  #   cogdif09,
+  #   cogdif15,
+  #   cogdif18,
+  #   cogdif19,
+  #   cogdif26,
+  #   mfq02b.r,
+  #   mfq02g.r,
+  #   mfq02j.r,
+  #   mfq02k.r,
+  #   mfq02p.r,
+  #   mfq02r.r,
+  #   ecogself.mem04,
+  #   ecogself.vis01,
+  #   ecogself.org02,
+  #   ecogself.org03
+  # )
+  #
+  # data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
+
+  ################################################################
+  ## 46 Item Grand total scores # OAK 20181008: https://github.com/liud4/rVMAP/issues/7
+
+  tot.complaint.gifford.46.ef <- Cs(
+    cogdif03,
+    cogdif10,
+    cogdif19,
+    cogdif26,
+    cogdif34,
+    cogdif36,
+    mfq02p,
+    ecogself.vis01,
+    ecogself.plan01,
+    ecogself.plan04,
+    ecogself.plan05
   )
 
-  #data$gifford.pnm <- apply(data[, gifford], 1, proportion_non_missing)
-  data$tot.complaint.gifford <- apply(data[, gifford], 1, total_score)
+  tot.complaint.gifford.46.lang <- Cs(
+    cogdif09,
+    cogdif14,
+    cogdif15,
+    ecogself.lang02,
+    ecogself.lang04,
+    ecogself.lang05,
+    ecogself.lang06,
+    ecogself.lang07,
+    ecogself.lang08,
+    ecogself.lang09
+  )
 
-  # 24 Aug 2015: new variable from KG
-  gifford25 <- Hmisc::Cs(
-    ecogself.mem01,
-    ccqself01,
+  tot.complaint.gifford.46.mem <- Cs(
     ccqself02,
     ccqself07,
+    ccqself08,
     ccqself12,
     ccqself15,
     ccqself16,
     ccqself20,
     ccqself43,
+    cogdif06,
     cogdif08,
-    cogdif09,
-    cogdif15,
+    cogdif13,
     cogdif18,
-    cogdif19,
-    cogdif26,
-    mfq02b.r,
-    mfq02g.r,
-    mfq02j.r,
-    mfq02k.r,
-    mfq02p.r,
-    mfq02r.r,
+    cogdif21,
+    cogdif22,
+    cogdif32,
+    mfq02b,
+    mfq02k,
+    mfq08e,
+    ecogself.mem01,
+    ecogself.mem02,
+    ecogself.mem03,
     ecogself.mem04,
-    ecogself.vis01,
-    ecogself.org02,
-    ecogself.org03
+    ecogself.mem05,
+    ecogself.mem08,
+    ecogself.vis03
   )
 
-  data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
+  tot.complaint.gifford.46 <- c(
+    tot.complaint.gifford.46.ef,
+    tot.complaint.gifford.46.lang,
+    tot.complaint.gifford.46.mem
+  )
 
-################################################################
+  ## Functions for derivation ##
+
+  # totscore <- function(vec, threshold = 0.85) {
+  #   # calc tot score only if >= <threshold> of items are nonmissing
+  #   if(proportion_non_missing(vec) < threshold) return(NA) else {
+  #     vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
+  #     return(round(sum(vec), 1))
+  #   }
+  # }
+
+  totscore.impute <- function(vec, threshold = 0.85) {
+    # calc tot score only if >= <threshold> of items are nonmissing
+    if(proportion_non_missing(vec) < threshold) return(vec) else {
+      vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
+      return(vec)
+    }
+  }
+
+  VTM <- function(vc, dm) {
+    matrix(vc, ncol = length(vc), nrow = dm, byrow = T)
+  }
+
+  rescale.range<-function(v) {
+    out<-matrix(0, ncol=length(v), nrow=2)
+    out[, grepl('cogdif', v)]=c(0,4)
+    out[, grepl('mfq', v)]=c(1,7)
+    out[, grepl('ecogself', v)]=c(1,4)
+    out[, grepl('ccqself', v)]=c(0,1)
+    out
+  }
+
+  rescale<-function(v, data) {
+    r<-rescale.range(v)
+    n<-dim(data)[1]
+    (data[, v]-VTM(r[1,], n))/VTM(r[2,]-r[1,], n)
+  }
+
+  rescale2 <- function(v, data) {
+    r<-rescale.range(v)
+    n<-dim(data)[1]
+    data[, v]*VTM(r[2,]-r[1,], n)+VTM(r[1,], n)
+  }
+
+  ## Deriving tot.complaint.gifford.46
+
+  temp.df <- data
+  temp.df <- temp.df %>%
+    mutate(
+      tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
+    )
+
+  junk <- t(apply(rescale(tot.complaint.gifford.46, temp.df), MARGIN = 1, totscore.impute))
+  junk.rescaled <- rescale2(tot.complaint.gifford.46, junk)
+
+  data$tot.complaint.rescale <- temp.df$tot.complaint.rescale
+
+  data$tot.complaint.gifford.46 <- rowSums(junk.rescaled)
+
+  data$tot.complaint.gifford.46.ef <- rowSums(junk.rescaled[, tot.complaint.gifford.46.ef])
+
+  data$tot.complaint.gifford.46.lang <- rowSums(junk.rescaled[, tot.complaint.gifford.46.lang])
+
+  data$tot.complaint.gifford.46.mem <- rowSums(junk.rescaled[, tot.complaint.gifford.46.mem])
+
+  ################################################################
 
   data <- within(data, {
     label(scc.pnm) <- "Cog Complaint Quest. Self-Report Short Form: Prop. non-miss"
@@ -339,8 +469,14 @@ derive_cognitive_complaint <- function(data) {
 
     label(tot.complaint) <- "Tot cognitive complaint score"
     label(tot.complaint.short) <- "Tot cognitive complaint score using short scale"
-    label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
-    label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
+    # label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
+    # label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
+
+    label(tot.complaint.rescale) <- "Tot cognitive complaint score (rescaled)"
+    label(tot.complaint.gifford.46) <- "Tot Gifford-46 cognitive complaint score"
+    label(tot.complaint.gifford.46.ef) <- "Tot Gifford-46 - Executive Functioning Subdomain"
+    label(tot.complaint.gifford.46.lang) <- "Tot Gifford-46 - Language Subdomain"
+    label(tot.complaint.gifford.46.mem) <- "Tot Gifford-46 - Memory Subdomain"
   })
 
   return(data)

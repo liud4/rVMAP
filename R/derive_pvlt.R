@@ -62,7 +62,9 @@ derive_pvlt <- function(data) {
     label(np.pvlt8) <- "PVLT 8"
     label(np.pvlt10) <- "PVLT 10"
 
-    np.pvltrecog.discrim <- 1 - ((12 - np.pvltrecog.m + np.pvltrecog.foil) / 48)
+    # OAK 20181008: https://github.com/liud4/rVMAP/issues/4
+    # np.pvltrecog.discrim <- 1 - ((12 - np.pvltrecog.m + np.pvltrecog.foil) / 48)
+    np.pvltrecog.discrim <- (np.pvltrecog.m + 0.5)/13 - (np.pvltrecog.falsepos + 0.5)/37
     label(np.pvltrecog.discrim) <- label(np.pvltrecog.discrim.redcap)
 
     np.pvlt5.sdfr <- (np.pvlt7 - np.pvlt5) / np.pvlt5

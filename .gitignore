@@ -1,46 +1,54 @@
 ### macOS ###
 *.DS_Store
-
 ### R ###
 >>>>>>> rVMAC/master
 # History files
 .Rhistory
 .Rapp.history
-
 # Session Data files
 .RData
-
 # Example code in package build process
 *-Ex.R
-
 # Output files from R CMD build
 /*.tar.gz
-
 # Output files from R CMD check
 /*.Rcheck/
-
 # RStudio files
 .Rproj.user/
-
 <<<<<<< HEAD
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-
 =======
 >>>>>>> rVMAC/master
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
-
 # knitr and R markdown default cache directories
 /*_cache/
 /cache/
-
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
 <<<<<<< HEAD
 =======
-
 # packrat
 .Rproj.user
+20180912_differing_variable_labels\.csv
+20180919_comprehensive_redcap_factors\.csv
+20180919_comprehensive_redcap_factors_d20180901\.csv
+abbreviated_differing_values_w_rounding\.csv
+abbreviated_differing_values\.csv
+differing_level_labels\.csv
+DocumentationPeek\.pdf
+full_differing_values\.csv
+variables_in_current_but_not_in_old\.txt
+variables_in_old_but_not_in_current\.txt
+redcap_api_tokens.R
+test_merge_20181127.Rmd
+test_merge_20181127.nb.html
+20181201_processed_data.rds
+epoch4aslmanualscandate.csv
+epoch_4_asl_manual_scan_date.csv
+merged_finally.rds
+mergedacrossepochs.rds
+processed_dec_data.rds

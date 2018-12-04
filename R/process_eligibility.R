@@ -156,5 +156,9 @@ process_eligibility <- function(elig_data) {
   dataToKeep <- elig_data[, c("map_id", keep.vars)]
   names(dataToKeep) <- c("map_id", paste0(keep.vars, "_elig"))
 
-  dataToKeep
+  # OAK 20181120: Added invalidate_neuropsych_elgibility function
+  dataToKeep <- invalidate_neuropsych_eligibility(dataToKeep)
+  dataToKeep <- invalidate_color_blind(dataToKeep)
+
+  return(dataToKeep)
 }
