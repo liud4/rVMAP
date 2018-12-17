@@ -34,7 +34,7 @@ process_raw_data <- function(
 
   mydat <- mydat %>%
     mutate_if(
-      ~ any(class(.) %in% c("numeric", "integer", "character")),
+      ~ any(class(.) %in% c("numeric", "integer")),
       ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
     )
 
