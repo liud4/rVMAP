@@ -35,25 +35,25 @@ process_raw_data <- function(
   mydat <- mydat %>%
     mutate_if(
       ~ any(class(.) %in% c("numeric", "integer", "character")),
-      ~ missing_to_na(., equal.val = c(-6666, -7777, -9999))
+      ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
     )
 
-  mydat <- mydat %>%
-    mutate_at(
-      mydat %>% select_if(~ (class(.) %in% c("numeric", "integer", "character"))) %>% names() %>% setdiff(., "mhx_tobac_quit"),
-      ~ missing_to_na(., equal.val = -8888)
-    )
+  # mydat <- mydat %>%
+  #   mutate_at(
+  #     mydat %>% select_if(~ (class(.) %in% c("numeric", "integer", "character"))) %>% names() %>% setdiff(., "mhx_tobac_quit"),
+  #     ~ missing_to_na(., equal.val = -8888, restrict.sign = TRUE)
+  #   )
 
-  mydat <- mydat %>%
-    mutate_at(
-      grep("ccqself[0-9]+|ccqinform[0-9]+", names(.)),
-      ~ missing_to_na(., equal.val = -2222)
-    )
+  # mydat <- mydat %>%
+  #   mutate_at(
+  #     grep("ccqself[0-9]+|ccqinform[0-9]+", names(.)),
+  #     ~ missing_to_na(., equal.val = -2222, restrict.sign = TRUE)
+  #   )
 
   mydat <- mydat %>%
     mutate_at(
       grep("notes|date", grep("^ecogself\\_", names(.), value = T), value = T, invert = T),
-      ~ missing_to_na(., equal.val = 0)
+      ~ missing_to_na(., equal.val = 0, restrict.sign = TRUE)
     )
 
   notes.var <- grep("\\_notes", names(mydat), value = T)
@@ -61,17 +61,31 @@ process_raw_data <- function(
     ifelse(stringr::str_trim(vec) %in% c("-8888", "-9999", ""), NA, vec)
   })
 
-  mydat %<>% mutate_if(
-    names(.) %in% Cs(
-      np_pvlt1, np_pvlt2, np_pvlt3, np_pvlt4, np_pvlt5, np_pvlta_tot,
-      np_pvlta_intrus, np_pvlta_pers, np_pvlta_clust, np_pvlt_init_intrus, np_pvlt_tt_intrus,
-      np_pvlt_wt_pers, np_pvlta_prim, np_pvlta_mid, np_pvlta_rec, np_pvlta_primperc, np_pvlta_midperc, np_pvlta_recperc,
-      np_pvlt6, np_pvlt7, np_pvlt8_fruit, np_pvlt8_office, np_pvlt8_clothing, np_pvlt8, np_pvlt9,
-      np_pvlt10_fruit, np_pvlt10_office, np_pvlt10_clothing, np_pvlt10,
-      np_pvltrecog_m, np_pvltrecog_foil, np_pvltrecog_falsepos, np_pvltrecog_discrim
-    ),
-    funs(missing_to_na(., equal.val = -99))
-  )
+  pvlt.var <- NULL
+
+  pvlt.var <- Cs(
+    np_pvlt1, np_pvlt2, np_pvlt3, np_pvlt4, np_pvlt5, np_pvlta_tot,
+    np_pvlta_intrus, np_pvlta_pers, np_pvlta_clust, np_pvlt_init_intrus, np_pvlt_tt_intrus,
+    np_pvlt_wt_pers, np_pvlta_prim, np_pvlta_mid, np_pvlta_rec, np_pvlta_primperc, np_pvlta_midperc, np_pvlta_recperc,
+    np_pvlt6, np_pvlt7, np_pvlt8_fruit, np_pvlt8_office, np_pvlt8_clothing, np_pvlt8, np_pvlt9,
+    np_pvlt10_fruit, np_pvlt10_office, np_pvlt10_clothing, np_pvlt10,
+    np_pvltrecog_m, np_pvltrecog_foil, np_pvltrecog_falsepos, np_pvltrecog_discrim
+  )[Cs(
+    np_pvlt1, np_pvlt2, np_pvlt3, np_pvlt4, np_pvlt5, np_pvlta_tot,
+    np_pvlta_intrus, np_pvlta_pers, np_pvlta_clust, np_pvlt_init_intrus, np_pvlt_tt_intrus,
+    np_pvlt_wt_pers, np_pvlta_prim, np_pvlta_mid, np_pvlta_rec, np_pvlta_primperc, np_pvlta_midperc, np_pvlta_recperc,
+    np_pvlt6, np_pvlt7, np_pvlt8_fruit, np_pvlt8_office, np_pvlt8_clothing, np_pvlt8, np_pvlt9,
+    np_pvlt10_fruit, np_pvlt10_office, np_pvlt10_clothing, np_pvlt10,
+    np_pvltrecog_m, np_pvltrecog_foil, np_pvltrecog_falsepos, np_pvltrecog_discrim
+  ) %in% names(mydat)]
+
+  if (length(pvlt.var) > 0) {
+    mydat <- mydat %>%
+      mutate_at(
+        vars(pvlt.var),
+        funs(rVMAP::missing_to_na(., equal.val = -99, restrict.sign = TRUE))
+      )
+  }
 
   var_w_comparison_operators <- NULL
 
@@ -148,7 +162,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
       )
 
     var_w_comparison_operators <- grep(
