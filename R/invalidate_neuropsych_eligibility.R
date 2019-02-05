@@ -20,7 +20,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Variables to set to NA for MAP 007
-  data[data$map.id == "007", x] <- NA
+  data[data$map_id == "007", x] <- NA
 
   x1 <- c(
     "np_blocks_elig",
@@ -28,7 +28,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Variables to set to NA for MAP 016 & MAP 213
-  data[data$map.id %in% c("016", "213"), x1] <- NA
+  data[data$map_id %in% c("016", "213"), x1] <- NA
 
   # MAP 025
   x2 <- c(
@@ -51,7 +51,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Variables to set to NA for MAP 025
-  data[data$map.id == "025", x2] <- NA
+  data[data$map_id == "025", x2] <- NA
 
   # Variables for MAP 039
   x3 <- c(
@@ -62,7 +62,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Set variables to missing for MAP 039
-  data[data$map.id == "039", x3] <- NA
+  data[data$map_id == "039", x3] <- NA
 
   # MAP 137
   x4 <- c(
@@ -75,7 +75,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Set variables to missing for MAP 137
-  data[data$map.id == "137", x4] <- NA
+  data[data$map_id == "137", x4] <- NA
 
   # MAP 201
   x5 <- c(
@@ -91,7 +91,7 @@ invalidate_neuropsych_eligibility <- function(data) {
     "np_strp_scerr_elig")
 
   # Set variables to missing for MAP 201
-  data[data$map.id == "201", x5] <- NA
+  data[data$map_id == "201", x5] <- NA
 
   # MAP 212 & MAP 236
   x6 <- c(
@@ -106,19 +106,19 @@ invalidate_neuropsych_eligibility <- function(data) {
   )
 
   # Set variables to missing for MAP 212 & 236
-  data[data$map.id %in% c("212", "236"), x6] <- NA
+  data[data$map_id %in% c("212", "236"), x6] <- NA
 
   # MAP 299
   x7 <- c(
-    "np_digitsf_elig",
-    "np_digits_elig",
-    "np_digits_ss_elig",
-    "np_digitsf_span_elig",
-    "np_digitsf_span_z_elig"
+    "np_wais_digitsf_elig",
+    "np_wais_digits_elig",
+    "np_wais_digits_ss_elig",
+    "np_wais_digitsf_span_elig",
+    "np_wais_digitsf_span_z_elig"
   )
 
   # Set variables to missing for MAP 299
-  data[data$map.id == "299", x7] <- NA
+  data[data$map_id == "299", x7] <- NA
 
   # Output
   return(data)
