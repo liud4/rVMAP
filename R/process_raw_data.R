@@ -32,10 +32,14 @@ process_raw_data <- function(
     format_id() %>%
     remove_unnecesary_vars()
 
-  mydat <- mydat %>%
+  mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] <- mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] %>%
     mutate_if(
       ~ any(class(.) %in% c("numeric", "integer")),
       ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+    ) %>%
+    mutate_if(
+      ~ any(class(.) %in% c("character")),
+      ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
     )
 
   # mydat <- mydat %>%
@@ -143,8 +147,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     abp.df <- convert_dates(abp.df)
@@ -161,8 +169,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     var_w_comparison_operators <- grep(
@@ -200,21 +212,13 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
-
-    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
-    #
-    # to_rename_auto3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3T.df), value = T)
-    #
-    # if (length(to_rename_auto3T) > 0) {
-    #   auto3T.df <- auto3T.df %>%
-    #     rename_at(
-    #       vars(to_rename_auto3T),
-    #       function(x) paste0(x, "_auto3T")
-    #     )
-    # }
 
     auto3T.df <- auto3T.df %>%
       mutate_at(
@@ -240,21 +244,13 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
-
-    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
-    #
-    # to_rename_auto3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(auto3TBH.df), value = T)
-    #
-    # if (length(to_rename_auto3TBH) > 0) {
-    #   auto3TBH.df <- auto3TBH.df %>%
-    #     rename_at(
-    #       vars(to_rename_auto3TBH),
-    #       function(x) paste0(x, "_auto3T")
-    #     )
-    # }
 
     auto3TBH.df <- auto3TBH.df %>%
       mutate_at(
@@ -286,21 +282,13 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
-
-    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
-    #
-    # to_rename_man3T <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3T.df), value = T)
-
-    # if (length(to_rename_man3T) > 0) {
-    #   man3T.df <- man3T.df %>%
-    #     rename_at(
-    #       vars(to_rename_man3T),
-    #       function(x) paste0(x, "_man3T")
-    #     )
-    # }
 
     man3T.df <- man3T.df %>%
       mutate_at(
@@ -326,21 +314,13 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
-
-    # OAK 20181127: Kim has changed the names of the variables in auto3T, auto3T.bh, man3T, and man3T.bh. This section is no longer necessary.
-    #
-    # to_rename_man3TBH <- grep("scan\\_date|scan\\_acquired|session\\_id", names(man3TBH.df), value = T)
-    #
-    # if (length(to_rename_man3TBH) > 0) {
-    #   man3TBH.df <- man3TBH.df %>%
-    #     rename_at(
-    #       vars(to_rename_man3TBH),
-    #       function(x) paste0(x, "_man3T")
-    #     )
-    # }
 
     man3TBH.df <- man3TBH.df %>%
       mutate_at(
@@ -372,8 +352,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     qmass.df <- process_calculated_fields(data = qmass.df, data_label = "cardiac.mri", epoch = current_epoch)
@@ -394,8 +378,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     addendum.df %<>%
@@ -464,8 +452,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     var_w_comparison_operators <- grep(
@@ -503,8 +495,12 @@ process_raw_data <- function(
       format_id() %>%
       remove_unnecesary_vars() %>%
       mutate_if(
-        ~ any(class(.) %in% c("numeric", "integer", "character")),
-        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+        ~ any(class(.) %in% c("numeric", "integer")),
+        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ) %>%
+      mutate_if(
+        ~ any(class(.) %in% c("character")),
+        ~ missing_to_na(., equal.val = c("-6666", "-7777", "-8888", "-9999"), restrict.sign = TRUE)
       )
 
     srt.df <- convert_dates(srt.df)
