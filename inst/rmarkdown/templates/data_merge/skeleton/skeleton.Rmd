@@ -2,27 +2,18 @@
 title: "MAP Data: Merge, Derive, and Label"
 author:
 - name: '[Omair A. Khan, MAS, GStat](omair.a.khan@vumc.org)'
-- name: '[Dandan Liu, PhD](dandan.liu@vanderbilt.edu)'
+- name: '[Dandan Liu, PhD](dandan.liu@vumc.org)'
 date: "Created: `r format(Sys.time(), '%Y%m%d')`"
 output:
   html_notebook:
     code_folding: hide
     theme: lumen
-    number_sections: yes
-    toc: yes
+    number_sections: true
+    toc: true
     toc_float:
-      collapsed: yes
+      collapsed: true
       smooth_scroll: true
 ---
-
-<!-- ##%#########################################################%## -->
-<!-- # Template: MAP Data: Merge, Derive, and Label                # -->
-<!-- #                                                             # -->
-<!-- # Description: This script is run quarterly to merge, derive, # -->
-<!-- #   and label the MAP data. The script requires the VMACr     # -->
-<!-- #   package. It is configured to optionally perform the data  # -->
-<!-- #   freeze as well.                                           # -->
-<!-- ##%#########################################################%## -->
 
 <style type="text/css">
  #TOC{
@@ -102,7 +93,6 @@ composite.file <- file.path(data.dir, 'rawData', 'Composite_Scores_6-14-2018.csv
 ##%######################################################%##
 
 packages <- Hmisc::Cs(
-  rVMAP,
   knitr,
   dplyr,
   lubridate,
@@ -286,7 +276,7 @@ list(
 ) %>% rbind.data.frame()
 ```
 
-# Process Raw Data
+# Process Raw Data {.tabset .tabset-fade .tabset-pills}
 
 We begin by processing a subset of raw data sets within each available epoch. The `process_raw_data()` function tidies each inputted data set, formats certain variables, and sets some VMAC-specified values to missing.
 
@@ -366,7 +356,7 @@ process_raw_data(
 )
 ```
 
-# Data Merge
+# Data Merge {.tabset .tabset-fade .tabset-pills}
 
 Next, with the processing of raw data complete, we will merge the processed data sets within each available epoch. This is handled by the `merge_within_epoch()` function.
 
@@ -446,7 +436,7 @@ epoch_4_merge.df <- merge_within_epoch(
 )
 ```
 
-## Merge across all Epochs
+## Merge across all Epochs {.tabset .tabset-fade .tabset-pills}
 
 Now that we have created a single data frame for each available epoch, we will investigate any differences between the epochs and stack the data frames into one longitudinal data set.
 
@@ -544,7 +534,7 @@ factors_to_unify.var <- NULL
 merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
 ```
 
-## Merge Additional Epoch-Independent Data
+## Merge Additional Epoch-Independent Data {.tabset .tabset-fade .tabset-pills}
 
 ### Add ABPM Consent Data
 
@@ -600,37 +590,61 @@ format_metadata <- function(data) {
   data %>%
     dplyr::select(
       one_of(
-        c("field_name", "field_type", "field_label", "select_choices_or_calculations")
+        c("field_name", "form_name", "field_type", "field_label", "select_choices_or_calculations")
       )
     ) %>%
     dplyr::mutate(
-      field_name = gsub("\\_", "\\.", field_name)
+     field_name = gsub("\\_", "\\.", field_name)
     )
 }
 
-labels.0 <- lapply(MAPfreeze.list[["epoch_0"]][["metadata"]][c("eligibility", "apoe")], format_metadata) %>% bind_rows() %>% mutate(epoch = 0)
-labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "srt", "addendum")], format_metadata) %>% bind_rows() %>% mutate(epoch = 1)
-labels.2 <- lapply(MAPfreeze.list[["epoch_2"]][["metadata"]], format_metadata) %>% bind_rows() %>% mutate(epoch = 2)
-labels.3 <- lapply(MAPfreeze.list[["epoch_3"]][["metadata"]], format_metadata) %>% bind_rows() %>% mutate(epoch = 3)
-labels.4 <- lapply(MAPfreeze.list[["epoch_4"]][["metadata"]], format_metadata) %>% bind_rows() %>% mutate(epoch = 4)
+labels.elig <- format_metadata(MAPfreeze.list[["epoch_0"]][["metadata"]][["eligibility"]]) %>% 
+  mutate(
+    epoch = 0
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".elig")
+  )
 
-labels.all <- dplyr::bind_rows(labels.0, labels.1, labels.2, labels.3, labels.4) %>% 
-  dplyr::distinct(., field_name, field_label, .keep_all = TRUE) %>%
-  dplyr::filter(field_name %in% nolabel)
+labels.apoe <- format_metadata(MAPfreeze.list[["epoch_0"]][["metadata"]][["apoe"]]) %>% 
+  mutate(
+    epoch = 0
+  )
+
+labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "srt", "addendum")], format_metadata) %>% 
+  bind_rows() %>% 
+  mutate(epoch = 1)
+
+labels.2 <- lapply(MAPfreeze.list[["epoch_2"]][["metadata"]], format_metadata) %>%
+  bind_rows() %>%
+  mutate(epoch = 2)
+
+labels.3 <- lapply(MAPfreeze.list[["epoch_3"]][["metadata"]], format_metadata) %>%
+  bind_rows() %>%
+  mutate(epoch = 3)
+
+labels.4 <- lapply(MAPfreeze.list[["epoch_4"]][["metadata"]], format_metadata) %>%
+  bind_rows() %>%
+  mutate(epoch = 4)
+
+labels.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4) %>% 
+  dplyr::distinct(field_name, field_label, .keep_all = TRUE)
 
 duplicated.names <- labels.all$field_name[duplicated(labels.all$field_name)]
 
-variables_with_contradicting_labels_on_REDCap.df <- labels.all[labels.all$field_name %in% duplicated.names, Cs(field_name, field_label, epoch)] %>% arrange(field_name, epoch)
+variables_with_contradicting_labels_on_REDCap.df <- 
+  labels.all[labels.all$field_name %in% duplicated.names, Hmisc::Cs(field_name, field_label, form_name, epoch)] %>% 
+    arrange(field_name, epoch)
 
-saveRDS(variables_with_contradicting_labels_on_REDCap.df, 
-        file = file.path(data.merge.dir, 
-                         paste0("variables_with_contradicting_labels_on_REDCap",
-                                "_d",
-                                data.freeze.date,
-                                "_m",
-                                data.merge.date,
-                                ".csv"
-                         )))
+# write.csv(variables_with_contradicting_labels_on_REDCap.df, 
+#           file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103/", 
+#                            paste0("variables_with_contradicting_labels_on_REDCap",
+#                                   "_d",
+#                                   data.freeze.date,
+#                                   "_m",
+#                                   "20181219",
+#                                   ".csv"
+#                            )))
 
 labels.all %<>%
   group_by(field_name) %>%
@@ -661,7 +675,55 @@ labels.factor.df <- labels.all %>%
     field_name = paste0(field_name, ".factor")
   )
 
-labels.df <- bind_rows(labels.all, labels.bHold.df, labels.factor.df)
+labels.bHold.factor.df <- labels.all %>%
+  filter(
+    field_name %in% gsub("bHold\\.|\\.factor", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", labels.all$field_name, ".factor")])
+  ) %>%
+  select(
+    Cs(field_name, field_label, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0("bHold.", field_name, ".factor")
+  )
+
+labels.elig.df <- labels.all %>%
+  filter(
+    field_name %in% gsub(".elig", "", names(merged.df)[names(merged.df) %in% paste0(labels.all$field_name, ".elig")])
+  ) %>%
+  select(
+    Cs(field_name, field_label, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".elig")
+  )
+
+labels.elig.factor.df <- labels.all %>%
+  filter(
+    field_name %in% gsub(".factor.elig", "", names(merged.df)[names(merged.df) %in% paste0(labels.all$field_name, ".factor.elig")])
+  ) %>%
+  select(
+    Cs(field_name, field_label, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".factor.elig")
+  )
+
+labels.df <- bind_rows(labels.all, labels.bHold.df, labels.factor.df, labels.bHold.factor.df, labels.elig.df, labels.elig.factor.df) %>%
+  filter(
+    field_name %in% names(merged.df)
+  )
+
+variables_without_labels.df <- data.frame(variable = names(merged.df)[names(merged.df) %nin% labels.df$field_name], stringsAsFactors = FALSE)
+
+# write.csv(variables_without_labels.df, 
+#           file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103/", 
+#                            paste0("variables_without_labels_before_derivation",
+#                                   "_d",
+#                                   data.freeze.date,
+#                                   "_m",
+#                                   "20181219",
+#                                   ".csv"
+#                            )))
 
 for (var.i in labels.df$field_name) {
   Hmisc::label(merged.df[, var.i]) <- pull(labels.df[labels.df$field_name == var.i, "field_label"])
@@ -824,7 +886,7 @@ merged.df <- call_function("derive_informant_info", merged.df)
 
 ## Automated 3T
 
-Derive, label, and add automated 3T variables to the merged data set.
+Derive, label, and add automated 3T variables to the merged data set. ASL reactivity variables are also calculated in this step.
 
 ```{r derive-auto3T}
 merged.df <- call_function("derive_automated_3T", merged.df)
@@ -887,10 +949,10 @@ merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
 merged.df <- call_function("invalidate_color_blind", merged.df)
 ```
 
-# Adding Baseline Variables to Each Epoch
+# Repeating Baseline Variables in Each Epoch
 
 ```{r repeatBaseline}
-enrollmentVarsThatShouldNotChange <- Cs(
+enrollment_vars <- Cs( # will be used as is
   dob,
   education,
   sex.factor,
@@ -900,28 +962,28 @@ enrollmentVarsThatShouldNotChange <- Cs(
   lang.prim.factor
 )
 
-otherKeyEnrollmentVars <- Cs(
+baseline_vars <- Cs( # will have ".base" appended to the end
   diagnosis.factor,
   mci.stage.factor, 
   albert.mci.stage.factor, 
   age
 )
 
-epoch1ToRepeat <- merged.df[merged.df$epoch %in% 1, c('map.id', enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars)]
+to_repeat.df <- merged.df[merged.df$epoch %in% 1, c('map.id', enrollment_vars, baseline_vars)]
 
-for (vname in otherKeyEnrollmentVars) {
-  label(epoch1ToRepeat[[vname]]) <- paste0(label(epoch1ToRepeat[[vname]]), ", from Enrollment")
+for (vname in baseline_vars) {
+  label(epoch1ToRepeat[[vname]]) <- paste0(label(to_repeat.df[[vname]]), ", from Enrollment")
 }
 
-names(epoch1ToRepeat) <- c('map.id', paste0(c(enrollmentVarsThatShouldNotChange, otherKeyEnrollmentVars), ".base"))
+names(to_repeat.df) <- c('map.id', enrollment_vars, paste0(baseline_vars, ".base"))
 
 merged.df %<>% left_join(
-  epoch1ToRepeat,
+  to_repeat.df,
   by = "map.id"
 )
 
 cat("The following variables were added to each epoch for each participant:\n")
-print(data.frame(`New Variables` = setdiff(names(epoch1ToRepeat), "map.id")))
+print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 ```
 
 # Adding Memory and Executive Function Composite Scores
@@ -944,8 +1006,6 @@ composite.df <- read.csv(
     epoch = as.numeric(epoch)
   ) %>%
   setNames(., c("map.id", "epoch", "np.memory.composite", "np.executive.composite"))
-
-# colnames(composite.df) <- c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
 
 label(composite.df$np.memory.composite) <- 'Memory Composite'
 label(composite.df$np.executive.composite) <- 'EF Composite'
@@ -1003,7 +1063,16 @@ write.csv(merged.bh.df, file = paste0(data.merge.bh.file, ".csv"), row.names = F
 
 # Current vs Previous Data Comparison
 
-This section highlights changes between the current and previous breath hold data sets. For ease of reading the output, "notes"-type variables, "med"-type variables, etc. are not included in the comparison. For sake of simplicity, we will look only at variables that are common to both data sets. A CSV file for each epoch is saved by defualt to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory.
+This section highlights changes between the current and previous breath hold data sets. To reduce the size of the output, variables matching the following criteria will be excluded from the comparison:
+
+- variable name starts with "med" and is followed by one or more numbers
+- variable name includes "notes"
+- variable name starts with "entry"
+- variable name contains "famhx" and is followed by one or more numbers
+- variable name ends with "complete"
+- all values are missing
+
+For sake of simplicity, we will code integer-type variables as numeric and factor-type variables as character prior to comparison.
 
 ```{r diff-setup}
 if (is.null(last.data.merge.bh.file)) {
@@ -1011,10 +1080,21 @@ if (is.null(last.data.merge.bh.file)) {
 } else {
   prev.bh.df <- readRDS(paste0(last.data.merge.bh.file, ".rds")) %>% clear_labels()
   merged.bh.df <- clear_labels(merged.bh.df)
-  common_var <- intersect(names(merged.bh.df), names(prev.bh.df))
-  vars_to_delete <- c(grep("^med\\d+", common_var, v = T), grep("notes", common_var, v = T), grep("^entry", common_var, v = T), grep("famhx\\d+", common_var, v = T))
-  common_var <- common_var[!common_var %in% vars_to_delete]
+  # common_var <- intersect(names(merged.bh.df), names(prev.bh.df))
+  all.var <- union(names(merged.bh.df), names(prev.bh.df))
+  vars_to_exclude <- c(
+    grep("^med\\d+", all.var, v = T), 
+    grep("notes", all.var, v = T), 
+    grep("^entry", all.var, v = T), 
+    grep("famhx\\d+", all.var, v = T),
+    grep("complete$", all.var, v = T)
+    )
+  # common_var <- common_var[!common_var %in% vars_to_delete]
+  all.var <- all.var[!all.var %in% vars_to_exclude]
 }
+
+current.all.var <- all.var[all.var %in% names(merged.bh.df)]
+prev.all.var <- all.var[all.var %in% names(prev.bh.df)]
 ```
 
 ## Epoch 1
@@ -1028,7 +1108,7 @@ current.e1.df <- merged.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1041,7 +1121,7 @@ prev.e1.df <- prev.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1054,9 +1134,13 @@ e1.comparison <- compare(
 )
 
 e1.diff <- diffs(e1.comparison)
-write.csv(e1.diff, file = file.path(data.merge.dir, paste0("e1_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
 
-summary(e1.comparison)
+#summary(e1.comparison)
+
+write.csv(e1.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e1_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+
+diffs(e1.comparison, by.var = TRUE) %>%
+  filter(n > 0 | NAs > 0)
 ```
 
 ## Epoch 2
@@ -1070,7 +1154,7 @@ current.e2.df <- merged.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1083,7 +1167,7 @@ prev.e2.df <- prev.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1096,9 +1180,10 @@ e2.comparison <- compare(
 )
 
 e2.diff <- diffs(e2.comparison)
-write.csv(e2.diff, file = file.path(data.merge.dir, paste0("e2_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+write.csv(e2.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e2_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
 
-summary(e2.comparison)
+diffs(e2.comparison, by.var = TRUE) %>%
+  filter(n > 0 | NAs > 0)
 ```
 
 ## Epoch 3
@@ -1112,7 +1197,7 @@ current.e3.df <- merged.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1125,7 +1210,7 @@ prev.e3.df <- prev.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1138,9 +1223,10 @@ e3.comparison <- compare(
 )
 
 e3.diff <- diffs(e3.comparison)
-write.csv(e3.diff, file = file.path(data.merge.dir, paste0("e3_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+write.csv(e3.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e3_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
 
-summary(e3.comparison)
+diffs(e3.comparison, by.var = TRUE) %>%
+  filter(n > 0 | NAs > 0)
 ```
 
 ## Epoch 4
@@ -1154,7 +1240,7 @@ current.e4.df <- merged.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1167,7 +1253,7 @@ prev.e4.df <- prev.bh.df %>%
     epoch = as.integer(epoch)
   ) %>%
   select(
-    one_of(c('map.id', 'epoch', common_var))
+    one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
   select_if(~!all(is.na(.))) %>%
   droplevels.data.frame()
@@ -1180,9 +1266,10 @@ e4.comparison <- compare(
 )
 
 e4.diff <- diffs(e4.comparison)
-write.csv(e4.diff, file = file.path(data.merge.dir, paste0("e4_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+write.csv(e4.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e4_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
 
-summary(e4.comparison)
+diffs(e4.comparison, by.var = TRUE) %>%
+  filter(n > 0 | NAs > 0)
 ```
 
 # Session Info
