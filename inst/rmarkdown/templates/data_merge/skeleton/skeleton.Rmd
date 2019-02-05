@@ -1001,11 +1001,14 @@ composite.df <- read.csv(
   composite.file, 
   header = TRUE
 ) %>%
-  format_id() %>%
   mutate(
+    map.id = as.character(formatC(map.id, width = 3, format = "d", flag = "0")),
     epoch = as.numeric(epoch)
   ) %>%
-  setNames(., c("map.id", "epoch", "np.memory.composite", "np.executive.composite"))
+  setNames(., c("map.id", "epoch", "np.memory.composite", "np.executive.composite")) %>%
+  arrange(
+    map.id, epoch
+  )
 
 label(composite.df$np.memory.composite) <- 'Memory Composite'
 label(composite.df$np.executive.composite) <- 'EF Composite'
