@@ -22,9 +22,9 @@ derive_medical_hx <- function(data) {
     # Note that this code depends on our NOT recoding -8888 to NA earlier in the program!
     currentsmoking <-
       ifelse(is.na(mhx.tobac), NA,
-             ifelse(mhx.tobac == 1 & is.na(mhx.tobac.quit), NA,
-                    ifelse(mhx.tobac == 1 & (mhx.tobac.quit == -8888 |
-                                               mhx.tobac.quit >= medhx.date.year - 1), 1, 0)))
+             ifelse(mhx.tobac == 1 & is.na(mhx.tobac.quit.year), NA,
+                    ifelse(mhx.tobac == 1 & (mhx.tobac.quit.year == -8888 |
+                                               mhx.tobac.quit.year >= medhx.date.year - 1), 1, 0)))
     currentsmoking.factor <- factor(currentsmoking, levels= c(1, 0),
                                     labels= c("Yes", "No"))
     label(currentsmoking) <- label(currentsmoking.factor) <- "Current smoker (or quit in this or last calendar yr)"
@@ -32,7 +32,7 @@ derive_medical_hx <- function(data) {
     # 17 Oct 2016: Angela wants to see tobac variables w/o negative numbers
     mhx.tobac.quit.formersmokers <- ifelse(is.na(mhx.tobac), NA,
                                            ifelse(mhx.tobac == 0, NA,
-                                                  ifelse(mhx.tobac.quit == -8888, NA, mhx.tobac.quit)))
+                                                  ifelse(mhx.tobac.quit.year == -8888, NA, mhx.tobac.quit.year)))
     label(mhx.tobac.quit.formersmokers) <- "Year stopped smoking, if former smoker; NA otherwise"
 
     # 20 Oct 2016: (Based on meeting, 17 Oct 2016)
@@ -46,7 +46,7 @@ derive_medical_hx <- function(data) {
     smoking.years <- ifelse(is.na(mhx.tobac), NA,
                             ifelse(mhx.tobac == 0, 0,
                                    ifelse(currentsmoking.factor == "No",
-                                          ((mhx.tobac.quit - dob.year) - mhx.tobac.age),
+                                          ((mhx.tobac.quit.year - dob.year) - mhx.tobac.age),
                                           ((medhx.date.year - dob.year) - mhx.tobac.age))))
     label(smoking.years) <- "Number of years smoked"
 
