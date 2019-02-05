@@ -6,8 +6,8 @@
 
 process_eligibility <- function(elig_data) {
   elig_data %<>% mutate_if(
-    ~ any(class(.) %in% c("numeric", "integer", "character")),
-    ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+    ~ any(class(.) %in% c("numeric", "integer")),
+    ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
   )
 
   elig_data <- convert_dates(elig_data)
@@ -86,7 +86,7 @@ process_eligibility <- function(elig_data) {
     cdr_factor,
     faq_date,
     # faq_redcap,
-    # faq,
+    faq,
     np_date,
     np_moca,
     np_tmta,
