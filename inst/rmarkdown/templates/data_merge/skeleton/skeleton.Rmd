@@ -1,7 +1,7 @@
 ---
 title: "MAP Data: Merge, Derive, and Label"
 author:
-- name: '[Omair A. Khan, MAS, GStat](omair.a.khan@vumc.org)'
+- name: '[Omair A. Khan, MAS](omair.a.khan@vumc.org)'
 - name: '[Dandan Liu, PhD](dandan.liu@vumc.org)'
 date: "Created: `r format(Sys.time(), '%Y%m%d')`"
 output:
@@ -104,16 +104,14 @@ packages <- Hmisc::Cs(
   formattable,
   REDCapR,
   secret,
-  arsenal
+  arsenal,
+  fs
 )
 
 rVMAP::load_pkg(packages)
 
 # set timezone
 Sys.setenv(TZ = 'US/Central')
-
-# set seed
-set.seed(20140728) # this number was set by L. Samuels in the previous version of this code
 
 # Hmisc options
 options(
@@ -125,9 +123,8 @@ options(
 
 # define additional important directories
 ## data directories
-data.raw.dir <- ifelse(quarterly.download,
-                       file.path(data.dir, "rawData"),
-                       file.path(data.dir, "rawData", "temp"))
+
+data.raw.dir <- file.path(data.dir, "rawData")
 data.merge.dir <- file.path(data.dir, 'mergedData')
 ```
 
@@ -174,6 +171,10 @@ if (download.data == TRUE) {
 # define paths for saving current merged files
 data.merge.date <- format(Sys.time(), "%Y%m%d")
 current.data.merge.suffix <- paste0("_d", data.freeze.date, "_m", data.merge.date)
+
+merge.report.dir <- file.path(data.merge.dir, paste0("MAP_data_merge", current.data.merge.suffix))
+
+dir_create(merge.report.dir)
 
 data.merge.fm.file <- file.path(
   data.merge.dir, 
@@ -223,7 +224,7 @@ The raw data to be used in this script was downloaded from REDCap on `r strsplit
 
 ## Epoch Independent
 
-The following is a list of data sets to be merged that can be considered independent of any specific time period. The suffix, ".static", indicates that the data set was manually saved at some time and is therefore a static representation of the data.
+The following is a list of available data sets to be merged that can be considered independent of any specific time period. The suffix, ".static", indicates that the data set was manually saved at some time and is therefore a static representation of the data.
 
 ```{r list-projects-epoch0}
 list(
@@ -234,7 +235,7 @@ list(
 
 ## Epoch 1
 
-The following is a list of data sets to be merged that were collected during Epoch 1.
+The following is a list of available data sets to be merged that were collected during Epoch 1.
 
 ```{r list-projects-epoch1}
 list(
@@ -245,7 +246,7 @@ list(
 
 ## Epoch 2
 
-The following is a list of data sets to be merged that were collected during Epoch 2.
+The following is a list of available data sets to be merged that were collected during Epoch 2.
 
 ```{r list-projects-epoch2}
 list(
@@ -256,7 +257,7 @@ list(
 
 ## Epoch 3
 
-The following is a list of data sets to be merged that were collected during Epoch 3.
+The following is a list of available data sets to be merged that were collected during Epoch 3.
 
 ```{r list-projects-epoch3}
 list(
@@ -267,7 +268,7 @@ list(
 
 ## Epoch 4
 
-The following is a list of data sets to be merged that were collected during Epoch 4.
+The following is a list of available data sets to be merged that were collected during Epoch 4.
 
 ```{r list-projects-epoch4}
 list(
@@ -636,15 +637,13 @@ variables_with_contradicting_labels_on_REDCap.df <-
   labels.all[labels.all$field_name %in% duplicated.names, Hmisc::Cs(field_name, field_label, form_name, epoch)] %>% 
     arrange(field_name, epoch)
 
-# write.csv(variables_with_contradicting_labels_on_REDCap.df, 
-#           file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103/", 
-#                            paste0("variables_with_contradicting_labels_on_REDCap",
-#                                   "_d",
-#                                   data.freeze.date,
-#                                   "_m",
-#                                   "20181219",
-#                                   ".csv"
-#                            )))
+readr::write_csv(
+  x = variables_with_contradicting_labels_on_REDCap.df,
+  path = file.path(
+    merge.report.dir,
+    paste0("variables_with_contradicting_labels_on_REDCap.csv")
+  )
+)
 
 labels.all %<>%
   group_by(field_name) %>%
@@ -713,17 +712,18 @@ labels.df <- bind_rows(labels.all, labels.bHold.df, labels.factor.df, labels.bHo
     field_name %in% names(merged.df)
   )
 
-variables_without_labels.df <- data.frame(variable = names(merged.df)[names(merged.df) %nin% labels.df$field_name], stringsAsFactors = FALSE)
+variables_without_labels.df <- data.frame(
+  variable = names(merged.df)[names(merged.df) %nin% labels.df$field_name], 
+  stringsAsFactors = FALSE
+)
 
-# write.csv(variables_without_labels.df, 
-#           file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103/", 
-#                            paste0("variables_without_labels_before_derivation",
-#                                   "_d",
-#                                   data.freeze.date,
-#                                   "_m",
-#                                   "20181219",
-#                                   ".csv"
-#                            )))
+readr::write_csv(
+  x = variables_without_labels.df,
+  path = file.path(
+    merge.report.dir,
+    paste0("variables_without_labels_pre-derivation.csv")
+  )
+)
 
 for (var.i in labels.df$field_name) {
   Hmisc::label(merged.df[, var.i]) <- pull(labels.df[labels.df$field_name == var.i, "field_label"])
@@ -732,7 +732,16 @@ for (var.i in labels.df$field_name) {
 label(merged.df$epoch) <- "Epoch"
 ```
 
-# Derivation of New Variables
+# Manual Modification of Factor Levels
+
+```{r}
+merged.df <- merged.df %>%
+  mutate(
+    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia")
+  )
+```
+
+# Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
 
 ## Dates
 
@@ -844,9 +853,9 @@ Derive, label, and add cognitive complaint, FCADL, and FAQ variables to the merg
 merged.df <- call_function("derive_cognitive_complaint", merged.df)
 ```
 
-## Neuropsych
+## Neuropsychological Variables
 
-Derive, label, and add neuropsych variables to the merged data set.
+Derive, label, and add neuropsychological variables to the merged data set.
 
 ```{r derive-neuropsych}
 merged.df <- call_function("derive_neuropsych", merged.df)
@@ -991,12 +1000,6 @@ print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 These scores were provided to us in a CSV file dated June 14, 2018 by Timothy Hohman after calculating them in MPlus. We also manually set `np.memory.composite` to missing for MAP ID 209 in Epoch 1.
 
 ```{r warning = FALSE, message = FALSE}
-composite.file <- file.path(
-  data.dir,
-  'rawData',
-  'Composite_Scores_6-14-2018.csv'
-)
-
 composite.df <- read.csv(
   composite.file, 
   header = TRUE
@@ -1005,18 +1008,21 @@ composite.df <- read.csv(
     map.id = as.character(formatC(map.id, width = 3, format = "d", flag = "0")),
     epoch = as.numeric(epoch)
   ) %>%
-  setNames(., c("map.id", "epoch", "np.memory.composite", "np.executive.composite")) %>%
+  setNames(
+    ., 
+    c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
+  ) %>%
   arrange(
     map.id, epoch
   )
-
-label(composite.df$np.memory.composite) <- 'Memory Composite'
-label(composite.df$np.executive.composite) <- 'EF Composite'
 
 merged.df %<>% left_join(
   composite.df,
   by = c("map.id", "epoch")
 )
+
+label(merged.df$np.memory.composite) <- 'Memory Composite'
+label(merged.df$np.executive.composite) <- 'EF Composite'
 ```
 
 ## Manual Invalidation
@@ -1039,7 +1045,8 @@ bHoldnamesWithCounterparts <- bHold.var[regnames %in% names(merged.df)]
 merged.fm.df <- merged.df[, -bHold.index]
 
 merged.bh.df <- merged.df
-merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames] <- merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, bHoldnamesWithCounterparts]
+merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames] <- 
+  merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, bHoldnamesWithCounterparts]
 merged.bh.df <- merged.bh.df[, -bHold.index]
 ```
 
@@ -1064,7 +1071,7 @@ saveRDS(merged.bh.df, file = paste0(data.merge.bh.file, ".rds"))
 write.csv(merged.bh.df, file = paste0(data.merge.bh.file, ".csv"), row.names = FALSE)
 ```
 
-# Current vs Previous Data Comparison
+# Current vs Previous Data Comparison {.tabset .tabset-fade .tabset-pills}
 
 This section highlights changes between the current and previous breath hold data sets. To reduce the size of the output, variables matching the following criteria will be excluded from the comparison:
 
@@ -1083,16 +1090,17 @@ if (is.null(last.data.merge.bh.file)) {
 } else {
   prev.bh.df <- readRDS(paste0(last.data.merge.bh.file, ".rds")) %>% clear_labels()
   merged.bh.df <- clear_labels(merged.bh.df)
-  # common_var <- intersect(names(merged.bh.df), names(prev.bh.df))
+
   all.var <- union(names(merged.bh.df), names(prev.bh.df))
-  vars_to_exclude <- c(
+  vars_to_exclude <- unique(c(
+    grep("\\.{3}", all.var, v = T),
     grep("^med\\d+", all.var, v = T), 
     grep("notes", all.var, v = T), 
     grep("^entry", all.var, v = T), 
     grep("famhx\\d+", all.var, v = T),
     grep("complete$", all.var, v = T)
-    )
-  # common_var <- common_var[!common_var %in% vars_to_delete]
+    ))
+  
   all.var <- all.var[!all.var %in% vars_to_exclude]
 }
 
@@ -1113,7 +1121,7 @@ current.e1.df <- merged.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 prev.e1.df <- prev.bh.df %>%
@@ -1126,7 +1134,7 @@ prev.e1.df <- prev.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 e1.comparison <- compare(
@@ -1138,9 +1146,13 @@ e1.comparison <- compare(
 
 e1.diff <- diffs(e1.comparison)
 
-#summary(e1.comparison)
-
-write.csv(e1.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e1_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+readr::write_csv(
+  x = e1.diff,
+  path = file.path(
+    merge.report.dir,
+    paste0("e1_diff.csv")
+  )
+)
 
 diffs(e1.comparison, by.var = TRUE) %>%
   filter(n > 0 | NAs > 0)
@@ -1159,7 +1171,7 @@ current.e2.df <- merged.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 prev.e2.df <- prev.bh.df %>%
@@ -1172,7 +1184,7 @@ prev.e2.df <- prev.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 e2.comparison <- compare(
@@ -1183,8 +1195,14 @@ e2.comparison <- compare(
 )
 
 e2.diff <- diffs(e2.comparison)
-write.csv(e2.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e2_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
 
+readr::write_csv(
+  x = e2.diff,
+  path = file.path(
+    merge.report.dir,
+    paste0("e2_diff.csv")
+  )
+)
 diffs(e2.comparison, by.var = TRUE) %>%
   filter(n > 0 | NAs > 0)
 ```
@@ -1202,7 +1220,7 @@ current.e3.df <- merged.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 prev.e3.df <- prev.bh.df %>%
@@ -1215,7 +1233,7 @@ prev.e3.df <- prev.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 e3.comparison <- compare(
@@ -1226,7 +1244,14 @@ e3.comparison <- compare(
 )
 
 e3.diff <- diffs(e3.comparison)
-write.csv(e3.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e3_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+
+readr::write_csv(
+  x = e3.diff,
+  path = file.path(
+    merge.report.dir,
+    paste0("e3_diff.csv")
+  )
+)
 
 diffs(e3.comparison, by.var = TRUE) %>%
   filter(n > 0 | NAs > 0)
@@ -1245,7 +1270,7 @@ current.e4.df <- merged.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', current.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 prev.e4.df <- prev.bh.df %>%
@@ -1258,7 +1283,7 @@ prev.e4.df <- prev.bh.df %>%
   select(
     one_of(c('map.id', 'epoch', prev.all.var))
   ) %>%
-  select_if(~!all(is.na(.))) %>%
+  select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
 e4.comparison <- compare(
@@ -1269,7 +1294,14 @@ e4.comparison <- compare(
 )
 
 e4.diff <- diffs(e4.comparison)
-write.csv(e4.diff, file = file.path("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/code/mergeDeriveLabel/d20181219_m20190103", paste0("e4_diff", current.data.merge.suffix, ".csv")), row.names = FALSE)
+
+readr::write_csv(
+  x = e4.diff,
+  path = file.path(
+    merge.report.dir,
+    paste0("e4_diff.csv")
+  )
+)
 
 diffs(e4.comparison, by.var = TRUE) %>%
   filter(n > 0 | NAs > 0)
