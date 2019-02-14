@@ -5,7 +5,7 @@
 #' @export
 
 derive_cognitive_complaint <- function(data) {
-  reverse_suffix <- ".r" # what we will append to reverse-coded vars
+  redcap_suffix <- ".redcap" # what we will append to the original redcap variables to be reverse-coded
   reverse_phrase <- "Reverse coding of " # what we will prepend to label
 
   ################################################################
@@ -55,6 +55,25 @@ derive_cognitive_complaint <- function(data) {
     ccqself51, ccqself52, ccqself53, ccqself54, ccqself55,
     ccqself56, ccqself57, ccqself58, ccqself59
   )
+  ## Updating reverse coded ccqself items: DL 2019-02-14 https://github.com/liud4/rVMAP/issues/8
+  ## ccqself items needs to be reverse coded from 0 to 1
+  ccqself.ToReverse01 <- Hmisc::Cs(
+    ccqself02, ccqself42, ccqself43
+  )
+  for (vname in ccqself.ToReverse01) {
+    data[, paste0(vname, redcap_suffix)] <- data[, vname] # rename oridinal variables to .redcap
+    data[, vname]<- reverse0to1(data[, paste0(vname, redcap_suffix)]) #replace current variables with reverse coded values
+    label(data[, vname]) <- paste0(reverse_phrase, label(data[, paste0(vname, redcap_suffix)]))
+  }
+
+  ## Updating reverse coded ccqself items: DL 2019-02-14 https://github.com/liud4/rVMAP/issues/8
+  ## ccqself items needs to be reverse coded from 1 to 3
+  ccqself.ToReverse13 <- paste0('ccqself', 46:59)
+  for (vname in ccqself.ToReverse13) {
+    data[, paste0(vname, redcap_suffix)] <- data[, vname] # rename oridinal variables to .redcap
+    data[, vname]<- reverse1to3(data[, paste0(vname, redcap_suffix)]) #replace current variables with reverse coded values
+    label(data[, vname]) <- paste0(reverse_phrase, label(data[, paste0(vname, redcap_suffix)]))
+  }
 
   data$ccqself.pnm <- apply(data[, ccqself], 1, proportion_non_missing)
   data$ccqself.tot <- apply(data[, ccqself], 1, total_score)
@@ -95,7 +114,7 @@ derive_cognitive_complaint <- function(data) {
   ## mfq: Memory Functioning Questionnaire
   # scoring is ambiguous in sec 7 (mnemonics), so we omit.
   # high scores are good here in all other sections, so we recode
-  mfq.freqforgetToReverse <- Hmisc::Cs(
+  mfq.freqforget<-mfq.freqforgetToReverse <- Hmisc::Cs(
     mfq01 ,
     mfq02a, mfq02b, mfq02c, mfq02d, mfq02e,
     mfq02f, mfq02g, mfq02h, mfq02i, mfq02j,
@@ -106,7 +125,7 @@ derive_cognitive_complaint <- function(data) {
     mfq05a, mfq05b, mfq05c, mfq05d
   )
 
-  mfq.seriousforgetToReverse <- Hmisc::Cs(
+  mfq.seriousforget<-mfq.seriousforgetToReverse <- Hmisc::Cs(
     mfq06a, mfq06b, mfq06c, mfq06d, mfq06e,
     mfq06f, mfq06g, mfq06h, mfq06i, mfq06j,
     mfq06k, mfq06l, mfq06m, mfq06n, mfq06o,
@@ -119,32 +138,19 @@ derive_cognitive_complaint <- function(data) {
   #    mfq07f, mfq07g, mfq07h
   #)
 
-  mfq.retroToReverse <- Hmisc::Cs(
+  mfq.retro<- mfq.retroToReverse <- Hmisc::Cs(
     mfq08a, mfq08b, mfq08c, mfq08d, mfq08e
   )
 
-  for (vname in mfq.freqforgetToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
+  mfq.ToReverse <- c(mfq.freqforgetToReverse, mfq.seriousforgetToReverse, mfq.retroToReverse)
+
+  for (vname in mfq.ToReverse) {
+    data[, paste0(vname, redcap_suffix)] <- data[, vname] # rename oridinal variables to .redcap
+    data[, vname]<- reverse1to7(data[, paste0(vname, redcap_suffix)]) #replace current variables with reverse coded values
+    label(data[, vname]) <- paste0(reverse_phrase, label(data[, paste0(vname, redcap_suffix)]))
   }
 
-  mfq.freqforget <- paste0(mfq.freqforgetToReverse, reverse_suffix)
-
-  for (vname in mfq.seriousforgetToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
-  }
-
-  mfq.seriousforget <- paste0(mfq.seriousforgetToReverse, reverse_suffix)
-
-  for(vname in mfq.retroToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
-    label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
-  }
-
-  mfq.retro <- paste0(mfq.retroToReverse, reverse_suffix)
-
-  mfq <- c(mfq.freqforget, mfq.seriousforget, mfq.retro)
+  mfq <- c(mfq.freqforget, mfq.seriousforget, mfq.retro) # make sure all mfq items needs to be reverse coded
 
   # some of these, or similar versions of some of these,
   # are auto-calculated by REDCap.
@@ -241,53 +247,133 @@ derive_cognitive_complaint <- function(data) {
   data$tot.complaint <- rowSums(data[, Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot)])
   data$tot.complaint.short <- rowSums(with(data, cbind(ecogself.tot, mfq.tot, cogdif.tot, scc.or.ccqself.short.tot)))
 
-  gifford <- Hmisc::Cs(
-    ccqself01,
-    ccqself03,
-    ccqself05,
-    ccqself16,
-    ccqself21,
-    ccqself31,
-    ccqself47,
-    ccqself50,
-    ccqself52
+  ## 45 Item Grand total scores # DL 2019-02-14 
+
+  tot.complaint.gifford.45.ef <- Cs(
+    cogdif03,
+    cogdif10,
+    cogdif19,
+    cogdif26,
+    cogdif36,
+    ecogself.plan04,
+    ecogself.plan05,
+    ecogself.vis01,
+    mfq02p
   )
 
-  #data$gifford.pnm <- apply(data[, gifford], 1, proportion_non_missing)
-  data$tot.complaint.gifford <- apply(data[, gifford], 1, total_score)
+  tot.complaint.gifford.45.lang <- Cs(
+    cogdif09,
+    cogdif14,
+    cogdif15,
+    ecogself.lang02,
+    ecogself.lang03,
+    ecogself.lang04,
+    ecogself.lang05,
+    ecogself.lang07,
+    ecogself.lang08,
+    ecogself.lang09
+  )
 
-  # 24 Aug 2015: new variable from KG
-  gifford25 <- Hmisc::Cs(
-    ecogself.mem01,
+  tot.complaint.gifford.45.mem <- Cs(
     ccqself01,
-    ccqself02,
     ccqself07,
-    ccqself12,
+    ccqself13,
     ccqself15,
     ccqself16,
     ccqself20,
     ccqself43,
+    cogdif06,
     cogdif08,
-    cogdif09,
-    cogdif15,
+    cogdif13,
     cogdif18,
-    cogdif19,
-    cogdif26,
-    mfq02b.r,
-    mfq02g.r,
-    mfq02j.r,
-    mfq02k.r,
-    mfq02p.r,
-    mfq02r.r,
+    cogdif21,
+    cogdif22,
+    cogdif32,
+    cogdif40,
+    ecogself.mem01,
+    ecogself.mem02,
+    ecogself.mem03,
     ecogself.mem04,
-    ecogself.vis01,
-    ecogself.org02,
-    ecogself.org03
+    ecogself.mem05,
+    ecogself.mem08,
+    ecogself.vis03,
+    mfq02b,
+    mfq02k,
+    mfq08b,
+    mfq08e
   )
 
-  data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
+  tot.complaint.gifford.45 <- c(
+    tot.complaint.gifford.45.ef,
+    tot.complaint.gifford.45.lang,
+    tot.complaint.gifford.45.mem
+  )
 
-################################################################
+  ## Functions for derivation ##
+
+  # totscore <- function(vec, threshold = 0.85) {
+  #   # calc tot score only if >= <threshold> of items are nonmissing
+  #   if(proportion_non_missing(vec) < threshold) return(NA) else {
+  #     vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
+  #     return(round(sum(vec), 1))
+  #   }
+  # }
+
+  totscore.impute <- function(vec, threshold = 0.85) {
+    # calc tot score only if >= <threshold> of items are nonmissing
+    if(proportion_non_missing(vec) < threshold) return(vec) else {
+      vec[is.na(vec)] <- mean(vec, na.rm= TRUE)
+      return(vec)
+    }
+  }
+
+  VTM <- function(vc, dm) {
+    matrix(vc, ncol = length(vc), nrow = dm, byrow = T)
+  }
+
+  rescale.range<-function(v) {
+    out<-matrix(0, ncol=length(v), nrow=2)
+    out[, grepl('cogdif', v)]=c(0,4)
+    out[, grepl('mfq', v)]=c(1,7)
+    out[, grepl('ecogself', v)]=c(1,4)
+    out[, grepl('ccqself', v)]=c(0,1)
+    out
+  }
+
+  rescale<-function(v, data) {
+    r<-rescale.range(v)
+    n<-dim(data)[1]
+    (data[, v]-VTM(r[1,], n))/VTM(r[2,]-r[1,], n)
+  }
+
+  rescale2 <- function(v, data) {
+    r<-rescale.range(v)
+    n<-dim(data)[1]
+    data[, v]*VTM(r[2,]-r[1,], n)+VTM(r[1,], n)
+  }
+
+  ## Deriving tot.complaint.gifford.46
+
+  temp.df <- data
+  temp.df <- temp.df %>%
+    mutate(
+      tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
+    )
+
+  junk <- t(apply(rescale(tot.complaint.gifford.45, temp.df), MARGIN = 1, totscore.impute))
+  junk.rescaled <- rescale2(tot.complaint.gifford.45, junk)
+
+  data$tot.complaint.rescale <- temp.df$tot.complaint.rescale
+
+  data$tot.complaint.gifford.45 <- rowSums(junk.rescaled)
+
+  data$tot.complaint.gifford.45.ef <- rowSums(junk.rescaled[, tot.complaint.gifford.45.ef])
+
+  data$tot.complaint.gifford.45.lang <- rowSums(junk.rescaled[, tot.complaint.gifford.45.lang])
+
+  data$tot.complaint.gifford.45.mem <- rowSums(junk.rescaled[, tot.complaint.gifford.45.mem])
+
+  ################################################################
 
   data <- within(data, {
     label(scc.pnm) <- "Cog Complaint Quest. Self-Report Short Form: Prop. non-miss"
@@ -339,8 +425,14 @@ derive_cognitive_complaint <- function(data) {
 
     label(tot.complaint) <- "Tot cognitive complaint score"
     label(tot.complaint.short) <- "Tot cognitive complaint score using short scale"
-    label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
-    label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
+    # label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
+    # label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
+
+    label(tot.complaint.rescale) <- "Tot cognitive complaint score (rescaled)"
+    label(tot.complaint.gifford.45) <- "Tot Gifford-45 cognitive complaint score"
+    label(tot.complaint.gifford.45.ef) <- "Tot Gifford-45 - Executive Functioning Subdomain"
+    label(tot.complaint.gifford.45.lang) <- "Tot Gifford-45 - Language Subdomain"
+    label(tot.complaint.gifford.45.mem) <- "Tot Gifford-45 - Memory Subdomain"
   })
 
   return(data)
