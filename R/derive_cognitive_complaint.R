@@ -55,25 +55,6 @@ derive_cognitive_complaint <- function(data) {
     ccqself51, ccqself52, ccqself53, ccqself54, ccqself55,
     ccqself56, ccqself57, ccqself58, ccqself59
   )
-  ## Updating reverse coded ccqself items: DL 2019-02-14 https://github.com/liud4/rVMAP/issues/8
-  ## ccqself items needs to be reverse coded from 0 to 1
-  ccqself.ToReverse01 <- Hmisc::Cs(
-    ccqself02, ccqself42, ccqself43
-  )
-  for (vname in ccqself.ToReverse01) {
-    data[, paste0(vname, redcap_suffix)] <- data[, vname] # rename oridinal variables to .redcap
-    data[, vname]<- reverse0to1(data[, paste0(vname, redcap_suffix)]) #replace current variables with reverse coded values
-    label(data[, vname]) <- paste0(reverse_phrase, label(data[, paste0(vname, redcap_suffix)]))
-  }
-
-  ## Updating reverse coded ccqself items: DL 2019-02-14 https://github.com/liud4/rVMAP/issues/8
-  ## ccqself items needs to be reverse coded from 1 to 3
-  ccqself.ToReverse13 <- paste0('ccqself', 46:59)
-  for (vname in ccqself.ToReverse13) {
-    data[, paste0(vname, redcap_suffix)] <- data[, vname] # rename oridinal variables to .redcap
-    data[, vname]<- reverse1to3(data[, paste0(vname, redcap_suffix)]) #replace current variables with reverse coded values
-    label(data[, vname]) <- paste0(reverse_phrase, label(data[, paste0(vname, redcap_suffix)]))
-  }
 
   data$ccqself.pnm <- apply(data[, ccqself], 1, proportion_non_missing)
   data$ccqself.tot <- apply(data[, ccqself], 1, total_score)
