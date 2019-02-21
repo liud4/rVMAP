@@ -92,7 +92,7 @@ generate_inclusion_exclusion <- function(
 
   if (step == "first") {
 
-    if (exists(flow_chart.df)) {
+    if (exists("flow_chart.df")) {
       stop("An object by the name of 'flow_chart.df' exists. Please remove this object from the global environment and retry.\n")
     }
 
