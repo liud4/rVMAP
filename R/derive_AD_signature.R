@@ -51,7 +51,7 @@ derive_AD_signature <- function(data) {
   mcevoy.all.temp <- NULL
 
   #for (i in seq_along(unique(data$epoch))) { # OAK 20180823: Once Epoch 4 data is available, this should be uncommented.
-  for (i in 1:3) {
+  for (i in 1:4) {
 
     epoch.df <- data %>%
       dplyr::filter(epoch == i) %>%
