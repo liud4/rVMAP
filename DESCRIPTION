@@ -3,21 +3,19 @@ Type: Package
 Title: A research package for improving statistical collaboration between
     VMAC and VUMC Department of Biostatistics for the Vanderbilt Memory and Aging 
     Project (VMAP)
-Version: 1.1.0
+Version: 1.2.1
 Authors@R: c(
     person(c("Omair", "A."), "Khan", 
       email = c("omair.a.khan@vumc.org"), 
       role = c("aut", "cre")),
     person("Dandan", "Liu", 
-      email = "dandan.liu@vanderbilt.edu", 
+      email = "dandan.liu@vumc.org", 
       role = "aut"),
     person("Vanderbilt University Medical Center", 
       role = "cph"))
 Description: A research package to improve the efficiency and reproducibility of VMAC MAP studies.
-    It will contain the following: functions that are commonly used in VMAC research;
-    scripts that will help automate mundane tasks (e.g. quarterly MAP merge and derivation);
-    vesion-controlled snapshots of external packages to ensure consistency and reproducibility;
-    and dot files to help ensure consistent environments across users and computers.
+    It contains functions that are commonly used in MAP data analysis and scripts that will help 
+    automate mundane tasks (e.g. quarterly MAP merge and derivation).
 URL: https://github.com/liud4/rVMAP
 BugReports: https://github.com/liud4/rVMAP/issues
 License: file LICENSE
@@ -34,5 +32,5 @@ Imports: knitr,
   formattable,
   REDCapR,
   secret,
-  arsenal
-RoxygenNote: 6.1.0
+  arsenal,
+  fs
