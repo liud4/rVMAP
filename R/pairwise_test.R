@@ -4,18 +4,19 @@
 #' @param variable A vector of continuous or categorical variables.
 #' @param group A categorical variable by which the pariwise comparisons will be made.
 #' @param continuous An integer value indicating the minimum number of unique values for \code{variable} to be considered continuous.
-#' @param padj Method for adjusting p values (see p.adjust).
-#' @return \code{data} with added AD signature variables.
+#' @param p.adj Method for adjusting p values (see p.adjust).
+#' @param datatable A logical value indicating whether to return a formatted datatable (TRUE) or an unformatted dataframe (FALSE).
+#' @return A dataframe containing p-values of pairwise comparisons.
 #' @export
 
-pairwise_test <- function(data, variable, group = "diagnosis.factor.base", continuous = 5, padj = "none", ...) {
+pairwise_test <- function(data, variable, group = "diagnosis.factor.base", continuous = 5, p.adj = "none", datatable = FALSE, ...) {
   variable <- unique(setdiff(variable, group))
   grp <- data[, group]
   grp.levels <- levels(grp)
   n.grp.levels <- length(grp.levels)
-  my.latex.matrix.char <- my.latex.matrix.num <- NULL
+  output.df <- NULL
 
-  check.n.unique <- function(x) {
+  get_variable_type <- function(x) {
     l <- length(unique(x));
     return(
       ifelse(
@@ -26,51 +27,49 @@ pairwise_test <- function(data, variable, group = "diagnosis.factor.base", conti
     )
   }
 
-  type.var = apply(as.matrix(data[, variable]), MARGIN = 2, FUN = check.n.unique)
+  type.var = apply(as.matrix(data[, variable]), MARGIN = 2, FUN = get_variable_type)
 
   for (i in 1:length(variable)) {
     var <- data[, variable[i]]
     if (type.var[i] == "continuous") {
-      pairwise.test <- pairwise.wilcox.test(x = as.numeric(var), g = grp, paired = FALSE, p.adj = padj)$p.value
+      pairwise.test <- pairwise.wilcox.test(x = as.numeric(var), g = grp, paired = FALSE, p.adj = p.adj)$p.value
     } else if (type.var[i] == "categorical") {
       nlev.var <- nlevels(var)
-      my.table = as.matrix(table(var, grp))
-      if (nlev.var==2) {
-        pairwise.test=pairwise.prop.test(t(my.table), p.adj=padj)$p.value
-      }else {
-        pairwise.test=matrix(NA, n.grp.levels-1, n.grp.levels-1)
-        pairwise.test[!upper.tri(pairwise.test)]=chisq.post.hoc(t(my.table))$raw.p
+      contingency.table <- as.matrix(table(var, grp))
+      if (nlev.var == 2) {
+        pairwise.test <- pairwise.prop.test(t(contingency.table), p.adj = p.adj)$p.value
+      } else {
+        pairwise.test <- matrix(data = NA, nrow = n.grp.levels - 1, ncol = n.grp.levels - 1)
+        pairwise.test[!upper.tri(pairwise.test)] >= fifer::chisq.post.hoc(t(contingency.table), control = p.adj)$adj.p
       }
-      #    my.latex.matrix.char=rbind(my.latex.matrix, matrix(format.pval(my.test, digits=6, eps=0.000001), nrow=n.grp.levels-1) )
-      #     my.latex.matrix.num=rbind(my.latex.matrix.num, my.test)
     }
-    my.latex.matrix.char=rbind(my.latex.matrix.char, matrix(format.pval(pairwise.test, digits=6, eps=0.000001), nrow=n.grp.levels-1) )
-    my.latex.matrix.num=rbind(my.latex.matrix.num, pairwise.test)
 
+    output.df <- rbind(output.df, pairwise.test)
   }
 
-  p.cutoff = 0.05/(n.grp.levels*( n.grp.levels-1)/2)
+  p.cutoff <- 0.05 / (n.grp.levels * (n.grp.levels - 1) / 2)
 
-  if (wantcolor){
-    cellTex <- matrix(rep("", nrow(my.latex.matrix.num)*ncol(my.latex.matrix.num)), nrow=nrow(my.latex.matrix.num))
-    cellTex <- apply(my.latex.matrix.num, 2, FUN=function(x) ifelse(!is.na(x)&as.numeric(x)<p.cutoff, "color{red}", ""))
-  } else cellTex <- NULL
+  output.df <- as.data.frame(
+    dplyr::as_tibble(output.df, rownames = "Level") %>%
+      dplyr::mutate(
+        Variable = rep(variable, each = n.grp.levels - 1)
+      ) %>%
+      dplyr::select(
+        Variable, Level, everything()
+      )
+  )
 
-  if (short.label == "name") {
-    my.rgroup=variable
+  if (datatable == TRUE) {
+    return(
+      DT::datatable(output.df,
+                    options = list(
+                      pageLength = 5 * (n.grp.levels - 1)
+                    )) %>%
+        DT::formatRound(setdiff(names(output.df), c("Variable", "Level")), 6) %>%
+        DT::formatStyle(setdiff(names(output.df), c("Variable", "Level")),
+                        color = styleInterval(p.cutoff, c("red", "black")))
+    )
   } else {
-    my.rgroup=ifelse(label(data[, variable])=="", variable, label(data[, variable]))
+    return(output.df)
   }
-
-  my.latex.matrix=apply(my.latex.matrix, 2, formatPvalVMAC)
-
-  latex( my.latex.matrix.char, title="",  file="",where="htdp", landscape=FALSE, na.blank=TRUE,
-         cellTexCmds=cellTex,
-         colheads=grp.levels[-n.grp.levels],
-         rowname=rep(grp.levels[-1],length(variable)),
-         rgroup=my.rgroup,
-         n.rgroup=rep(n.grp.levels-1, length(variable)),
-         caption=paste("Pairwise Comparison by", group, "; After adjusting for multiple comparison, p-value less then", round(p.cutoff, 3), " was colored red."),
-         longtable=TRUE, ...)
-
 }
