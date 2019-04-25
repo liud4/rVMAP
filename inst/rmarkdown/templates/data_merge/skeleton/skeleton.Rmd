@@ -991,6 +991,10 @@ merged.df %<>% left_join(
   by = "map.id"
 )
 
+merged.df$apoe4pos.factor <-  factor(merged.df$apoe4pos.factor, levels = c("No", "Yes"))
+
+merged.df$diagnosis.factor.base <-  factor(merged.df$diagnosis.factor.base, levels = c("Normal", "Ambiguous At Risk", "MCI", "Dementia"))
+
 cat("The following variables were added to each epoch for each participant:\n")
 print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 ```
