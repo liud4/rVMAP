@@ -558,7 +558,7 @@ merged.df %<>% left_join(
 ) %>% 
   mutate(
     abp_consent = ifelse(epoch == 1, elig_visit_consent_abpm, NA),
-    abp_consent_factor = factor(abp_consent, levels = c(1, 0), labels = c("Yes", "No")) 
+    abp_consent_factor = factor(abp_consent, levels = c(0, 1), labels = c("No", "Yes")) 
   )
 ```
 
