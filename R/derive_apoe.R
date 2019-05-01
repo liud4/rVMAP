@@ -32,8 +32,8 @@ derive_apoe <- function(data) {
 
     apoe4pos.factor <- factor(
       apoe4pos,
-      levels = c(1, 0),
-      labels = c("Yes", "No")
+      levels = c(0, 1),
+      labels = c("No", "Yes")
     )
     label(apoe4pos.factor) <- 'ApoE4+ (at least one E4 allele)'
 
@@ -43,8 +43,8 @@ derive_apoe <- function(data) {
 
     apoe2pos.factor <- factor(
       apoe2pos,
-      levels = c(1, 0),
-      labels = c("Yes", "No")
+      levels = c(0, 1),
+      labels = c("No", "Yes")
     )
     label(apoe2pos.factor) <- 'ApoE2+ (at least one E2 allele)'
   })
