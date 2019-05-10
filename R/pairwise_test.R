@@ -9,6 +9,34 @@
 #' @return A dataframe containing p-values of pairwise comparisons.
 #' @export
 
+
+chisq.post.hoc <- function(tbl, test=c("fisher.test"), popsInRows=TRUE,control=c("fdr","BH","BY","bonferroni","holm","hochberg","hommel", "none"),digits=4, ...) {
+  #### extract correction method
+  control <- match.arg(control)
+
+  #### extract which test (fisher or chi square)
+  test = match.fun(test)
+
+  #### test rows or columns
+  if (!popsInRows) tbl <- t(tbl)
+  popsNames <- rownames(tbl)
+
+  #### come up with all possible comparisons
+  prs <- combn(1:nrow(tbl),2)
+
+  #### preallocate
+  tests <- ncol(prs)
+  pvals <- numeric(tests)
+  lbls <- character(tests)
+  for (i in 1:tests) {
+    pvals[i] <- test(tbl[prs[,i],], ...)$p.value
+    lbls[i] <- paste(popsNames[prs[,i]],collapse=" vs. ")
+  }
+  adj.pvals <- p.adjust(pvals,method=control)
+  cat("Adjusted p-values used the",control,"method.\n\n")
+  data.frame(comparison=lbls,raw.p=round(pvals,digits),adj.p=round(adj.pvals,digits))
+}
+
 pairwise_test <- function(data, variable, group = "diagnosis.factor.base", continuous = 5, p.adj = "none", datatable = FALSE, ...) {
   variable <- unique(setdiff(variable, group))
   grp <- data[, group]
@@ -40,7 +68,7 @@ pairwise_test <- function(data, variable, group = "diagnosis.factor.base", conti
         pairwise.test <- pairwise.prop.test(t(contingency.table), p.adj = p.adj)$p.value
       } else {
         pairwise.test <- matrix(data = NA, nrow = n.grp.levels - 1, ncol = n.grp.levels - 1)
-        pairwise.test[!upper.tri(pairwise.test)] >= fifer::chisq.post.hoc(t(contingency.table), control = p.adj)$adj.p
+        pairwise.test[!upper.tri(pairwise.test)] >= chisq.post.hoc(t(contingency.table), control = p.adj)$adj.p
       }
     }
 
