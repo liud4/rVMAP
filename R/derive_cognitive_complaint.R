@@ -290,40 +290,37 @@ derive_cognitive_complaint <- function(data) {
   # data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
 
   ################################################################
-  ## 46 Item Grand total scores # OAK 20181008: https://github.com/liud4/rVMAP/issues/7
+  ## 45 Item Grand total scores # OAK 20181008: https://github.com/liud4/rVMAP/issues/7
 
-  tot.complaint.gifford.46.ef <- Cs(
+  tot.complaint.gifford.45.ef <- Cs(
     cogdif03,
     cogdif10,
     cogdif19,
     cogdif26,
-    cogdif34,
     cogdif36,
-    mfq02p,
-    ecogself.vis01,
-    ecogself.plan01,
     ecogself.plan04,
-    ecogself.plan05
+    ecogself.plan05,
+    ecogself.vis01,
+    mfq02p.r
   )
 
-  tot.complaint.gifford.46.lang <- Cs(
+  tot.complaint.gifford.45.lang <- Cs(
     cogdif09,
     cogdif14,
     cogdif15,
     ecogself.lang02,
+    ecogself.lang03,
     ecogself.lang04,
     ecogself.lang05,
-    ecogself.lang06,
     ecogself.lang07,
     ecogself.lang08,
     ecogself.lang09
   )
 
-  tot.complaint.gifford.46.mem <- Cs(
-    ccqself02,
+  tot.complaint.gifford.45.mem <- Cs(
+    ccqself01,
     ccqself07,
-    ccqself08,
-    ccqself12,
+    ccqself13,
     ccqself15,
     ccqself16,
     ccqself20,
@@ -335,22 +332,24 @@ derive_cognitive_complaint <- function(data) {
     cogdif21,
     cogdif22,
     cogdif32,
-    mfq02b,
-    mfq02k,
-    mfq08e,
+    cogdif40,
     ecogself.mem01,
     ecogself.mem02,
     ecogself.mem03,
     ecogself.mem04,
     ecogself.mem05,
     ecogself.mem08,
-    ecogself.vis03
+    ecogself.vis03,
+    mfq02b.r,
+    mfq02k.r,
+    mfq08b.r,
+    mfq08e.r
   )
 
-  tot.complaint.gifford.46 <- c(
-    tot.complaint.gifford.46.ef,
-    tot.complaint.gifford.46.lang,
-    tot.complaint.gifford.46.mem
+  tot.complaint.gifford.45 <- c(
+    tot.complaint.gifford.45.ef,
+    tot.complaint.gifford.45.lang,
+    tot.complaint.gifford.45.mem
   )
 
   ## Functions for derivation ##
@@ -396,7 +395,7 @@ derive_cognitive_complaint <- function(data) {
     data[, v]*VTM(r[2,]-r[1,], n)+VTM(r[1,], n)
   }
 
-  ## Deriving tot.complaint.gifford.46
+  ## Deriving tot.complaint.gifford.45
 
   temp.df <- data
   temp.df <- temp.df %>%
@@ -404,18 +403,18 @@ derive_cognitive_complaint <- function(data) {
       tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
     )
 
-  junk <- t(apply(rescale(tot.complaint.gifford.46, temp.df), MARGIN = 1, totscore.impute))
-  junk.rescaled <- rescale2(tot.complaint.gifford.46, junk)
+  junk <- t(apply(rescale(tot.complaint.gifford.45, temp.df), MARGIN = 1, totscore.impute))
+  junk.rescaled <- rescale2(tot.complaint.gifford.45, junk)
 
   data$tot.complaint.rescale <- temp.df$tot.complaint.rescale
 
-  data$tot.complaint.gifford.46 <- rowSums(junk.rescaled)
+  data$tot.complaint.gifford.45 <- rowSums(junk.rescaled)
 
-  data$tot.complaint.gifford.46.ef <- rowSums(junk.rescaled[, tot.complaint.gifford.46.ef])
+  data$tot.complaint.gifford.45.ef <- rowSums(junk.rescaled[, tot.complaint.gifford.45.ef])
 
-  data$tot.complaint.gifford.46.lang <- rowSums(junk.rescaled[, tot.complaint.gifford.46.lang])
+  data$tot.complaint.gifford.45.lang <- rowSums(junk.rescaled[, tot.complaint.gifford.45.lang])
 
-  data$tot.complaint.gifford.46.mem <- rowSums(junk.rescaled[, tot.complaint.gifford.46.mem])
+  data$tot.complaint.gifford.45.mem <- rowSums(junk.rescaled[, tot.complaint.gifford.45.mem])
 
   ################################################################
 
@@ -473,10 +472,10 @@ derive_cognitive_complaint <- function(data) {
     # label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
 
     label(tot.complaint.rescale) <- "Tot cognitive complaint score (rescaled)"
-    label(tot.complaint.gifford.46) <- "Tot Gifford-46 cognitive complaint score"
-    label(tot.complaint.gifford.46.ef) <- "Tot Gifford-46 - Executive Functioning Subdomain"
-    label(tot.complaint.gifford.46.lang) <- "Tot Gifford-46 - Language Subdomain"
-    label(tot.complaint.gifford.46.mem) <- "Tot Gifford-46 - Memory Subdomain"
+    label(tot.complaint.gifford.45) <- "Tot Gifford-45 cognitive complaint score"
+    label(tot.complaint.gifford.45.ef) <- "Tot Gifford-45 - Executive Functioning Subdomain"
+    label(tot.complaint.gifford.45.lang) <- "Tot Gifford-45 - Language Subdomain"
+    label(tot.complaint.gifford.45.mem) <- "Tot Gifford-45 - Memory Subdomain"
   })
 
   return(data)
