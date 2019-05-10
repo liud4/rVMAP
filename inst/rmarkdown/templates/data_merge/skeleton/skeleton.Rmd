@@ -565,15 +565,15 @@ merged.df %<>% left_join(
 ### Add Post-Fixed Eligibility Data
 
 ```{r}
-eligibility.static.df <- MAPfreeze.list$epoch_0$data$eligibility.static %>%
+eligibility.df <- MAPfreeze.list$epoch_0$data$eligibility %>%
   format_id() %>%
   process_eligibility() %>%
   invalidate_color_blind()
 
-check_shared_vars(merged.df, eligibility.static.df, 'map_id')
+check_shared_vars(merged.df, eligibility.df, 'map_id')
 
 merged.df %<>% left_join(
-  eligibility.static.df,
+  eligibility.df,
   by = "map_id"
 ) 
 ```
