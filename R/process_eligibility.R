@@ -12,7 +12,6 @@ process_eligibility <- function(elig_data) {
 
   elig_data <- convert_dates(elig_data)
 
-  # data$faq.redcap <- data$faq
   faqvars <- paste0("faq", formatC(1:10, width = 2, flag = "0"))
 
   elig_data$faq <- apply(elig_data[, faqvars], 1, total_score, threshold = 1)
@@ -40,52 +39,18 @@ process_eligibility <- function(elig_data) {
   elig_data$np_tmta_trun <- ifelse(elig_data$np_tmta > 150, 150, elig_data$np_tmta)
   elig_data$np_tmtb_trun <- ifelse(elig_data$np_tmtb > 240, 240, elig_data$np_tmtb)
 
-  elig_data <- within(elig_data, {
-    cdr_factor <- factor(
-      cdr,
-      levels = c(0, 1, 2, 4, 6),
-      labels = c("0", "0.5", "1", "2", "3"),
-      ordered = TRUE
-    )
-
-    label(cdr_date)="CDR - Date of Administration, from Eligibility"
-    label(cdr)="CDR Global Score- raw REDCap value. Probably not what you want."
-    label(cdr_factor)="CDR Global Score, from Eligibility, recoded"
-    label(faq_date)="FAQ Date of Administration, from Eligibility"
-    #label(faq_redcap)="FAQ Total Score, from Eligibility"
-    label(faq)="FAQ Total Score, from Eligibility, recalculated"
-    label(np_date)="NP Assessment - date of administration, from Eligibility"
-    label(np_moca)="MoCA total score, from Eligibility"
-    label(np_srt_immed_redcap)="SRT total immediate recall, from Eligibility"
-    label(np_srt_immed)="SRT total immediate recall, from Eligibility, recalculated"
-    label(np_srt_ldfr)="SRT long delay free recall, from Eligibility"
-    label(np_tmta)="Trails A time, from Eligibility"
-    label(np_tmtb)="Trails B time, from Eligibility"
-    label(np_digitsf)="Digit Span forward score, from Eligibility"
-    label(np_digitsb)="Digit Span backward score, from Eligibility"
-    label(np_blocks)="Block Design total score, from Eligibility"
-    label(np_strp_colorword)="Stroop color-word score, from Eligibility"
-    label(np_cfl_redcap)="CFL total score, from Eligibility"
-    label(np_cfl)="CFL total score, from Eligibility, recalculated"
-    label(np_veg_redcap)="Vegetable Naming total score, from Eligibility"
-    label(np_veg)="Vegetable Naming total score, from Eligibility, recalculated"
-    label(np_bnt)="BNT total, from Eligibility"
-    label(np_wrat)="WRAT Reading total score, from Eligibility"
-    label(np_wrat_ss)="WRAT Reading total standard score, from Eligibility"
-    label(np_bvrt_redcap)="BVRT total score, from Eligibility"
-    label(np_bvrt)="BVRT total score, from Eligibility, recalculated"
-    label(age)="current age, from Eligibility"
-    label(np_tmta_trun) <- "Trails A time (s), truncated, from Eligibility"
-    label(np_tmtb_trun) <- "Trails B time (s), truncated, from Eligibility"
-  })
-
   keep.vars <- Cs(
     age,
     cdr_date,
     cdr,
-    cdr_factor,
+    cdr_boxes,
+    cdr_mem,
+    cdr_orient,
+    cdr_judg,
+    cdr_affairs,
+    cdr_hobbies,
+    cdr_care,
     faq_date,
-    # faq_redcap,
     faq,
     np_date,
     np_moca,
@@ -112,9 +77,7 @@ process_eligibility <- function(elig_data) {
     np_strp_colorword_scerr,
     np_strp_ucerr,
     np_strp_scerr,
-    # np_cfl_redcap,
     np_cfl,
-    # np_veg_redcap,
     np_veg,
     np_veg_z,
     np_vegq1,
@@ -126,7 +89,6 @@ process_eligibility <- function(elig_data) {
     np_bnt,
     np_wrat,
     np_wrat_ss,
-    # np_bvrt_redcap,
     np_bvrt,
     np_srt1,
     np_srt2,
@@ -154,9 +116,30 @@ process_eligibility <- function(elig_data) {
   )
 
   dataToKeep <- elig_data[, c("map_id", keep.vars)]
+
+  dataToKeep <- process_factor_variables(data = dataToKeep, data_label = "eligibility", epoch = 0)
+
+  elig_data <- within(elig_data, {
+    cdr = as.character(as.numeric(cdr))
+    cdr_boxes = as.character(as.numeric(cdr_boxes))
+    cdr_mem = as.character(as.numeric(cdr_mem))
+    cdr_orient = as.character(as.numeric(cdr_orient))
+    cdr_judg = as.character(as.numeric(cdr_judg))
+    cdr_affairs = as.character(as.numeric(cdr_affairs))
+    cdr_hobbies = as.character(as.numeric(cdr_hobbies))
+    cdr_care = as.character(as.numeric(cdr_care))
+
+    label(faq) <- "FAQ Total Score, from Eligibility, recalculated"
+    label(np_srt_immed) <- "SRT total immediate recall, from Eligibility, recalculated"
+    label(np_cfl) <- "CFL total score, from Eligibility, recalculated"
+    label(np_veg) <- "Vegetable Naming total score, from Eligibility, recalculated"
+    label(np_bvrt) <- "BVRT total score, from Eligibility, recalculated"
+    label(np_tmta_trun) <- "Trails A time (s), truncated, from Eligibility"
+    label(np_tmtb_trun) <- "Trails B time (s), truncated, from Eligibility"
+  })
+
   names(dataToKeep) <- c("map_id", paste0(keep.vars, "_elig"))
 
-  # OAK 20181120: Added invalidate_neuropsych_elgibility function
   dataToKeep <- invalidate_neuropsych_eligibility(dataToKeep)
   dataToKeep <- invalidate_color_blind(dataToKeep)
 

@@ -562,13 +562,12 @@ merged.df %<>% left_join(
   )
 ```
 
-### Add Post-Fixed Eligibility Data
+### Add Eligibility Data
 
 ```{r}
 eligibility.df <- MAPfreeze.list$epoch_0$data$eligibility %>%
   format_id() %>%
-  process_eligibility() %>%
-  invalidate_color_blind()
+  process_eligibility()
 
 check_shared_vars(merged.df, eligibility.df, 'map_id')
 
@@ -737,7 +736,8 @@ label(merged.df$epoch) <- "Epoch"
 ```{r}
 merged.df <- merged.df %>%
   mutate(
-    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia")
+    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
+    apoe4pos.factor = forcats::fct_relelvel(apoe4pos.factor, "No", "Yes")
   )
 ```
 
@@ -949,6 +949,14 @@ Derive, label, and add PVLT variables to the merged data set.
 merged.df <- call_function("derive_pvlt", merged.df)
 ```
 
+## CDR Conversion
+
+Derive, label, and add CDR conversion variables to the merged data set.
+
+```{r derive-cdr-conversion}
+merged.df <- call_function("derive_cdr_conversion", merged.df)
+```
+
 # Manual Invalidation
 
 In this section, we will run scripts to invalidate certain neuropsychological variables for certain individuals as requested by VMAC.
@@ -990,10 +998,6 @@ merged.df %<>% left_join(
   to_repeat.df,
   by = "map.id"
 )
-
-merged.df$apoe4pos.factor <-  factor(merged.df$apoe4pos.factor, levels = c("No", "Yes"))
-
-merged.df$diagnosis.factor.base <-  factor(merged.df$diagnosis.factor.base, levels = c("Normal", "Ambiguous At Risk", "MCI", "Dementia"))
 
 cat("The following variables were added to each epoch for each participant:\n")
 print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
