@@ -8,26 +8,26 @@ derive_cdr_conversion <- function(data) {
 
   data <- data %>%
     mutate(
-      cdr_factor = as.numeric(as.character(cdr_factor))
-    )
+      cdr = as.numeric(as.character(cdr))
+    ) %>%
     group_by(
       map_id
     ) %>%
     mutate(
       cdr_conversion = case_when(
         dplyr::first(diagnosis) %in% "Normal" ~ case_when(
-          cdr_factor == dplyr::first(cdr_factor) ~ "Stable",
-          cdr_factor > dplyr::first(cdr_factor) ~ "Conversion",
-          cdr_factor < dplyr::first(cdr_factor) ~ "Reversion"
+          cdr == dplyr::first(cdr) ~ "Stable",
+          cdr > dplyr::first(cdr) ~ "Conversion",
+          cdr < dplyr::first(cdr) ~ "Reversion"
         ),
         dplyr::first(diagnosis) %in% c("MCI", "Ambiguous At Risk") ~ case_when(
-          cdr_factor == dplyr::first(cdr_factor) ~ "Stable",
-          cdr_factor > dplyr::first(cdr_factor) ~ case_when(
-            dplyr::first(cdr_factor) == 0 & cdr_factor == 0.5 ~ "Stable",
+          cdr == dplyr::first(cdr) ~ "Stable",
+          cdr > dplyr::first(cdr) ~ case_when(
+            dplyr::first(cdr) == 0 & cdr == 0.5 ~ "Stable",
             TRUE ~ "Conversion"
           ),
-          cdr_factor < dplyr::first(cdr_factor) ~ case_when(
-            dplyr::first(cdr_factor) == 0.5 & cdr_factor == 0 ~ "Stable",
+          cdr < dplyr::first(cdr) ~ case_when(
+            dplyr::first(cdr) == 0.5 & cdr == 0 ~ "Stable",
             TRUE ~ "Reversion"
           )
         ),
@@ -35,6 +35,8 @@ derive_cdr_conversion <- function(data) {
       )
     ) %>%
     ungroup()
+
+    data$cdr_conversion <- factor(data$cdr_conversion, levels = c("Stable", "Conversion", "Reversion"))
 
     label(data$cdr_conversion) <- "CDR Conversion"
 
