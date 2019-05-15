@@ -241,54 +241,6 @@ derive_cognitive_complaint <- function(data) {
   data$tot.complaint <- rowSums(data[, Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot)])
   data$tot.complaint.short <- rowSums(with(data, cbind(ecogself.tot, mfq.tot, cogdif.tot, scc.or.ccqself.short.tot)))
 
-  # OAK 20181126: Commented out as per https://github.com/liud4/rVMAP/issues/8#issuecomment-435089293
-  #
-  # gifford <- Hmisc::Cs(
-  #   ccqself01,
-  #   ccqself03,
-  #   ccqself05,
-  #   ccqself16,
-  #   ccqself21,
-  #   ccqself31,
-  #   ccqself47,
-  #   ccqself50,
-  #   ccqself52
-  # )
-  #
-  # #data$gifford.pnm <- apply(data[, gifford], 1, proportion_non_missing)
-  # data$tot.complaint.gifford <- apply(data[, gifford], 1, total_score)
-  #
-  # # 24 Aug 2015: new variable from KG
-  # gifford25 <- Hmisc::Cs(
-  #   ecogself.mem01,
-  #   ccqself01,
-  #   ccqself02,
-  #   ccqself07,
-  #   ccqself12,
-  #   ccqself15,
-  #   ccqself16,
-  #   ccqself20,
-  #   ccqself43,
-  #   cogdif08,
-  #   cogdif09,
-  #   cogdif15,
-  #   cogdif18,
-  #   cogdif19,
-  #   cogdif26,
-  #   mfq02b.r,
-  #   mfq02g.r,
-  #   mfq02j.r,
-  #   mfq02k.r,
-  #   mfq02p.r,
-  #   mfq02r.r,
-  #   ecogself.mem04,
-  #   ecogself.vis01,
-  #   ecogself.org02,
-  #   ecogself.org03
-  # )
-  #
-  # data$tot.complaint.gifford.25 <- apply(data[, gifford25], 1, total_score)
-
   ################################################################
   ## 45 Item Grand total scores # OAK 20181008: https://github.com/liud4/rVMAP/issues/7
 
@@ -374,6 +326,7 @@ derive_cognitive_complaint <- function(data) {
     matrix(vc, ncol = length(vc), nrow = dm, byrow = T)
   }
 
+#acquire ranges for each SCD items  
   rescale.range<-function(v) {
     out<-matrix(0, ncol=length(v), nrow=2)
     out[, grepl('cogdif', v)]=c(0,4)
@@ -382,13 +335,13 @@ derive_cognitive_complaint <- function(data) {
     out[, grepl('ccqself', v)]=c(0,1)
     out
   }
-
+#scale each SCD item to 0-1 range
   rescale<-function(v, data) {
     r<-rescale.range(v)
     n<-dim(data)[1]
     (data[, v]-VTM(r[1,], n))/VTM(r[2,]-r[1,], n)
   }
-
+#rescale the scaled 0-1 SCD item back to its original scale
   rescale2 <- function(v, data) {
     r<-rescale.range(v)
     n<-dim(data)[1]
