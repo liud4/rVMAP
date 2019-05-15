@@ -151,42 +151,31 @@ derive_manual_3T <- function(data) {
     # END DUPLICATE OF ABOVE
 
     #VWI Derivation
-    ica.right.thickness.total <- vwi.right.ica.od - vwi.right.ica.id
-    ica.left.thickness.total  <- vwi.left.ica.od  - vwi.left.ica.id
-    aca.right.thickness.total <- vwi.right.aca.od - vwi.right.aca.id
-    aca.left.thickness.total  <- vwi.left.aca.od  - vwi.left.aca.id
-    mca.right.thickness.total <- vwi.right.mca.od - vwi.right.mca.id
-    mca.left.thickness.total  <- vwi.left.mca.od  - vwi.left.mca.id
-    vb.thickness.total        <- vwi.vb.od - vwi.vb.id
-
+    vwi.right.ica.thick <- (vwi.right.ica.od - vwi.right.ica.id)/2
+    vwi.left.ica.thick  <- (vwi.left.ica.od  - vwi.left.ica.id)/2
+    vwi.ica.thick       <- (vwi.right.ica.thick + vwi.left.ica.thick)/2
+    vwi.right.aca.thick <- (vwi.right.aca.od - vwi.right.aca.id)/2
+    vwi.left.aca.thick  <- (vwi.left.aca.od  - vwi.left.aca.id)/2
+    vwi.aca.thick       <- (vwi.right.aca.thick + vwi.left.aca.thick)/2
+    vwi.right.mca.thick <- (vwi.right.mca.od - vwi.right.mca.id)/2
+    vwi.left.mca.thick  <- (vwi.left.mca.od  - vwi.left.mca.id)/2
+    vwi.mca.thick       <- (vwi.right.mca.thick + vwi.left.mca.thick)/2
+    vwi.vb.thick        <- (vwi.vb.od - vwi.vb.id)/2
+        
     vwi.ica.id                <- (vwi.right.ica.id + vwi.left.ica.id) / 2
     vwi.aca.id                <- (vwi.right.aca.id + vwi.left.aca.id) / 2
     vwi.mca.id                <- (vwi.right.mca.id + vwi.left.mca.id) / 2
 
-    vwi.right.ica.id.adj      <- ica.right.thickness.total / 2 / vwi.right.ica.id
-    vwi.left.ica.id.adj       <- ica.left.thickness.total / 2 / vwi.left.ica.id
-    vwi.right.aca.id.adj      <- aca.right.thickness.total / 2 / vwi.right.aca.id
-    vwi.left.aca.id.adj       <- aca.left.thickness.total / 2 / vwi.left.aca.id
-    vwi.right.mca.id.adj      <- mca.right.thickness.total / 2 / vwi.right.mca.id
-    vwi.left.mca.id.adj       <- mca.left.thickness.total / 2 / vwi.left.mca.id
-    vwi.vb.id.adj             <- vb.thickness.total / 2 / vwi.vb.id
-
-    label(vwi.right.ica.id.adj) <- 'Right ICA normalized thickness, mm'
-    label(vwi.left.ica.id.adj)  <- 'Left ICA normalized thickness, mm'
-    label(vwi.right.aca.id.adj) <- 'Right ACA normalized thickness, mm'
-    label(vwi.left.aca.id.adj)  <- 'Left ACA normalized thickness, mm'
-    label(vwi.right.mca.id.adj) <- 'Right MCA normalized thickness, mm'
-    label(vwi.left.mca.id.adj)  <- 'Left MCA normalized thickness, mm'
-    label(vwi.vb.id.adj)        <- 'VB normalized thickness, mm'
-
-
-    label(ica.right.thickness.total) <- 'Right ICA total wall thickness, mm'
-    label(ica.left.thickness.total)  <- 'Left ICA total wall thickness, mm'
-    label(aca.right.thickness.total) <- 'Right ACA total wall thickness, mm'
-    label(aca.left.thickness.total)  <- 'Left ACA total wall thickness, mm'
-    label(mca.right.thickness.total) <- 'Right MCA total wall thickness, mm'
-    label(mca.left.thickness.total)  <- 'Left MCA total wall thickness, mm'
-    label(vb.thickness.total)        <- 'VB total wall thickness, mm'
+    label(vwi.right.ica.thick) <- 'Right ICA total wall thickness, mm'
+    label(vwi.left.ica.thick)  <- 'Left ICA total wall thickness, mm'
+    label(vwi.ica.thick)       <- 'Mean ICA total wall thickness, mm'
+    label(vwi.right.aca.thick) <- 'Right ACA total wall thickness, mm'
+    label(vwi.left.aca.thick)  <- 'Left ACA total wall thickness, mm'
+    label(vwi.aca.thick)       <- 'Mean ACA total wall thickness, mm'
+    label(vwi.right.mca.thick) <- 'Right MCA total wall thickness, mm'
+    label(vwi.left.mca.thick)  <- 'Left MCA total wall thickness, mm'
+    label(vwi.mca.thick)       <- 'Mean MCA total wall thickness, mm'
+    label(vwi.vb.thick)        <- 'VB total wall thickness, mm'
     label(vwi.ica.id)                <- 'Mean ICA inner diameter, mm'
     label(vwi.aca.id)                <- 'Mean ACA inner diameter, mm'
     label(vwi.mca.id)                <- 'Mean MCA inner diameter, mm'
