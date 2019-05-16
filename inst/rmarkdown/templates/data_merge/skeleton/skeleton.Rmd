@@ -893,22 +893,6 @@ Derive, label, and add informant information variables to the merged data set.
 merged.df <- call_function("derive_informant_info", merged.df)
 ```
 
-## Automated 3T
-
-Derive, label, and add automated 3T variables to the merged data set. ASL reactivity variables are also calculated in this step.
-
-```{r derive-auto3T}
-merged.df <- call_function("derive_automated_3T", merged.df)
-```
-
-## Manual 3T
-
-Derive, label, and add manual 3T variables to the merged data set.
-
-```{r derive-man3T}
-merged.df <- call_function("derive_manual_3T", merged.df)
-```
-
 ## Diagnosis and Staging
 
 Derive, label, and add diagnosis and staging variables to the merged data set.
@@ -1058,13 +1042,33 @@ merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames
 merged.bh.df <- merged.bh.df[, -bHold.index]
 ```
 
-# Derivation of AD signatures
+# Derivation of Variables after Separation of Breath Hold and Face Mask Data Sets
+
+## Automated 3T
+
+Derive, label, and add automated 3T variables to the merged data set. ASL reactivity variables are also calculated in this step.
+
+```{r derive-auto3T}
+merged.bh.df <- call_function("derive_automated_3T", merged.bh.df)
+merged.fm.df <- call_function("derive_automated_3T", merged.fm.df)
+```
+
+## Manual 3T
+
+Derive, label, and add manual 3T variables to the merged data set.
+
+```{r derive-man3T}
+merged.bh.df <- call_function("derive_manual_3T", merged.bh.df)
+merged.fm.df <- call_function("derive_manual_3T", merged.fm.df)
+```
+
+## AD signature
 
 Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 
 ```{r, derive-AD-sig}
-merged.fm.df <- derive_AD_signature(merged.fm.df)
 merged.bh.df <- derive_AD_signature(merged.bh.df)
+merged.fm.df <- derive_AD_signature(merged.fm.df)
 ```
 
 # Saving the Final Data

@@ -5,72 +5,8 @@
 #' @export
 
 derive_manual_3T <- function(data) {
-  # Returns data with manual 3T imaging-related variables labeled
 
   data <- within(data, {
-    # label(session.id.2)="Session ID"
-    # label(scan.date.2)="Scan date"
-    # label(cow.primary)="primary data entry person"
-    # label(cow.secondary)="secondary data entry person"
-    # label(cow.acoa)="CoW AcoA"
-    # label(cow.a1.l)="CoW A1 Left"
-    # label(cow.a1.r)="CoW A1 Right"
-    # label(cow.pcoa.l)="CoW PcoA Left"
-    # label(cow.pcoa.r)="CoW PcoA Right"
-    # label(cow.p1.l)="CoW P1 Left"
-    # label(cow.p1.r)="CoW P1 Right"
-    # label(cow.variant)="CoW Variant"
-    # label(cow.variant.other)="CoW Variant - Other Description"
-    # label(cow.notes)="CoW Variant Notes"
-    # label(circle.of.willis.complete)="Complete?"
-    # label(session.id.3)="Session ID"
-    # label(scan.date.3)="Scan date"
-    # label(swi.usable)="Is SWI data usable?"
-    # label(swi.microbleeds.number)="Total number of microbleeds"
-    # label(swi.microbleeds.side)="Side of microbleeds"
-    # label(swi.microbleeds.pattern)="Predominant pattern of microbleeds"
-    # label(swi.microbleeds.location...0)="Location of microbleeds (choice=Brainstem)"
-    # label(swi.microbleeds.location...1)="Location of microbleeds (choice=Basal ganglia)"
-    # label(swi.microbleeds.location...2)="Location of microbleeds (choice=Caudate nucleus)"
-    # label(swi.microbleeds.location...3)="Location of microbleeds (choice=Cerebellum)"
-    # label(swi.microbleeds.location...4)="Location of microbleeds (choice=Frontal)"
-    # label(swi.microbleeds.location...5)="Location of microbleeds (choice=Frontal periventricular)"
-    # label(swi.microbleeds.location...6)="Location of microbleeds (choice=Lobar)"
-    # label(swi.microbleeds.location...7)="Location of microbleeds (choice=Occipital)"
-    # label(swi.microbleeds.location...8)="Location of microbleeds (choice=Occipital periventricular)"
-    # label(swi.microbleeds.location...9)="Location of microbleeds (choice=Thalamus)"
-    # label(swi.microbleeds.location...10)="Location of microbleeds (choice=Parietal periventricular)"
-    # label(swi.microbleeds.location...11)="Location of microbleeds (choice=Temporal)"
-    # label(swi.microbleeds.location...12)="Location of microbleeds (choice=Temporal periventricular)"
-    # label(swi.microbleeds.location....8888)="Location of microbleeds (choice=N/A)"
-    # label(swi.microbleeds.location....9999)="Location of microbleeds (choice=Missing)"
-    # label(swi.microbleeds.distribution...0)="Distribution of microbleeds (choice=Cortical)"
-    # label(swi.microbleeds.distribution...1)="Distribution of microbleeds (choice=Subcortical)"
-    # label(swi.microbleeds.distribution....8888)="Distribution of microbleeds (choice=N/A)"
-    # label(swi.microbleeds.distribution....9999)="Distribution of microbleeds (choice=Missing)"
-    # label(swi.microbleed.notes)="Notes"
-    # label(swi.complete)="Complete?"
-    # label(session.id.4)="Session ID"
-    # label(scan.date.4)="Scan date"
-    # label(lacunar.infarcts.usable)="Is Lacunar Infarcts Data usable?"
-    # label(lacunar.infarcts.number)="Number of Lacunar Infarcts "
-    # label(lacunar.infarcts.distribution...0)="Distribution of lacunar infarcts (choice=Cortical)"
-    # label(lacunar.infarcts.distribution...1)="Distribution of lacunar infarcts (choice=Subcortical)"
-    # label(lacunar.infarcts.distribution....8888)="Distribution of lacunar infarcts (choice=N/A)"
-    # label(lacunar.infarcts.distribution....9999)="Distribution of lacunar infarcts (choice=Missing)"
-    # label(lacunar.infarcts.note)="Lacunar Infarcts Notes"
-    # #label(session.id.5)="Session ID"
-    # #label(scan.date.5)="Scan Date"
-    # label(pvs.pat.usable)="Is PVS Data (Patankar) usable?"
-    # label(pvs.pat.centrum)="Perivascular Spaces Score Centrum (Patankar) "
-    # label(pvs.pat.mesencephalon)="Perivascular Spaces Score Mesencephalon (Patankar) "
-    # label(pvs.pat.subinsular)="Perivascular Spaces Score Subinsular (Patankar) "
-    # label(pvs.pat.basal.ganglia)="Perivascular Spaces Score Basal Ganglia (Patankar) "
-    # label(pvs.han.usable)="Is PVS Data (Hansen) usable?"
-    # label(pvs.han.centrum)="Perivascular Spaces Score Centrum (Hansen)"
-    # label(pvs.han.basal.ganglia)="Perivascular Spaces Score Basal Ganglia (Hansen)"
-    # label(pvs.han.total)="Perivascular Spaces Total Score (Hansen)"
-    # label(lacunar.infarcts.and.perivascular.space.complete)="Complete?"
 
     pvs.pat.basal.ganglia.factor <- ifelse(is.na(pvs.pat.basal.ganglia), NA, ifelse(pvs.pat.basal.ganglia <= 2, 0, 1))
     pvs.pat.basal.ganglia.factor <- factor(pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
@@ -109,46 +45,46 @@ derive_manual_3T <- function(data) {
     lacunar.infarcts.number.factor<-factor(lacunar.infarcts.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
     label(lacunar.infarcts.number.factor) <- 'Lacunar Infarcts Present'
 
-    # Derive bHold versions
-    # ADDING DUPLICATE OF ABOVE
-
-    bHold.pvs.pat.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.pat.basal.ganglia), NA, ifelse(bHold.pvs.pat.basal.ganglia <= 2, 0,1))
-    bHold.pvs.pat.basal.ganglia.factor <- factor(bHold.pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(bHold.pvs.pat.basal.ganglia.factor) <- paste0(label(bHold.pvs.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
-
-    bHold.pvs.pat.centrum.factor <- ifelse(is.na(bHold.pvs.pat.centrum), NA, ifelse(bHold.pvs.pat.centrum <= 1, 0, 1))
-    bHold.pvs.pat.centrum.factor <- factor(bHold.pvs.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(bHold.pvs.pat.centrum.factor) <- paste0(label(bHold.pvs.pat.centrum), ", dichotomized [0-1]vs.[2+]")
-
-    bHold.pvs.han.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.han.basal.ganglia), NA, ifelse(bHold.pvs.han.basal.ganglia <= 1, 0, 1))
-    bHold.pvs.han.basal.ganglia.factor <- factor(bHold.pvs.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(bHold.pvs.han.basal.ganglia.factor) <- paste0(label(bHold.pvs.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
-
-    bHold.pvs.han.centrum.factor <- ifelse(is.na(bHold.pvs.han.centrum <= 1), NA, ifelse(bHold.pvs.han.centrum <= 1, 0, 1))
-    bHold.pvs.han.centrum.factor <- factor(bHold.pvs.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(bHold.pvs.han.centrum.factor) <- paste0(label(bHold.pvs.han.centrum), ", dichotomized [0-1]vs.[2+]")
-
-    bHold.pvs.han.total.factor <- ifelse(is.na(bHold.pvs.han.total), NA, ifelse(bHold.pvs.han.total <= 3, 0, 1))
-    bHold.pvs.han.total.factor <- factor(bHold.pvs.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(bHold.pvs.han.total.factor) <- paste0(label(bHold.pvs.han.total), ", dichotomized [0-3]vs.[4+]")
-
-    bHold.swi.microbleeds.number.orig <- bHold.swi.microbleeds.number
-    bHold.swi.microbleeds.number <- as.character(bHold.swi.microbleeds.number)
-    bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "", NA, bHold.swi.microbleeds.number)
-    bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "-9999", NA, bHold.swi.microbleeds.number)
-
-    bHold.swi.microbleeds.number <- gsub("+", "", bHold.swi.microbleeds.number, fixed = TRUE)
-    bHold.swi.microbleeds.number <- as.numeric(bHold.swi.microbleeds.number)
-    label(bHold.swi.microbleeds.number) <- paste0(label(bHold.swi.microbleeds.number.orig), ", recoded")
-
-    bHold.swi.microbleeds.number.factor <- ifelse(is.na(bHold.swi.microbleeds.number), NA, ifelse(bHold.swi.microbleeds.number < 1, 0, 1))
-    bHold.swi.microbleeds.number.factor <- factor(bHold.swi.microbleeds.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
-    label(bHold.swi.microbleeds.number.factor) <- "Microbleeds Present"
-
-    bHold.lacunar.infarcts.number.factor <- ifelse(is.na(bHold.lacunar.infarcts.number), NA, ifelse(bHold.lacunar.infarcts.number < 1, 0, 1))
-    bHold.lacunar.infarcts.number.factor <- factor(bHold.lacunar.infarcts.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
-    label(bHold.lacunar.infarcts.number.factor) <- 'Lacunar Infarcts Present'
-    # END DUPLICATE OF ABOVE
+    # # Derive bHold versions
+    # # ADDING DUPLICATE OF ABOVE
+    #
+    # bHold.pvs.pat.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.pat.basal.ganglia), NA, ifelse(bHold.pvs.pat.basal.ganglia <= 2, 0,1))
+    # bHold.pvs.pat.basal.ganglia.factor <- factor(bHold.pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    # label(bHold.pvs.pat.basal.ganglia.factor) <- paste0(label(bHold.pvs.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
+    #
+    # bHold.pvs.pat.centrum.factor <- ifelse(is.na(bHold.pvs.pat.centrum), NA, ifelse(bHold.pvs.pat.centrum <= 1, 0, 1))
+    # bHold.pvs.pat.centrum.factor <- factor(bHold.pvs.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    # label(bHold.pvs.pat.centrum.factor) <- paste0(label(bHold.pvs.pat.centrum), ", dichotomized [0-1]vs.[2+]")
+    #
+    # bHold.pvs.han.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.han.basal.ganglia), NA, ifelse(bHold.pvs.han.basal.ganglia <= 1, 0, 1))
+    # bHold.pvs.han.basal.ganglia.factor <- factor(bHold.pvs.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    # label(bHold.pvs.han.basal.ganglia.factor) <- paste0(label(bHold.pvs.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
+    #
+    # bHold.pvs.han.centrum.factor <- ifelse(is.na(bHold.pvs.han.centrum <= 1), NA, ifelse(bHold.pvs.han.centrum <= 1, 0, 1))
+    # bHold.pvs.han.centrum.factor <- factor(bHold.pvs.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    # label(bHold.pvs.han.centrum.factor) <- paste0(label(bHold.pvs.han.centrum), ", dichotomized [0-1]vs.[2+]")
+    #
+    # bHold.pvs.han.total.factor <- ifelse(is.na(bHold.pvs.han.total), NA, ifelse(bHold.pvs.han.total <= 3, 0, 1))
+    # bHold.pvs.han.total.factor <- factor(bHold.pvs.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
+    # label(bHold.pvs.han.total.factor) <- paste0(label(bHold.pvs.han.total), ", dichotomized [0-3]vs.[4+]")
+    #
+    # bHold.swi.microbleeds.number.orig <- bHold.swi.microbleeds.number
+    # bHold.swi.microbleeds.number <- as.character(bHold.swi.microbleeds.number)
+    # bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "", NA, bHold.swi.microbleeds.number)
+    # bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "-9999", NA, bHold.swi.microbleeds.number)
+    #
+    # bHold.swi.microbleeds.number <- gsub("+", "", bHold.swi.microbleeds.number, fixed = TRUE)
+    # bHold.swi.microbleeds.number <- as.numeric(bHold.swi.microbleeds.number)
+    # label(bHold.swi.microbleeds.number) <- paste0(label(bHold.swi.microbleeds.number.orig), ", recoded")
+    #
+    # bHold.swi.microbleeds.number.factor <- ifelse(is.na(bHold.swi.microbleeds.number), NA, ifelse(bHold.swi.microbleeds.number < 1, 0, 1))
+    # bHold.swi.microbleeds.number.factor <- factor(bHold.swi.microbleeds.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
+    # label(bHold.swi.microbleeds.number.factor) <- "Microbleeds Present"
+    #
+    # bHold.lacunar.infarcts.number.factor <- ifelse(is.na(bHold.lacunar.infarcts.number), NA, ifelse(bHold.lacunar.infarcts.number < 1, 0, 1))
+    # bHold.lacunar.infarcts.number.factor <- factor(bHold.lacunar.infarcts.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
+    # label(bHold.lacunar.infarcts.number.factor) <- 'Lacunar Infarcts Present'
+    # # END DUPLICATE OF ABOVE
 
     #VWI Derivation
     vwi.right.ica.thick <- (vwi.right.ica.od - vwi.right.ica.id)/2
@@ -161,7 +97,7 @@ derive_manual_3T <- function(data) {
     vwi.left.mca.thick  <- (vwi.left.mca.od  - vwi.left.mca.id)/2
     vwi.mca.thick       <- (vwi.right.mca.thick + vwi.left.mca.thick)/2
     vwi.vb.thick        <- (vwi.vb.od - vwi.vb.id)/2
-        
+
     vwi.ica.id                <- (vwi.right.ica.id + vwi.left.ica.id) / 2
     vwi.aca.id                <- (vwi.right.aca.id + vwi.left.aca.id) / 2
     vwi.mca.id                <- (vwi.right.mca.id + vwi.left.mca.id) / 2
