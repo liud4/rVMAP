@@ -28,11 +28,11 @@ process_eligibility <- function(elig_data) {
   )
   elig_data$np_cfl <- apply(elig_data[, np.cflvars], 1, total_score, threshold = 1)
 
-  elig_data$np_veg_redcap <- elig_data$np_veg
+  #elig_data$np_veg_redcap <- elig_data$np_veg
   np.vegvars <- paste0("np_vegq", 1:4)
   elig_data$np_veg <- apply(elig_data[, np.vegvars], 1, total_score, threshold = 1)
 
-  elig_data$np_bvrt_redcap <- elig_data$np_bvrt
+  # elig_data$np_bvrt_redcap <- elig_data$np_bvrt
   np.bvrtvars <- paste0("np_bvrt", formatC(1:10, width = 2, flag = "0"))
   elig_data$np_bvrt <- apply(elig_data[, np.bvrtvars], 1, total_score, threshold = 1)
 
@@ -59,12 +59,12 @@ process_eligibility <- function(elig_data) {
     np_tmtb_ss,
     np_tmtb_seqerr,
     np_tmtb_seterr,
-    np_digitsf,
-    np_digits,
-    np_digits_ss,
-    np_digitsf_span,
-    np_digitsf_span_z,
-    np_digitsb,
+    # np_digitsf,
+    # np_digits,
+    # np_digits_ss,
+    # np_digitsf_span,
+    # np_digitsf_span_z,
+    # np_digitsb,
     np_blocks,
     np_blocks_ss,
     np_strp_color,
@@ -117,9 +117,9 @@ process_eligibility <- function(elig_data) {
 
   dataToKeep <- elig_data[, c("map_id", keep.vars)]
 
-  dataToKeep <- process_factor_variables(data = dataToKeep, data_label = "eligibility", epoch = 0)
+  # dataToKeep <- process_factor_variables(data = dataToKeep, data_label = "eligibility", epoch = 0)
 
-  elig_data <- within(elig_data, {
+  dataToKeep <- within(dataToKeep, {
     cdr = as.character(as.numeric(cdr))
     cdr_boxes = as.character(as.numeric(cdr_boxes))
     cdr_mem = as.character(as.numeric(cdr_mem))
