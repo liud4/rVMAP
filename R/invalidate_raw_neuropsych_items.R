@@ -255,7 +255,7 @@ invalidate_raw_neuropsych_items <- function(data) {
     np_tmtb_seterr,
     np_tmtb_cumperc_seterr
   )
-  data[data$map_id %in% c("011") & data$epoch == 3, x14] <- NA
+  data[data$map_id %in% c("011") & data$epoch == 3, x10] <- NA
 
   #Epoch 3: MAP 059 everything except BNT, Animals, & HVOT invalid
   x11 <- Cs(
