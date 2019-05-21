@@ -68,6 +68,8 @@ derive_medical_hx <- function(data) {
     label(cvd) <- "CVD, determined from variables in med hx"
   })
 
+  data$echo.sbp2 <- as.numeric(data$echo.sbp2)
+
   data$sbp <- rowMeans(data[, Cs(echo.sbp, echo.sbp2)], na.rm= TRUE)
   data$dbp <- rowMeans(data[, Cs(echo.dbp, echo.dbp2)], na.rm= TRUE)
   # the above procedure introduces NaN's if both components are missing
