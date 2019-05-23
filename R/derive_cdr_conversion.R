@@ -11,7 +11,7 @@ derive_cdr_conversion <- function(data) {
       cdr = as.numeric(as.character(cdr))
     ) %>%
     group_by(
-      map_id
+      map.id
     ) %>%
     mutate(
       cdr_conversion = case_when(
