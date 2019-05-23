@@ -16,10 +16,10 @@ derive_cardiac_structure <- function(data) {
     label(echo.cardiac.index) <- "Cardiac Index (from echo)"
 
     echo.lv.stroke.volume <- 3.14159 * ((echo.lvot/2)^2)  * echo.lvot.vti
-    label(echo.lv.stroke.volume) <- "echo.lv.stroke.volume"
+    label(echo.lv.stroke.volume) <- "Stroke Volume (from echo)"
 
     echo.myocardial.contraction.fraction <- (echo.lv.stroke.volume) / (echo.lvmass * 1.05)
-    label(echo.myocardial.contraction.fraction) <- "echo.myocardial.contraction.fraction"
+    label(echo.myocardial.contraction.fraction) <- "Myocardial Contraction Fraction (from echo)"
   })
 
   return(data)
