@@ -82,7 +82,7 @@ data.dir <- file.path(vmac.dir, "DATA", "MAP")
 # quarterly scheduled merge, TRUE; off-cycle merge, FALSE
 quarterly.download <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to use for merging
-download.data <- FALSE
+download.data <- TRUE
 data.freeze.date <- yyyymmdd # in {yyyymmdd} format
 # modify both of these variables to specify a specific data merge file to compare the new one with
 last.data.download.date <- yyyymmdd # in {yyyymmdd} format
@@ -105,7 +105,8 @@ packages <- Hmisc::Cs(
   REDCapR,
   secret,
   arsenal,
-  fs
+  fs,
+  rVMAP
 )
 
 rVMAP::load_pkg(packages)
@@ -350,7 +351,7 @@ process_raw_data(
   # auto3TBH = MAPfreeze.list$epoch_4$data$auto3T.bh,
   man3T = MAPfreeze.list$epoch_4$data$man3T,
   # man3TBH = MAPfreeze.list$epoch_4$data$man3T.bh,
-  # qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
+  qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
   # addendum = MAPfreeze.list$epoch_4$data$addendum,
   csf = MAPfreeze.list$epoch_4$data$csf
   # srt = MAPfreeze.list$epoch_4$data$srt.static
@@ -430,7 +431,7 @@ epoch_4_merge.df <- merge_within_epoch(
   # auto3TBH = MAPfreeze.list$epoch_4$data$auto3T.bh,
   man3T = MAPfreeze.list$epoch_4$data$man3T,
   # man3TBH = MAPfreeze.list$epoch_4$data$man3T.bh,
-  # qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
+  qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
   # addendum = MAPfreeze.list$epoch_4$data$addendum,
   csf = MAPfreeze.list$epoch_4$data$csf
   # srt = MAPfreeze.list$epoch_4$data$srt.static
@@ -533,6 +534,8 @@ factors_to_unify.var <- NULL
 
 ```{r coerce-stack-epoch123-epoch4}
 merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
+
+merged.df[, Cs(mlta01, psqi_time_sleep, psqi_hrs_sleep, famhx01_age_ptp, famhx02_age_ptp, famhx01_age_inf, famhx02_age_inf, famhx03_age_inf, actigraph_day1_mins, actigraph_day2_mins, actigraph_day3_mins, actigraph_day4_mins, actigraph_day5_mins, actigraph_day6_mins, actigraph_day7_mins, actigraph_day8_mins, actigraph_day9_mins, actigraph_day10_mins, actigraph_day11_mins, echo_sbp2, echo_tissue_dop_e_med, echo_mv_dt, echo_stroke_vol_vti, cmr_findings_pulse, cmr_findings_dbp, cmr_lvedv, cmr_rvedd, cmr_ascending_ao_max_area, np_pvltrecog_falsepos, np_3digits_span, np_3digits_intrus, np_3digits_cap, np_3digits_frontal, np_3digits_errors, np_3digits_btcfor, np_3digits_btcback)] <- sapply(merged.df[, Cs(mlta01, psqi_time_sleep, psqi_hrs_sleep, famhx01_age_ptp, famhx02_age_ptp, famhx01_age_inf, famhx02_age_inf, famhx03_age_inf, actigraph_day1_mins, actigraph_day2_mins, actigraph_day3_mins, actigraph_day4_mins, actigraph_day5_mins, actigraph_day6_mins, actigraph_day7_mins, actigraph_day8_mins, actigraph_day9_mins, actigraph_day10_mins, actigraph_day11_mins, echo_sbp2, echo_tissue_dop_e_med, echo_mv_dt, echo_stroke_vol_vti, cmr_findings_pulse, cmr_findings_dbp, cmr_lvedv, cmr_rvedd, cmr_ascending_ao_max_area, np_pvltrecog_falsepos, np_3digits_span, np_3digits_intrus, np_3digits_cap, np_3digits_frontal, np_3digits_errors, np_3digits_btcfor, np_3digits_btcback)], as.numeric)
 ```
 
 ## Merge Additional Epoch-Independent Data {.tabset .tabset-fade .tabset-pills}
@@ -725,20 +728,10 @@ readr::write_csv(
 )
 
 for (var.i in labels.df$field_name) {
-  Hmisc::label(merged.df[, var.i]) <- pull(labels.df[labels.df$field_name == var.i, "field_label"])
+  Hmisc::label(merged.df[, var.i]) <- pull(labels.df[labels.df$field_name == var.i, "field_label"])[1]
 }
 
 label(merged.df$epoch) <- "Epoch"
-```
-
-# Manual Modification of Factor Levels
-
-```{r}
-merged.df <- merged.df %>%
-  mutate(
-    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
-    apoe4pos.factor = forcats::fct_relelvel(apoe4pos.factor, "No", "Yes")
-  )
 ```
 
 # Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
@@ -953,7 +946,7 @@ merged.df <- call_function("invalidate_color_blind", merged.df)
 # Repeating Baseline Variables in Each Epoch
 
 ```{r repeatBaseline}
-enrollment_vars <- Cs( # will be used as is
+enrollment_vars <- Cs(  # will be used as is
   dob,
   education,
   sex.factor,
@@ -973,18 +966,29 @@ baseline_vars <- Cs( # will have ".base" appended to the end
 to_repeat.df <- merged.df[merged.df$epoch %in% 1, c('map.id', enrollment_vars, baseline_vars)]
 
 for (vname in baseline_vars) {
-  label(epoch1ToRepeat[[vname]]) <- paste0(label(to_repeat.df[[vname]]), ", from Enrollment")
+  label(to_repeat.df[[vname]]) <- paste0(label(to_repeat.df[[vname]]), ", from Enrollment")
 }
 
 names(to_repeat.df) <- c('map.id', enrollment_vars, paste0(baseline_vars, ".base"))
 
-merged.df %<>% left_join(
-  to_repeat.df,
-  by = "map.id"
-)
+merged.df <- merged.df[, !(names(merged.df) %in% enrollment_vars)] %>% 
+  left_join(
+    to_repeat.df,
+    by = "map.id"
+  )
 
 cat("The following variables were added to each epoch for each participant:\n")
 print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
+```
+
+# Manual Modification of Factor Levels
+
+```{r}
+merged.df <- merged.df %>%
+  mutate(
+    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
+    apoe4pos.factor = forcats::fct_relevel(apoe4pos.factor, "No", "Yes")
+  )
 ```
 
 # Adding Memory and Executive Function Composite Scores
