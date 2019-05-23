@@ -267,6 +267,8 @@ derive_medical_hx <- function(data) {
     label(echo.vd.ar.ge1) <- label(echo.vd.ar.ge1.factor) <-
       'Aortic regurgitation: echo.vd.ar >= 1'
 
+    cmr.findings.pulse <- as.numeric(cmr.findings.pulse)
+
     cmr.co.flow <- cmr.transaortic.sv * cmr.findings.pulse / 1000
     label(cmr.co.flow) <- 'Cardiac Output: Aortic Flow Analysis, L/min'
 
