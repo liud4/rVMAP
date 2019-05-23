@@ -8,19 +8,20 @@ derive_cdr_conversion <- function(data) {
 
   data <- data %>%
     mutate(
+      cdr.redcap = cdr,
       cdr = as.numeric(as.character(cdr))
     ) %>%
     group_by(
       map.id
     ) %>%
     mutate(
-      cdr_conversion = case_when(
-        dplyr::first(diagnosis) %in% "Normal" ~ case_when(
+      cdr.conversion = case_when(
+        dplyr::first(diagnosis.factor) %in% "Normal" ~ case_when(
           cdr == dplyr::first(cdr) ~ "Stable",
           cdr > dplyr::first(cdr) ~ "Conversion",
           cdr < dplyr::first(cdr) ~ "Reversion"
         ),
-        dplyr::first(diagnosis) %in% c("MCI", "Ambiguous At Risk") ~ case_when(
+        dplyr::first(diagnosis.factor) %in% c("MCI", "Ambiguous At Risk") ~ case_when(
           cdr == dplyr::first(cdr) ~ "Stable",
           cdr > dplyr::first(cdr) ~ case_when(
             dplyr::first(cdr) == 0 & cdr == 0.5 ~ "Stable",
@@ -36,9 +37,9 @@ derive_cdr_conversion <- function(data) {
     ) %>%
     ungroup()
 
-    data$cdr_conversion <- factor(data$cdr_conversion, levels = c("Stable", "Conversion", "Reversion"))
+    data$cdr.conversion <- factor(data$cdr.conversion, levels = c("Stable", "Conversion", "Reversion"))
 
-    label(data$cdr_conversion) <- "CDR Conversion"
+    label(data$cdr.conversion) <- "CDR Conversion"
 
   return(data)
 }
