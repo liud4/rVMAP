@@ -3,7 +3,7 @@ Type: Package
 Title: A research package for improving statistical collaboration between
     VMAC and VUMC Department of Biostatistics for the Vanderbilt Memory and Aging 
     Project (VMAP)
-Version: 1.3
+Version: 1.3.1
 Authors@R: c(
     person(c("Omair", "A."), "Khan", 
       email = c("omair.a.khan@vumc.org"), 
