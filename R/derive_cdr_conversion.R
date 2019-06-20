@@ -8,27 +8,27 @@ derive_cdr_conversion <- function(data) {
 
   data <- data %>%
     mutate(
-      cdr.redcap = cdr,
-      cdr = as.numeric(as.character(cdr))
+      cdr.factor.redcap = cdr.factor,
+      cdr.factor = as.numeric(as.character(cdr.factor))
     ) %>%
     group_by(
       map.id
     ) %>%
     mutate(
-      cdr.conversion = case_when(
+      cdr.conversion.factor = case_when(
         dplyr::first(diagnosis.factor) %in% "Normal" ~ case_when(
-          cdr == dplyr::first(cdr) ~ "Stable",
-          cdr > dplyr::first(cdr) ~ "Conversion",
-          cdr < dplyr::first(cdr) ~ "Reversion"
+          cdr.factor == dplyr::first(cdr.factor) ~ "Stable",
+          cdr.factor > dplyr::first(cdr.factor) ~ "Conversion",
+          cdr.factor < dplyr::first(cdr.factor) ~ "Reversion"
         ),
         dplyr::first(diagnosis.factor) %in% c("MCI", "Ambiguous At Risk") ~ case_when(
-          cdr == dplyr::first(cdr) ~ "Stable",
-          cdr > dplyr::first(cdr) ~ case_when(
-            dplyr::first(cdr) == 0 & cdr == 0.5 ~ "Stable",
+          cdr.factor == dplyr::first(cdr.factor) ~ "Stable",
+          cdr.factor > dplyr::first(cdr.factor) ~ case_when(
+            dplyr::first(cdr.factor) == 0 & cdr.factor == 0.5 ~ "Stable",
             TRUE ~ "Conversion"
           ),
-          cdr < dplyr::first(cdr) ~ case_when(
-            dplyr::first(cdr) == 0.5 & cdr == 0 ~ "Stable",
+          cdr.factor < dplyr::first(cdr.factor) ~ case_when(
+            dplyr::first(cdr.factor) == 0.5 & cdr.factor == 0 ~ "Stable",
             TRUE ~ "Reversion"
           )
         ),
@@ -37,9 +37,9 @@ derive_cdr_conversion <- function(data) {
     ) %>%
     ungroup()
 
-    data$cdr.conversion <- factor(data$cdr.conversion, levels = c("Stable", "Conversion", "Reversion"))
+    data$cdr.conversion.factor <- factor(data$cdr.conversion.factor, levels = c("Stable", "Conversion", "Reversion"))
 
-    label(data$cdr.conversion) <- "CDR Conversion"
+    label(data$cdr.conversion.factor) <- "CDR Conversion"
 
   return(data)
 }
