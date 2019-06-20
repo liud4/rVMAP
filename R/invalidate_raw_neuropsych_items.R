@@ -122,7 +122,7 @@ invalidate_raw_neuropsych_items <- function(data) {
     "np_cvltrecog_responbias_z"
   )
 
-  data[data$map_id == 209 & data$epoch == 1, x4] <- NA
+  data[data$map_id == "209" & data$epoch == 1, x4] <- NA
 
   # Epoch 1: MAP 201 – All neuropsych variables from epoch 1 invalid
 
