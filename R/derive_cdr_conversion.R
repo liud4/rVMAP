@@ -42,4 +42,5 @@ derive_cdr_conversion <- function(data) {
     label(data$cdr.conversion.factor) <- "CDR Conversion"
 
   return(data)
+
 }

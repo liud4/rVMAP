@@ -644,4 +644,5 @@ invalidate_raw_neuropsych_items <- function(data) {
   data[data$map_id %in% c("092", "123") & data$epoch == 4, x15] <- NA # 20190103 OAK
 
   return(data)
+
 }
