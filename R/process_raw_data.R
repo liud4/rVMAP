@@ -30,7 +30,10 @@ process_raw_data <- function(
   mydat <- main %>%
     clear_labels() %>%
     format_id() %>%
-    remove_unnecesary_vars()
+    remove_unnecesary_vars() %>%
+    mutate(
+      epoch = epoch
+    )
 
   mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] <- mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] %>%
     mutate_if(
