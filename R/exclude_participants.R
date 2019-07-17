@@ -1,5 +1,7 @@
 #' Apply exclusion criteria to a data set, ideally as part of an inclusion/exclusion section of the code.
 #'
+#' @param map_id A character vector containing one or more three-digit MAP IDs.
+#' @param usable A character vector containing one or more "usable" variable names.
 #' @param diagnosis A character vector containing one or more of the following values: \code{"Dementia"}, \code{"Normal"}, \code{"Ambiguous At Risk"}, and/or \code{"MCI"}. Each diagnostic group will be removed in its own step. A value of NULL for this argument will skip this step.
 #' @param predictors A character vector containing predictor variable names. Observations with all predictors missing will be removed in one step. A value of NULL for this argument will skip this step.
 #' @param outcomes A character vector containing outcome variable names. Observations with all outcomes missing will be removed in one step. A value of NULL for this argument will skip this step.
@@ -13,10 +15,12 @@
 #' @export
 
 exclude_participants <- function(
-  diagnosis, # c("Dementia", "Ambiguous At Risk")
-  predictors, # predictors.var
-  outcomes, # outcomes.var
-  covariates, # covariates.var
+  map_id, # eg: c("001", "002")
+  usable, # eg: usable.var
+  diagnosis, # eg: c("Dementia", "Ambiguous At Risk")
+  predictors, # eg: predictors.var
+  outcomes, # eg: outcomes.var
+  covariates, # eg: covariates.var
   data,
   data_name = NULL,
   data_type # "b" for baseline or "l" for longitudinal
@@ -26,6 +30,20 @@ exclude_participants <- function(
 
   # First Step
   generate_inclusion_exclusion(step = "first", data = data.df, data_name = data_name, data_type = data_type)
+
+  # MAP ID
+  if (!is.null(map_id)) {
+    data.df <- data.df[data.df$map.id %nin% map_id, ]
+    generate_inclusion_exclusion(step = "map_id", map_id = map_id, data = data.df, data_name = data_name, data_type = data_type)
+  }
+
+  # Usable
+  if (!is.null(usable)) {
+    for (usable.i in usable) {
+      data.df <- data.df[data.df[, usable.i] %nin% 0, ]
+      generate_inclusion_exclusion(step = "usable", vars = usable.i, data = data.df, data_name = data_name, data_type = data_type)
+    }
+  }
 
   # Diagnosis
   if (!is.null(diagnosis)) {
@@ -62,16 +80,18 @@ exclude_participants <- function(
 
 #' Generate a data frame that summarizes the inclusion/exclusion criteria. This function is not intended to be explicitly called by the user.
 #'
-#' @param step An atomic character string from the following values: \code{"first"}, \code{"diagnosis"}, \code{"predictor"}, \code{"outcome"}, \code{"covariate"}, \code{"final"}.
+#' @param step An atomic character string from the following values: \code{"first"}, \code{"map_id"}, \code{"usable"}, \code{"diagnosis"}, \code{"predictor"}, \code{"outcome"}, \code{"covariate"}, \code{"final"}.
+#' @param map_id Optional. Supply only if the argument step is set to "map_id." A character vector containing one or more three-digit MAP IDs.
 #' @param diagnosis Optional. Supply only if the argument step is set to "diagnosis." An atomic character string containing one of the following values: \code{"Dementia"}, \code{"Normal"}, \code{"Ambiguous At Risk"}, \code{"MCI"}.
-#' @param vars Optional. Supply only if the argument step is set to "predictor," "outcome," or "covariate." A character vector containing the variable or variables to check for missing values.
+#' @param vars Optional. Supply only if the argument step is set to "usable", "predictor," "outcome," or "covariate." A character vector containing the variable or variables to check for missing values.
 #' @param data A data frame to which the exclusion criteria is applied.
 #' @param data_name The name of the data object to print in the output.
 #' @param data_type An atomic character string of either \code{"b"} for baseline/cross-sectional data or \code{"l"} for longitudinal data.
 #' @return A data frame named \code{flow_chart.df} containing a summary of the exclusion process.
 
 generate_inclusion_exclusion <- function(
-  step, #first, diagnosis, predictor, outcome, covariate, final
+  step, #first, map_id, usable, diagnosis, predictor, outcome, covariate, final
+  map_id = NULL, # only for step = map_id
   diagnosis = NULL, # only for step = diagnosis, eg: "Dementia"
   vars = NULL, # only for step = predictor, outcome --> this will be used to generate the descriptive text
   data,
@@ -140,6 +160,122 @@ generate_inclusion_exclusion <- function(
     new_row_id_included <- purrr::map_chr(epochs, function(x) paste0(data.df[data.df$epoch == x, "map.id"], collapse = ", "))
 
     new_row_id_excluded <- rep("", length(epochs))
+
+    new_row <- setNames(
+      c(obj, new_data_type, new_description, new_n_id, new_n_obs, new_row_ne, new_row_id_included, new_row_id_excluded),
+      column_names
+    )
+
+    if (length(new_row) != length(column_names)) { # check
+      stop("The number of elements in the new row does not match the number of columns in flow_chart.mat.\n")
+    }
+
+    flow_chart.df <<- dplyr::bind_rows(
+      flow_chart.df,
+      new_row
+    )
+  }
+
+  else if (step == "map_id") {
+
+    epochs <- as.numeric(gsub("e", "", gsub("_id_included", "", grep("_id_included", names(flow_chart.df), v = T))))
+
+    column_names <- c(
+      "obj",
+      "data_type",
+      "description",
+      'n_id',
+      "n_obs",
+      paste0("n_e", epochs),
+      paste0("e", epochs, "_id_included"),
+      paste0("e", epochs, "_id_excluded")
+    )
+
+    new_description <- paste0("Exclude participants with the following MAP IDs: ", paste0(map_id, collapse = ", "), ".")
+
+    new_n_id <- length(unique(data.df[["map.id"]]))
+
+    new_n_obs <- nrow(data.df)
+
+    new_row_ne <- purrr::map_int(epochs, function(x) nrow(data.df[data.df$epoch == x, ]))
+
+    new_row_id_included <- purrr::map_chr(epochs, function(x) paste0(data.df[data.df$epoch == x, "map.id"], collapse = ", "))
+
+    new_row_id_excluded <- purrr::map_chr(
+      epochs,
+      function(epoch.i) {
+        column_index <- 5 + # "obj", "data_type", "description", 'n_id', "n_obs"
+          length(epochs) + # paste0("n_e", epochs)
+          epoch.i
+
+        prev_id_included <- strsplit(flow_chart.df[nrow(flow_chart.df), column_index], ", ")[[1]]
+        current_id_included <- data.df[data.df$epoch == epoch.i, "map.id"]
+
+        current_id_excluded <- prev_id_included[prev_id_included %nin% current_id_included]
+
+        return(
+          paste0(current_id_excluded, collapse = ", ")
+        )
+      }
+    )
+
+    new_row <- setNames(
+      c(obj, new_data_type, new_description, new_n_id, new_n_obs, new_row_ne, new_row_id_included, new_row_id_excluded),
+      column_names
+    )
+
+    if (length(new_row) != length(column_names)) { # check
+      stop("The number of elements in the new row does not match the number of columns in flow_chart.mat.\n")
+    }
+
+    flow_chart.df <<- dplyr::bind_rows(
+      flow_chart.df,
+      new_row
+    )
+  }
+
+  else if (step == "usable") {
+
+    epochs <- as.numeric(gsub("e", "", gsub("_id_included", "", grep("_id_included", names(flow_chart.df), v = T))))
+
+    column_names <- c(
+      "obj",
+      "data_type",
+      "description",
+      'n_id',
+      "n_obs",
+      paste0("n_e", epochs),
+      paste0("e", epochs, "_id_included"),
+      paste0("e", epochs, "_id_excluded")
+    )
+
+    new_description <- paste0("Exclude participants with unusable data as coded in ", vars, ".")
+
+    new_n_id <- length(unique(data.df[["map.id"]]))
+
+    new_n_obs <- nrow(data.df)
+
+    new_row_ne <- purrr::map_int(epochs, function(x) nrow(data.df[data.df$epoch == x, ]))
+
+    new_row_id_included <- purrr::map_chr(epochs, function(x) paste0(data.df[data.df$epoch == x, "map.id"], collapse = ", "))
+
+    new_row_id_excluded <- purrr::map_chr(
+      epochs,
+      function(epoch.i) {
+        column_index <- 5 + # "obj", "data_type", "description", 'n_id', "n_obs"
+          length(epochs) + # paste0("n_e", epochs)
+          epoch.i
+
+        prev_id_included <- strsplit(flow_chart.df[nrow(flow_chart.df), column_index], ", ")[[1]]
+        current_id_included <- data.df[data.df$epoch == epoch.i, "map.id"]
+
+        current_id_excluded <- prev_id_included[prev_id_included %nin% current_id_included]
+
+        return(
+          paste0(current_id_excluded, collapse = ", ")
+        )
+      }
+    )
 
     new_row <- setNames(
       c(obj, new_data_type, new_description, new_n_id, new_n_obs, new_row_ne, new_row_id_included, new_row_id_excluded),
