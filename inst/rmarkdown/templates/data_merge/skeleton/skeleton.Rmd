@@ -88,7 +88,9 @@ data.freeze.date <- yyyymmdd # in {yyyymmdd} format
 last.data.download.date <- yyyymmdd # in {yyyymmdd} format
 last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
 # specify the memory & executive function composite file
-composite.file <- file.path(data.dir, 'rawData', 'Composite_Scores_6-14-2018.csv')
+mem.composite.file <- file.path(data.dir, 'rawData', 'Memory_Scores_20190620.rds')
+ef.composite.file <- file.path(data.dir, 'rawData', 'EF_Scores_20190620.rds')
+
 ####                                                    ####
 ##%######################################################%##
 
@@ -983,37 +985,48 @@ print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 
 # Manual Modification of Factor Levels
 
+## Re-ordering Levels in `diagnosis.factor.base`
+
 ```{r}
 merged.df <- merged.df %>%
   mutate(
-    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
-    apoe4pos.factor = forcats::fct_relevel(apoe4pos.factor, "No", "Yes")
+    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia")
   )
+```
+
+## Setting Reference to "No" for Yes/No Variables
+
+```{r}
+levels.list <- purrr::map(merged.df, levels)
+factor_var.list <- levels.list[!purrr::map_lgl(levels.list, is.null)]
+
+reference_yes.list <- factor_var.list[purrr::map(factor_var.list, 1) == "Yes"]
+
+reference_yes.var <- names(reference_yes.list)
+
+for (var.i in reference_yes.var) {
+ merged.df[[var.i]] <- relevel(merged.df[[var.i]], "No")
+}
 ```
 
 # Adding Memory and Executive Function Composite Scores
 
-These scores were provided to us in a CSV file dated June 14, 2018 by Timothy Hohman after calculating them in MPlus. We also manually set `np.memory.composite` to missing for MAP ID 209 in Epoch 1.
+These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus. We also manually set `np.memory.composite` to missing for MAP ID 209 in Epoch 1.
 
 ```{r warning = FALSE, message = FALSE}
-composite.df <- read.csv(
-  composite.file, 
-  header = TRUE
-) %>%
-  mutate(
-    map.id = as.character(formatC(map.id, width = 3, format = "d", flag = "0")),
-    epoch = as.numeric(epoch)
-  ) %>%
-  setNames(
-    ., 
-    c("map.id", "epoch", "np.memory.composite", "np.executive.composite")
-  ) %>%
-  arrange(
-    map.id, epoch
-  )
+mem.composite.df <- readRDS(mem.composite.file) %>%
+  rename(np.memory.composite = memory.composite)
+
+ef.composite.df <- readRDS(ef.composite.file) %>%
+  rename(np.executive.composite = executive.composite)
 
 merged.df %<>% left_join(
-  composite.df,
+  mem.composite.df,
+  by = c("map.id", "epoch")
+)
+
+merged.df %<>% left_join(
+  ef.composite.df,
   by = c("map.id", "epoch")
 )
 
@@ -1066,7 +1079,7 @@ merged.bh.df <- call_function("derive_manual_3T", merged.bh.df)
 merged.fm.df <- call_function("derive_manual_3T", merged.fm.df)
 ```
 
-## AD signature
+## AD Signature
 
 Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 
