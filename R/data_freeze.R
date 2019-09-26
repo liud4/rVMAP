@@ -225,6 +225,11 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     "MAPSRTErrorAnalysisEpoch1_DATA_2017-09-01_0936.csv"
   )
 
+  polygenetic.file <- file.path(
+    data.raw.dir,
+    "VMAP_PRS.rds"
+  )
+
   ###
 
   # epoch_0
@@ -246,7 +251,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
         "Antihypertensive - Calcium Channel Blockers",
         "Antihypertensive - Potasium Sparing Diuretics",
         "Antihypertensive - Other",
-        "Atrial Fibrillation Surgery"
+        "Atrial Fibrillation Surgery",
+        "Polygenetic Risk Scores"
       ),
       " (Static)"
     ),
@@ -265,7 +271,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
         "antihypCCB",
         "antihypKSD",
         "antihypOther",
-        "afibsurg"
+        "afibsurg",
+        "polygenetic"
       ),
       ".static"
     ),
@@ -285,7 +292,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       read.csv(antihypCCB.file, stringsAsFactors = FALSE),
       read.csv(antihypKSD.file, stringsAsFactors = FALSE),
       read.csv(antihypOther.file, stringsAsFactors = FALSE),
-      read.csv(afibsurg.file, stringsAsFactors = FALSE)
+      read.csv(afibsurg.file, stringsAsFactors = FALSE),
+      readRDS(polygenetic.file)
     ),
     metadata = rep("NA", 15)
   )
