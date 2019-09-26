@@ -955,7 +955,8 @@ enrollment_vars <- Cs(  # will be used as is
   apoe4pos.factor,
   raceethnicity.factor,
   usa.born.factor,
-  lang.prim.factor
+  lang.prim.factor,
+  alleles.factor
 )
 
 baseline_vars <- Cs( # will have ".base" appended to the end

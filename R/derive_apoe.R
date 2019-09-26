@@ -47,6 +47,18 @@ derive_apoe <- function(data) {
       labels = c("No", "Yes")
     )
     label(apoe2pos.factor) <- 'ApoE2+ (at least one E2 allele)'
+
+    # alleles.factor code added 20190926:
+    alleles.factor <- dplyr::case_when(
+      alleles %in% c('E2/E2', 'E2/E3') ~ 'E2/E2, E2/E3',
+      alleles %in% c('E3/E4', 'E4/E4') ~ 'E3/E4, E4/E4',
+      TRUE ~ alleles
+    )
+
+    alleles.factor <- factor(alleles.factor)
+
+    alleles.factor <- relevel(alleles.factor, ref = 'E3/E3')
+    label(alleles.factor) <- label("Genotype - Alleles")
   })
 
   return(data)
