@@ -139,11 +139,11 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     "MAPParticipantTracki_DATA_2015-08-26_1412.csv"
   )
 
-  # The APOE data
-  apoe.file <- file.path(
-    data.dir, "rawData",
-    "MAPAPOE_DATA_2015-08-26_1415.csv"
-  )
+  # # The APOE data
+  # apoe.file <- file.path(
+  #   data.dir, "rawData",
+  #   "MAPAPOE_DATA_2015-08-26_1415.csv"
+  # )
 
   # Selected data from eligibility.
   elig.file <- file.path(
@@ -233,7 +233,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     project = paste0(
       "MAP ",
       c("ABP Consent",
-        "APOE",
+        # "APOE",
         "Selected Eligibility",
         "Cholesterol",
         "Atrial Fibrillation",
@@ -252,7 +252,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     ),
     shortname = paste0(
       c("tracking",
-        "apoe",
+        # "apoe",
         "eligibility",
         "cholesterol",
         "afib",
@@ -272,7 +272,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     token = rep("static.file", 15),
     data = list(
       read.csv(track.file, stringsAsFactors = FALSE),
-      read.csv(apoe.file, stringsAsFactors = FALSE),
+      # read.csv(apoe.file, stringsAsFactors = FALSE),
       read.csv(elig.file, stringsAsFactors = FALSE),
       read.csv(chol.file, stringsAsFactors = FALSE),
       read.csv(afib.file, stringsAsFactors = FALSE),
@@ -317,7 +317,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     token = rep("static.file", 2),
     data = list(
       readRDS(abp.raw.derived.file),
-      read.csv(apoe.file, stringsAsFactors = FALSE)
+      read.csv(srt.file, stringsAsFactors = FALSE)
     ),
     metadata = rep("NA", 2)
   )
