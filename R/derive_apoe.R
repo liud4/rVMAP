@@ -20,10 +20,10 @@ derive_apoe <- function(data) {
   data <- within(data, {
     # 02 Feb 2015:  The other APOE coding schemes from Tim's 18 Nov 2014 email
     # note misspelling of alleles in varname:
-    apoe4count <- unlist(lapply(allelles, CountAlleles, "E4"))
+    apoe4count <- unlist(lapply(alleles, CountAlleles, "E4"))
     label(apoe4count) <- 'Count of ApoE E4 alleles'
 
-    apoe2count <- unlist(lapply(allelles, CountAlleles, "E2"))
+    apoe2count <- unlist(lapply(alleles, CountAlleles, "E2"))
     label(apoe2count) <- 'Count of ApoE E2 alleles'
 
     # added 19 Jan 2015, modified 02 Feb 2015
