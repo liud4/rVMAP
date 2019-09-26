@@ -582,6 +582,21 @@ merged.df %<>% left_join(
 ) 
 ```
 
+### Add Polygenetic Risk Score Data
+
+```{r}
+polygenetic.df <- MAPfreeze.list$epoch_0$data$polygenetic.static
+names(polygenetic.df) <- tolower(names(polygenetic.df))
+names(polygenetic.df)[1] <- "map_id"
+
+check_shared_vars(merged.df, polygenetic.df, 'map_id')
+
+merged.df %<>% left_join(
+  polygenetic.df,
+  by = "map_id"
+) 
+```
+
 # Format Variable Names and Apply Labels to each Variable
 
 ```{r}
