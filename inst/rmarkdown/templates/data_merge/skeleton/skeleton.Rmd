@@ -82,15 +82,11 @@ data.dir <- file.path(vmac.dir, "DATA", "MAP")
 # quarterly scheduled merge, TRUE; off-cycle merge, FALSE
 quarterly.download <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to use for merging
-download.data <- TRUE
+download.data <- FALSE
 data.freeze.date <- yyyymmdd # in {yyyymmdd} format
 # modify both of these variables to specify a specific data merge file to compare the new one with
 last.data.download.date <- yyyymmdd # in {yyyymmdd} format
 last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
-# specify the memory & executive function composite file
-mem.composite.file <- file.path(data.dir, 'rawData', 'Memory_Scores_20190620.rds')
-ef.composite.file <- file.path(data.dir, 'rawData', 'EF_Scores_20190620.rds')
-
 ####                                                    ####
 ##%######################################################%##
 
@@ -951,6 +947,10 @@ Derive, label, and add CDR conversion variables to the merged data set.
 merged.df <- call_function("derive_cdr_conversion", merged.df)
 ```
 
+```{r}
+class(merged.df) <- "data.frame"
+```
+
 # Manual Invalidation
 
 In this section, we will run scripts to invalidate certain neuropsychological variables for certain individuals as requested by VMAC.
@@ -1038,13 +1038,13 @@ for (var.i in reference_yes.var) {
 
 # Adding Memory and Executive Function Composite Scores
 
-These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus. We also manually set `np.memory.composite` to missing for MAP ID 209 in Epoch 1.
+These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
 
 ```{r warning = FALSE, message = FALSE}
-mem.composite.df <- readRDS(mem.composite.file) %>%
+mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
   rename(np.memory.composite = memory.composite)
 
-ef.composite.df <- readRDS(ef.composite.file) %>%
+ef.composite.df <- MAPfreeze.list$epoch_0$data$np.executive.composite.static %>%
   rename(np.executive.composite = executive.composite)
 
 merged.df %<>% left_join(
@@ -1059,12 +1059,6 @@ merged.df %<>% left_join(
 
 label(merged.df$np.memory.composite) <- 'Memory Composite'
 label(merged.df$np.executive.composite) <- 'EF Composite'
-```
-
-## Manual Invalidation
-
-```{r}
-merged.df[merged.df$map.id == "209" & merged.df$epoch == 1, 'np.memory.composite'] <- NA
 ```
 
 # Separating Breath Hold and Face Mask Data Sets
@@ -1118,6 +1112,11 @@ merged.fm.df <- derive_AD_signature(merged.fm.df)
 # Saving the Final Data
 
 We will save the Face Mask and Breath Hold data sets to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory as RDS and CSV files.
+
+```{r}
+class(merged.bh.df) <- "data.frame"
+class(merged.fm.df) <- "data.frame"
+```
 
 ```{r, save-data}
 saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))
@@ -1193,7 +1192,7 @@ prev.e1.df <- prev.bh.df %>%
   select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
-e1.comparison <- compare(
+e1.comparison <- comparedf(
   current.e1.df, prev.e1.df, 
   by = c("map.id", "epoch"),
   int.as.num = TRUE,
@@ -1243,7 +1242,7 @@ prev.e2.df <- prev.bh.df %>%
   select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
-e2.comparison <- compare(
+e2.comparison <- comparedf(
   current.e2.df, prev.e2.df, 
   by = c("map.id", "epoch"),
   int.as.num = TRUE,
@@ -1292,7 +1291,7 @@ prev.e3.df <- prev.bh.df %>%
   select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
-e3.comparison <- compare(
+e3.comparison <- comparedf(
   current.e3.df, prev.e3.df, 
   by = c("map.id", "epoch"),
   int.as.num = TRUE,
@@ -1342,7 +1341,7 @@ prev.e4.df <- prev.bh.df %>%
   select_if(~ !all(is.na(.))) %>%
   droplevels.data.frame()
 
-e4.comparison <- compare(
+e4.comparison <- comparedf(
   current.e4.df, prev.e4.df, 
   by = c("map.id", "epoch"),
   int.as.num = TRUE,
