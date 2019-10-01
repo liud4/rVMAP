@@ -123,7 +123,7 @@ process_eligibility <- function(elig_data) {
 
   dataToKeep <- within(dataToKeep, {
     cdr = as.character(as.numeric(cdr))
-    cdr_boxes = as.character(as.numeric(cdr_boxes))
+    cdr_boxes = as.character(as.numeric(cdr_boxes)) # should be numeric
     cdr_mem = as.character(as.numeric(cdr_mem))
     cdr_orient = as.character(as.numeric(cdr_orient))
     cdr_judg = as.character(as.numeric(cdr_judg))
@@ -140,7 +140,17 @@ process_eligibility <- function(elig_data) {
     label(np_tmtb_trun) <- "Trails B time (s), truncated, from Eligibility"
   })
 
-  names(dataToKeep) <- c("map_id", paste0(keep.vars, "_elig"))
+  dataToKeep$cdr_factor <- factor(dataToKeep$cdr, levels = sort(unique(dataToKeep$cdr)))
+  dataToKeep$cdr_mem_factor = factor(dataToKeep$cdr_mem, levels = sort(unique(dataToKeep$cdr_mem)))
+  dataToKeep$cdr_orient_factor = factor(dataToKeep$cdr_orient, levels = sort(unique(dataToKeep$cdr_orient)))
+  dataToKeep$cdr_judg_factor = factor(dataToKeep$cdr_judg, levels = sort(unique(dataToKeep$cdr_judg)))
+  dataToKeep$cdr_affairs_factor = factor(dataToKeep$cdr_affairs, levels = sort(unique(dataToKeep$cdr_affairs)))
+  dataToKeep$cdr_hobbies_factor = factor(dataToKeep$cdr_hobbies, levels = sort(unique(dataToKeep$cdr_hobbies)))
+  dataToKeep$cdr_care_factor = factor(dataToKeep$cdr_care, levels = sort(unique(dataToKeep$cdr_care)))
+
+  dataToKeep$cdr_boxes <- as.numeric(dataToKeep$cdr_boxes)
+
+  names(dataToKeep) <- c("map_id", paste0(setdiff(names(dataToKeep), "map_id"), "_elig"))
 
   dataToKeep <- invalidate_neuropsych_eligibility(dataToKeep)
   dataToKeep <- invalidate_color_blind(dataToKeep)
