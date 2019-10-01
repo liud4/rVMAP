@@ -2,7 +2,7 @@
 #'
 #' @param box.dir User path to Box home directory (parent directory of "VMAC BIOSTAT").
 #' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the data freeze save location.
-#' @param tokens.list The decrypted list of databases and API tokens to download from REDCap.
+#' @param tokens.list The list of databases and API tokens to download from REDCap.
 #' @param redcap.api.uri The URI for the REDCap API
 #' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData" or "rawData/temp", depending on the value of \code{quarterly.download})
 #' @param return A logical value indicating whether to return the output.
@@ -16,7 +16,7 @@
 
 data_freeze <- function(box.dir = file.path("~", "box"),
                         quarterly.download,
-                        tokens.list = secret::get_secret(name = "MAP_redcap_tokens.secret"),
+                        tokens.list,
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
                         save = TRUE,
                         return = TRUE) {
@@ -225,6 +225,16 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     "MAPSRTErrorAnalysisEpoch1_DATA_2017-09-01_0936.csv"
   )
 
+  np.memory.composite.file <- file.path(
+    dara.raw.dir,
+    "Memory_Scores_20190620.rds"
+  )
+
+  np.executive.composite.file <- file.path(
+    data.raw.dir,
+    "EF_Scores_20190620.rds"
+  )
+
   polygenetic.file <- file.path(
     data.raw.dir,
     "VMAP_PRS.rds"
@@ -252,6 +262,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
         "Antihypertensive - Potasium Sparing Diuretics",
         "Antihypertensive - Other",
         "Atrial Fibrillation Surgery",
+        "Neuropsych - Memory Composite",
+        "Neuropsych - EF Composite",
         "Polygenetic Risk Scores"
       ),
       " (Static)"
@@ -272,11 +284,13 @@ data_freeze <- function(box.dir = file.path("~", "box"),
         "antihypKSD",
         "antihypOther",
         "afibsurg",
+        "np.memory.composite",
+        "np.executive.composite",
         "polygenetic"
       ),
       ".static"
     ),
-    token = rep("static.file", 15),
+    token = rep("static.file", 17),
     data = list(
       read.csv(track.file, stringsAsFactors = FALSE),
       # read.csv(apoe.file, stringsAsFactors = FALSE),
@@ -293,6 +307,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       read.csv(antihypKSD.file, stringsAsFactors = FALSE),
       read.csv(antihypOther.file, stringsAsFactors = FALSE),
       read.csv(afibsurg.file, stringsAsFactors = FALSE),
+      readRDS(np.memory.composite.file),
+      readRDS(np.executive.composite.file),
       readRDS(polygenetic.file)
     ),
     metadata = rep("NA", 15)
