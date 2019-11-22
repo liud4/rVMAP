@@ -1,15 +1,6 @@
-# merged.df <- readRDS("/Users/khanoa/box/VMAC BIOSTAT/DATA/MAP/mergedData/MAP_bh_d20190903_m20190903.rds")
-#
-# data.df <- merged.df[merged.df$epoch == 1, ]
-# data.df <- droplevels(data.df[data.df$diagnosis.factor.base %nin% "Dementia", ])
-# group <- c("diagnosis.factor.base", "apoe4pos.factor")
-#
-# varA <- c("np.moca", "np.bnt")
-# varB <- c("np.moca", "np.bnt", "np.biber.discrim", "np.memory.composite")
-
 calc_corr <- function(data, varA, varB, type) {
   if (varA == varB) {
-    output <- data.frame(
+    output.df <- data.frame(
       varA = varA,
       varB = varB,
       r = NA_real_,
@@ -25,7 +16,7 @@ calc_corr <- function(data, varA, varB, type) {
 
     x <- Hmisc::rcorr(temp.df, type = type)
 
-    output <- data.frame(
+    output.df <- data.frame(
       varA = varA,
       varB = varB,
       r = as.numeric(x[["r"]][1, 2]),
@@ -36,62 +27,84 @@ calc_corr <- function(data, varA, varB, type) {
     )
   }
 
-  return(output)
+  return(output.df)
 }
 
-pairwise_correlation <- function(data = mydat, varA = predictors.var, varB = descriptive.var, group = "diagnosis.factor.base", type = "spearman", output = "DT") {
+pairwise_correlation <- function(data = mydat, varA = predictors.var, varB = descriptive.var, group = "diagnosis.factor.base", type = "spearman", df = FALSE) {
   varA <- setdiff(varA, group)
   varB <- setdiff(varB, group)
   varB <- unique(c(varA, varB))
 
+  data.df <- clear_labels(data[, c(varB, group)])
+
   pairwise_vars.df <- expand.grid(varA = varA, varB = varB, stringsAsFactors = FALSE)
   pairwise_vars.df <- pairwise_vars.df[order(match(pairwise_vars.df$varA, varA)), ]
 
-  data.df <- clear_labels(data[, c(varB, group)])
+  data.list <- lapply(group, function (x) split(data.df, data.df[[x]]))
 
-  data.list <- sapply(group, function (x) split(data.df, data.df[[x]]))
+  names(data.list) <- group
 
-  output_names.str <- c("Overall", unname(unlist(data.list)))
+  overall.list <- list(
+    Overall = list(
+      Overall = purrr::map2_df(
+        .x = pairwise_vars.df$varA,
+        .y = pairwise_vars.df$varB,
+        ~ calc_corr(data = data.df, varA = .x, varB = .y, type = type)
+      )
+    )
+  )
 
-  cor.list <- map(
-    levels.list,
+  cor.list <- purrr::map(
+    data.list,
     function (sublist) {
-      map(
+      purrr::map(
         sublist,
-        function (df) {
-          map2_df(
+        function (subset) {
+          purrr::map2_df(
             .x = pairwise_vars.df$varA,
             .y = pairwise_vars.df$varB,
-            ~ calc_corr(data = df, varA = .x, varB = .y, type = "spearman")
+            ~ calc_corr(data = subset, varA = .x, varB = .y, type = type)
           )
         }
       )
     }
   )
 
-  cor.df <- bind_rows(map(cor.list, function(sublist) { bind_rows(sublist, .id = "level") }), .id = "group")
+  cor.list <- c(
+    overall.list,
+    cor.list
+  )
 
-  return(cor.df)
-}
+  cor.df <- bind_rows(
+    purrr::map(
+      cor.list,
+      function(sublist) {
+        bind_rows(sublist, .id = "level")
+      }
+    ),
+    .id = "group"
+  ) %>%
+    mutate(
+      label = paste0(group, "_", level)
+    )
 
-format_correlation_table <- function(cor.list = cor.list) {
-  # sketch = htmltools::withTags(table(
-  #   class = 'display',
-  #   thead(
-  #     tr(
-  #       th(rowspan = 2, 'Independent Variable'),
-  #       th(rowspan = 2, 'Dependent Variable'),
-  #       th(colspan = 3, 'Overall'),
-  #       th(colspan = 3, 'Normal'),
-  #       th(colspan = 3, 'Ambiguous At Risk'),
-  #       th(colspan = 3, 'MCI')
-  #     ),
-  #     tr(
-  #       lapply(rep(c('r', 'p', 'N'), 4), th)
-  #     )
-  #   )
-  # ))
+  names.df <- expand.grid(c("r_", "p_", "n_"), unique(cor.df[["label"]]), stringsAsFactors = FALSE) %>%
+    mutate(
+      colname = paste0(Var1, Var2)
+    )
 
-  tidyr::pivot_wider(cor.df[, names(cor.df) %nin% "group"], names_from = level, values_from = c(r, p, n))
+  output.df <- tidyr::pivot_wider(
+    cor.df[, names(cor.df) %nin% c("group", "level")],
+    names_from = label,
+    values_from = c(r, p, n)
+  )
+
+  if (isTRUE(df)) {
+    output.df <- as.data.frame(output.df)
+  }
+
+  return(
+    output.df[, c("varA", "varB", names.df$colname)]
+  )
 
 }
