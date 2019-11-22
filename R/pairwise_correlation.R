@@ -75,21 +75,21 @@ pairwise_correlation <- function(data = mydat, varA = predictors.var, varB = des
     cor.list
   )
 
-  cor.df <- bind_rows(
+  cor.df <- dplyr::bind_rows(
     purrr::map(
       cor.list,
       function(sublist) {
-        bind_rows(sublist, .id = "level")
+        dplyr::bind_rows(sublist, .id = "level")
       }
     ),
     .id = "group"
   ) %>%
-    mutate(
+    dplyr::mutate(
       label = paste0(group, "_", level)
     )
 
   names.df <- expand.grid(c("r_", "p_", "n_"), unique(cor.df[["label"]]), stringsAsFactors = FALSE) %>%
-    mutate(
+    dplyr::mutate(
       colname = paste0(Var1, Var2)
     )
 
