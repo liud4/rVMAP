@@ -5,16 +5,15 @@
 \title{Freeze data by downloading it from REDCap. Static data sets are also added to the list object. The API tokens must be unlocked from a secure, encrypted vault.}
 \usage{
 data_freeze(box.dir = file.path("~", "box"), quarterly.download,
-  tokens.list = secret::get_secret(name = "MAP_redcap_tokens.secret"),
-  redcap.api.uri = "https://redcap.vanderbilt.edu/api/", save = TRUE,
-  return = TRUE)
+  tokens.list, redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
+  save = TRUE, return = TRUE)
 }
 \arguments{
 \item{box.dir}{User path to Box home directory (parent directory of "VMAC BIOSTAT").}
 
 \item{quarterly.download}{A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the data freeze save location.}
 
-\item{tokens.list}{The decrypted list of databases and API tokens to download from REDCap.}
+\item{tokens.list}{The list of databases and API tokens to download from REDCap.}
 
 \item{redcap.api.uri}{The URI for the REDCap API}
 
