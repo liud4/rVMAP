@@ -90,6 +90,7 @@ last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
 
 mem.composite.file <- file.path(data.dir, 'rawData', 'Memory_Scores_20190620.rds')
 ef.composite.file <- file.path(data.dir, 'rawData', 'EF_Scores_20190620.rds')
+map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variablesunusable.xlsx")
 ####                                                    ####
 ##%######################################################%##
 
@@ -596,6 +597,17 @@ merged.df %<>% left_join(
 ) 
 ```
 
+# Manual Invalidation: Pre-Derivation
+
+MAP ID 163 has a set of variables invalidated due to the presence of a cyst.
+
+```{r}
+map_163_invalid_variables.vec <- readxl::read_excel(map_163_invalidation.file) %>%
+  pull(., 1)
+
+merged.df[merged.df$map_id == "163", map_163_invalid_variables.vec] <- NA
+```
+
 # Format Variable Names and Apply Labels to each Variable
 
 ```{r}
@@ -954,9 +966,9 @@ merged.df <- call_function("derive_cdr_conversion", merged.df)
 class(merged.df) <- "data.frame"
 ```
 
-# Manual Invalidation
+# Manual Invalidation: Post-Derivation
 
-In this section, we will run scripts to invalidate certain neuropsychological variables for certain individuals as requested by VMAC.
+In this section, we will run scripts to invalidate variables for certain individuals as requested by VMAC.
 
 ```{r}
 merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
