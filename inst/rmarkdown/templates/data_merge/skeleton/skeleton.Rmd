@@ -87,6 +87,9 @@ data.freeze.date <- yyyymmdd # in {yyyymmdd} format
 # modify both of these variables to specify a specific data merge file to compare the new one with
 last.data.download.date <- yyyymmdd # in {yyyymmdd} format
 last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
+
+mem.composite.file <- file.path(data.dir, 'rawData', 'Memory_Scores_20190620.rds')
+ef.composite.file <- file.path(data.dir, 'rawData', 'EF_Scores_20190620.rds')
 ####                                                    ####
 ##%######################################################%##
 
@@ -1012,12 +1015,13 @@ print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 
 # Manual Modification of Factor Levels
 
-## Re-ordering Levels in `diagnosis.factor.base`
+## Re-ordering Levels in `diagnosis.factor` and `diagnosis.factor.base`
 
 ```{r}
 merged.df <- merged.df %>%
   mutate(
-    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia")
+    diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
+    diagnosis.factor = forcats::fct_relevel(diagnosis.factor, "Normal", "Ambiguous At Risk", "MCI", "Dementia")
   )
 ```
 
@@ -1041,11 +1045,17 @@ for (var.i in reference_yes.var) {
 These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
 
 ```{r warning = FALSE, message = FALSE}
-mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
-  rename(np.memory.composite = memory.composite)
+mem.composite.df <- readRDS(mem.composite.file) %>%
+  rename(np.memory.composite = memory.composite) %>%
+  mutate(
+    epoch = as.numeric(epoch)
+  )
 
-ef.composite.df <- MAPfreeze.list$epoch_0$data$np.executive.composite.static %>%
-  rename(np.executive.composite = executive.composite)
+ef.composite.df <- readRDS(ef.composite.file) %>%
+  rename(np.executive.composite = executive.composite) %>%
+  mutate(
+    epoch = as.numeric(epoch)
+  )
 
 merged.df %<>% left_join(
   mem.composite.df,
