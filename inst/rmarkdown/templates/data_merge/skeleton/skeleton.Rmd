@@ -88,8 +88,6 @@ data.freeze.date <- yyyymmdd # in {yyyymmdd} format
 last.data.download.date <- yyyymmdd # in {yyyymmdd} format
 last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
 
-mem.composite.file <- file.path(data.dir, 'rawData', 'Memory_Scores_20190620.rds')
-ef.composite.file <- file.path(data.dir, 'rawData', 'EF_Scores_20190620.rds')
 map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variablesunusable.xlsx")
 ####                                                    ####
 ##%######################################################%##
@@ -537,10 +535,27 @@ factors_to_unify.var <- NULL
 ```{r coerce-stack-epoch123-epoch4}
 merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
 
-merged.df[, Cs(mlta01, psqi_time_sleep, psqi_hrs_sleep, famhx01_age_ptp, famhx02_age_ptp, famhx01_age_inf, famhx02_age_inf, famhx03_age_inf, actigraph_day1_mins, actigraph_day2_mins, actigraph_day3_mins, actigraph_day4_mins, actigraph_day5_mins, actigraph_day6_mins, actigraph_day7_mins, actigraph_day8_mins, actigraph_day9_mins, actigraph_day10_mins, actigraph_day11_mins, echo_sbp2, echo_tissue_dop_e_med, echo_mv_dt, echo_stroke_vol_vti, cmr_findings_pulse, cmr_findings_dbp, cmr_lvedv, cmr_rvedd, cmr_ascending_ao_max_area, np_pvltrecog_falsepos, np_3digits_span, np_3digits_intrus, np_3digits_cap, np_3digits_frontal, np_3digits_errors, np_3digits_btcfor, np_3digits_btcback)] <- sapply(merged.df[, Cs(mlta01, psqi_time_sleep, psqi_hrs_sleep, famhx01_age_ptp, famhx02_age_ptp, famhx01_age_inf, famhx02_age_inf, famhx03_age_inf, actigraph_day1_mins, actigraph_day2_mins, actigraph_day3_mins, actigraph_day4_mins, actigraph_day5_mins, actigraph_day6_mins, actigraph_day7_mins, actigraph_day8_mins, actigraph_day9_mins, actigraph_day10_mins, actigraph_day11_mins, echo_sbp2, echo_tissue_dop_e_med, echo_mv_dt, echo_stroke_vol_vti, cmr_findings_pulse, cmr_findings_dbp, cmr_lvedv, cmr_rvedd, cmr_ascending_ao_max_area, np_pvltrecog_falsepos, np_3digits_span, np_3digits_intrus, np_3digits_cap, np_3digits_frontal, np_3digits_errors, np_3digits_btcfor, np_3digits_btcback)], as.numeric)
+merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)] <- sapply(merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)], as.numeric)
 ```
 
 ## Merge Additional Epoch-Independent Data {.tabset .tabset-fade .tabset-pills}
+
+### Add APOE Genetic Data
+
+```{r}
+apoe.df <- MAPfreeze.list$epoch_0$data$apoe %>%
+  select(
+    map_id, rs429358_allele, rs7412_allele, alleles
+  ) %>%
+  format_id()
+
+check_shared_vars(merged.df, apoe.df, 'map_id')
+
+merged.df %<>% left_join(
+  apoe.df,
+  by = "map_id"
+) 
+```
 
 ### Add ABPM Consent Data
 
@@ -760,6 +775,12 @@ for (var.i in labels.df$field_name) {
 }
 
 label(merged.df$epoch) <- "Epoch"
+```
+
+The following variables do not have labels (this list excludes variables with the words 'complete', '...', or 'score'):
+
+```{r}
+sort(grep("complete|\\.\\.\\.|score", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v= T, invert = T))
 ```
 
 # Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
@@ -982,7 +1003,7 @@ enrollment_vars <- Cs(  # will be used as is
   dob,
   education,
   sex.factor,
-  apoe4pos.factor,
+  #apoe4pos.factor,
   raceethnicity.factor,
   usa.born.factor,
   lang.prim.factor,
@@ -1015,7 +1036,7 @@ for (vname in baseline_vars) {
 
 names(to_repeat.df) <- c('map.id', enrollment_vars, paste0(baseline_vars, ".base"))
 
-merged.df <- merged.df[, !(names(merged.df) %in% enrollment_vars)] %>% 
+merged.df <- merged.df[, names(merged.df)[!names(merged.df) %in% enrollment_vars]] %>% 
   left_join(
     to_repeat.df,
     by = "map.id"
@@ -1057,13 +1078,13 @@ for (var.i in reference_yes.var) {
 These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
 
 ```{r warning = FALSE, message = FALSE}
-mem.composite.df <- readRDS(mem.composite.file) %>%
+mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
   rename(np.memory.composite = memory.composite) %>%
   mutate(
     epoch = as.numeric(epoch)
   )
 
-ef.composite.df <- readRDS(ef.composite.file) %>%
+ef.composite.df <- MAPfreeze.list$epoch_0$data$np.executive.composite.static %>%
   rename(np.executive.composite = executive.composite) %>%
   mutate(
     epoch = as.numeric(epoch)
