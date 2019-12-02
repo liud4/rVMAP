@@ -1,21 +1,19 @@
 #' Freeze data by downloading it from REDCap. Static data sets are also added to the list object. The API tokens must be unlocked from a secure, encrypted vault.
 #'
 #' @param box.dir User path to Box home directory (parent directory of "VMAC BIOSTAT").
-#' @param quarterly.download A logical value indicating whether this is a regularly scheduled download or if it is off-cycle (\code{scheduled download = TRUE}; \code{interim download = FALSE}). This variable determines the data freeze save location.
 #' @param tokens.list The list of databases and API tokens to download from REDCap.
 #' @param redcap.api.uri The URI for the REDCap API
-#' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData" or "rawData/temp", depending on the value of \code{quarterly.download})
+#' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData")
 #' @param return A logical value indicating whether to return the output.
 #' @return A comprehensive list object containing all the raw data necessary to perform a data merge.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' MAPfreeze_interim.list <- data_freeze(quarterly.download = FALSE, save = TRUE, return = TRUE)
+#' MAPfreeze_interim.list <- data_freeze(save = TRUE, return = TRUE)
 #' }
 
 data_freeze <- function(box.dir = file.path("~", "box"),
-                        quarterly.download,
                         tokens.list,
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
                         save = TRUE,
@@ -26,11 +24,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   data.dir <- file.path(vmac.dir, "DATA", "MAP")
   med.dir <- file.path(data.dir, "Medication")
   surg.dir <- file.path(data.dir, "Surgeries")
-  data.raw.dir <- ifelse(
-    quarterly.download,
-    file.path(data.dir, "rawData"),
-    file.path(data.dir, "rawData", "temp")
-  )
+  data.raw.dir <- file.path(data.dir, "rawData")
 
   # set timezone
   Sys.setenv(TZ = "US/Central")
@@ -91,24 +85,34 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       names(MAPfreeze.list[[epoch]][["token"]]) <-
       list.names
 
-    for (index.token in 1:length(MAPfreeze.list[[epoch]][["token"]])){
+    for (index.token in 1:length(MAPfreeze.list[[epoch]][["token"]])) {
+
       current.shortname <- MAPfreeze.list[[epoch]][["shortname"]][index.token]
       current.token <- MAPfreeze.list[[epoch]][["token"]][index.token]
-      df <- meta.df <- NULL
 
       # grab data
-      df <- REDCapR::redcap_read_oneshot(
-        redcap_uri = redcap.api.uri,
-        token = current.token,
-        raw_or_label = "raw",
-        verbose = FALSE
-      )$data
+      if (grepl("4", epoch) && index.token %in% c(2, 4)) {
+        df <- NA
 
-      meta.df <- REDCapR::redcap_metadata_read(
-        redcap_uri = redcap.api.uri,
-        token = current.token,
-        verbose = FALSE
-      )$data
+        meta.df <- REDCapR::redcap_metadata_read(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          verbose = FALSE
+        )$data
+      } else {
+        df <- REDCapR::redcap_read_oneshot(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          raw_or_label = "raw",
+          verbose = FALSE
+        )$data
+
+        meta.df <- REDCapR::redcap_metadata_read(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          verbose = FALSE
+        )$data
+      }
 
       # save data
       MAPfreeze.list[[epoch]][["data"]][[current.shortname]] <- df
@@ -226,7 +230,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   )
 
   np.memory.composite.file <- file.path(
-    dara.raw.dir,
+    data.raw.dir,
     "Memory_Scores_20190620.rds"
   )
 
@@ -311,7 +315,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       readRDS(np.executive.composite.file),
       readRDS(polygenetic.file)
     ),
-    metadata = rep("NA", 15)
+    metadata = rep("NA", 17)
   )
 
   names(static.list.0[["token"]]) <- static.list.0$shortname
