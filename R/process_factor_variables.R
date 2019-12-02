@@ -24,7 +24,7 @@ process_factor_variables <- function(data, data_label, epoch = current_epoch) {
       for (factor_var.i in metadata.df$field_name) {
         # current_var <- metadata.df[factor_var.i, "field_name"]
         current_var <- factor_var.i
-        levels.list <- as.list(REDCapR::checkbox_choices(metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"]))
+        levels.list <- as.list(REDCapR::checkbox_choices(pull(metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"])))
         # levels.list$id <- as.character(1 + as.numeric(levels.list$id))
 
         # current_data.df[, current_var] <- factor(current_data.df[, current_var], levels = levels.list$id, labels = levels.list$label)

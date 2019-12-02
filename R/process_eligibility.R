@@ -5,6 +5,7 @@
 #' @export
 
 process_eligibility <- function(elig_data) {
+
   elig_data %<>% mutate_if(
     ~ any(class(.) %in% c("numeric", "integer")),
     ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
@@ -119,7 +120,7 @@ process_eligibility <- function(elig_data) {
 
   dataToKeep <- elig_data[, c("map_id", keep.vars)]
 
-  dataToKeep <- process_factor_variables(data = dataToKeep, data_label = "eligibility", epoch = 0)
+  dataToKeep <- process_factor_variables(data = dataToKeep, data_label = "eligibility", epoch = "epoch_0")
 
   dataToKeep <- within(dataToKeep, {
     # cdr = as.character(as.numeric(cdr))

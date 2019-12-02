@@ -5,6 +5,7 @@
 #' @export
 
 derive_apoe <- function(data) {
+
   CountAlleles <- function(string, allele) {
     ifelse(
       is.na(string),
@@ -17,49 +18,47 @@ derive_apoe <- function(data) {
     )
   }
 
-  data <- within(data, {
-    # 02 Feb 2015:  The other APOE coding schemes from Tim's 18 Nov 2014 email
-    # note misspelling of alleles in varname:
-    apoe4count <- unlist(lapply(alleles, CountAlleles, "E4"))
-    label(apoe4count) <- 'Count of ApoE E4 alleles'
+  # 02 Feb 2015:  The other APOE coding schemes from Tim's 18 Nov 2014 email
+  # note misspelling of alleles in varname:
+  data$apoe4count <- unlist(lapply(data$alleles, CountAlleles, "E4"))
+  label(data$apoe4count) <- 'Count of ApoE E4 alleles'
 
-    apoe2count <- unlist(lapply(alleles, CountAlleles, "E2"))
-    label(apoe2count) <- 'Count of ApoE E2 alleles'
+  data$apoe2count <- unlist(lapply(data$alleles, CountAlleles, "E2"))
+  label(data$apoe2count) <- 'Count of ApoE E2 alleles'
 
-    # added 19 Jan 2015, modified 02 Feb 2015
-    apoe4pos <- ifelse(is.na(apoe4count), NA, as.numeric(apoe4count > 0))
-    label(apoe4pos) <- 'ApoE4+ (at least one E4 allele)'
+  # added 19 Jan 2015, modified 02 Feb 2015
+  data$apoe4pos <- ifelse(is.na(data$apoe4count), NA, as.numeric(data$apoe4count > 0))
+  label(data$apoe4pos) <- 'ApoE4+ (at least one E4 allele)'
 
-    apoe4pos.factor <- factor(
-      apoe4pos,
-      levels = c(0, 1),
-      labels = c("No", "Yes")
-    )
-    label(apoe4pos.factor) <- 'ApoE4+ (at least one E4 allele)'
+  data$apoe4pos.factor <- factor(
+    data$apoe4pos,
+    levels = c(0, 1),
+    labels = c("No", "Yes")
+  )
+  label(data$apoe4pos.factor) <- 'ApoE4+ (at least one E4 allele)'
 
-    # and 02 Feb 2015:  The other schemes from Tim's 18 Nov 2014 email, cont'd
-    apoe2pos <- ifelse(is.na(apoe2count), NA, as.numeric(apoe2count > 0))
-    label(apoe2pos) <- 'ApoE2+ (at least one E2 allele)'
+  # and 02 Feb 2015:  The other schemes from Tim's 18 Nov 2014 email, cont'd
+  data$apoe2pos <- ifelse(is.na(data$apoe2count), NA, as.numeric(data$apoe2count > 0))
+  label(data$apoe2pos) <- 'ApoE2+ (at least one E2 allele)'
 
-    apoe2pos.factor <- factor(
-      apoe2pos,
-      levels = c(0, 1),
-      labels = c("No", "Yes")
-    )
-    label(apoe2pos.factor) <- 'ApoE2+ (at least one E2 allele)'
+  data$apoe2pos.factor <- factor(
+    data$apoe2pos,
+    levels = c(0, 1),
+    labels = c("No", "Yes")
+  )
+  label(data$apoe2pos.factor) <- 'ApoE2+ (at least one E2 allele)'
 
-    # alleles.factor code added 20190926:
-    alleles.factor <- dplyr::case_when(
-      alleles %in% c('E2/E2', 'E2/E3') ~ 'E2/E2, E2/E3',
-      alleles %in% c('E3/E4', 'E4/E4') ~ 'E3/E4, E4/E4',
-      TRUE ~ alleles
-    )
+  # alleles.factor code added 20190926:
+  data$alleles.factor <- dplyr::case_when(
+    clear_labels(data$alleles) %in% c('E2/E2', 'E2/E3') ~ 'E2/E2, E2/E3',
+    clear_labels(data$alleles) %in% c('E3/E4', 'E4/E4') ~ 'E3/E4, E4/E4',
+    TRUE ~ clear_labels(data$alleles)
+  )
 
-    alleles.factor <- factor(alleles.factor)
+  data$alleles.factor <- factor(data$alleles.factor)
 
-    alleles.factor <- relevel(alleles.factor, ref = 'E3/E3')
-    label(alleles.factor) <- label("Genotype - Alleles")
-  })
+  data$alleles.factor <- relevel(data$alleles.factor, ref = 'E3/E3')
+  label(data$alleles.factor) <- label("Genotype - Alleles")
 
   return(data)
 }

@@ -11,12 +11,7 @@ Authors@R: c(
       role = "aut"),
     person("Vanderbilt University Medical Center", 
       role = "cph"))
-Description: The rVMAP package is intended to improve the efficiency and reproducibility of data processing 
-and statistical analysis for the Vanderbilt Memory and Alzheimer's Center’s Vanderbilt Memory and Aging 
-Project (VMAP). rVMAP is intended for internal use and contains 1) functions that are commonly used in 
-statistical analysis for VMAP research, and 2) scripts to automate the highly complex quarterly download, 
-merge, processing, derivation, validation, and version control of a master dataset consisting of over 
-7000 variables at 4 time points for 336 participants.
+Description: The rVMAP package is intended to improve the efficiency and reproducibility of data processing and statistical analysis for the Vanderbilt Memory and Alzheimer's Center’s Vanderbilt Memory and Aging Project (VMAP). rVMAP is intended for internal use and contains 1) functions that are commonly used in statistical analysis for VMAP research, and 2) scripts to automate the highly complex quarterly download, merge, processing, derivation, validation, and version control of a master dataset consisting of over 7000 variables at 4 time points for 336 participants.
 URL: https://github.com/liud4/rVMAP
 BugReports: https://github.com/liud4/rVMAP/issues
 License: file LICENSE
