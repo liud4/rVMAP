@@ -1,28 +1,14 @@
 #' Derive, label, and add cardiac MRI variables to the merged data set.
 #'
-#' This function requires the variable `bsa` which is created in \code{derive_med_hx()}.
-#'
 #' @param data A data frame containing VMAC variables.
 #' @return \code{data} with added cardiac MRI variables.
 #' @export
 
 derive_cardiac_mri <- function(data) {
   data <- within(data, {
-    #Setting Factors(will create new variable for factors)
-    qmass.usable.factor = factor(qmass.usable, levels = c("1", "0"))
-    qmass.complete.factor = factor(qmass.complete, levels = c("0", "1", "2"))
-    qstrain.usable.factor = factor(qstrain.usable, levels = c("1", "0"))
-    qstrain.complete.factor = factor(qstrain.complete, levels = c("0", "1", "2"))
-    pwv.usable.factor = factor(pwv.usable, levels = c("1", "0"))
-    pulse.wave.velocity.complete.factor = factor(pulse.wave.velocity.complete, levels = c("0", "1", "2"))
-
-    levels(qmass.usable.factor) = c("Yes", "No")
-    levels(qmass.complete.factor) = c("Incomplete", "Unverified", "Complete")
-    levels(qstrain.usable.factor) = c("Yes", "No")
-    levels(qstrain.complete.factor) = c("Incomplete", "Unverified", "Complete")
-    levels(pwv.usable.factor) = c("Yes", "No")
-    levels(pulse.wave.velocity.complete.factor) = c("Incomplete", "Unverified", "Complete")
-
+    qmass.usable.factor <- factor(qmass.usable, levels = c(0, 1), labels = c("No", "Yes"))
+    qstrain.usable.factor <- factor(qstrain.usable, levels = c(0, 1), labels = c("No", "Yes"))
+    pwv.usable.factor <- factor(pwv.usable, levels = c(0, 1), labels = c("No", "Yes"))
   })
 
   #within(dat,{

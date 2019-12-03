@@ -33,7 +33,8 @@ derive_cdr_conversion <- function(data) {
           )
         ),
         TRUE ~ NA_character_
-      )
+      ),
+      cdr.factor = factor(cdr.factor)
     ) %>%
     ungroup()
 

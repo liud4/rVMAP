@@ -58,7 +58,7 @@ derive_apoe <- function(data) {
   data$alleles.factor <- factor(data$alleles.factor)
 
   data$alleles.factor <- relevel(data$alleles.factor, ref = 'E3/E3')
-  label(data$alleles.factor) <- label("Genotype - Alleles")
+  label(data$alleles.factor) <- "Genotype - Alleles"
 
   return(data)
 }

@@ -614,13 +614,19 @@ merged.df %<>% left_join(
 
 # Manual Invalidation: Pre-Derivation
 
-MAP ID 163 has a set of variables invalidated due to the presence of a cyst.
+MAP ID 163 has a set of variables to be invalidated due to the presence of a brain cyst.
 
 ```{r}
 map_163_invalid_variables.vec <- readxl::read_excel(map_163_invalidation.file) %>%
   pull(., 1)
 
 merged.df[merged.df$map_id == "163", map_163_invalid_variables.vec] <- NA
+```
+
+MAP IDs 028, 033, 131, 169, 176, 201 require color-related variables to be invalidated due to color blindness.
+
+```{r}
+merged.df <- call_function("invalidate_color_blind", merged.df)
 ```
 
 # Format Variable Names and Apply Labels to each Variable
@@ -863,6 +869,22 @@ cmr.findings.rhythm.normal <- c(
 merged.df <- call_function("derive_medical_hx", merged.df)
 ```
 
+## Cardiac MRI
+
+Derive, label, and add CMR variables to the merged data set.
+
+```{r, derive-cmr}
+merged.df <- call_function("derive_cardiac_mri", merged.df)
+```
+
+## Thigh
+
+Derive, label, and add thigh variables to the merged data set.
+
+```{r, derive-cmr}
+merged.df <- call_function("derive_thigh", merged.df)
+```
+
 ## Cardiac Structure
 
 Derive, label, and add cardiac structure variables to the merged data set.
@@ -989,21 +1011,20 @@ class(merged.df) <- "data.frame"
 
 # Manual Invalidation: Post-Derivation
 
-In this section, we will run scripts to invalidate variables for certain individuals as requested by VMAC.
+In this section, we will invalidate certain derived variables for specified individuals as requested by VMAC.
 
 ```{r}
 merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
-merged.df <- call_function("invalidate_color_blind", merged.df)
 ```
 
 # Repeating Baseline Variables in Each Epoch
 
 ```{r repeatBaseline}
-enrollment_vars <- Cs(  # will be used as is
+enrollment_vars <- Cs(
   dob,
   education,
   sex.factor,
-  #apoe4pos.factor,
+  apoe4pos.factor,
   raceethnicity.factor,
   usa.born.factor,
   lang.prim.factor,
@@ -1030,8 +1051,8 @@ baseline_vars <- Cs( # will have ".base" appended to the end
 
 to_repeat.df <- merged.df[merged.df$epoch %in% 1, c('map.id', enrollment_vars, baseline_vars)]
 
-for (vname in baseline_vars) {
-  label(to_repeat.df[[vname]]) <- paste0(label(to_repeat.df[[vname]]), ", from Enrollment")
+for (var.i in baseline_vars) {
+  label(to_repeat.df[[var.i]]) <- paste0(label(to_repeat.df[[var.i]]), ", from Enrollment")
 }
 
 names(to_repeat.df) <- c('map.id', enrollment_vars, paste0(baseline_vars, ".base"))
