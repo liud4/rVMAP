@@ -1024,7 +1024,7 @@ enrollment_vars <- Cs(
   dob,
   education,
   sex.factor,
-  apoe4pos.factor,
+  # apoe4pos.factor,
   raceethnicity.factor,
   usa.born.factor,
   lang.prim.factor,
