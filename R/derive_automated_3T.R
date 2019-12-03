@@ -334,7 +334,7 @@ derive_automated_3T <- function(data) {
     # CMRO2 and OEF  (OAK 20191203)
 
     cmro2 <- asl.rest.grey.matter.hct * (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv.hct) * (55.6 * bld.c.hgb)
-    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen"
+    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen, µmol/100 g/min"
 
     oef.oef <- (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv) / (oef.yv * 100)
     label(oef.oef) <- "Oxygen Extraction Fraction"
