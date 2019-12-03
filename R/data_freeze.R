@@ -91,28 +91,18 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       current.token <- MAPfreeze.list[[epoch]][["token"]][index.token]
 
       # grab data
-      if (grepl("4", epoch) && index.token %in% c(2, 4)) {
-        df <- NA
+      df <- REDCapR::redcap_read_oneshot(
+        redcap_uri = redcap.api.uri,
+        token = current.token,
+        raw_or_label = "raw",
+        verbose = FALSE
+      )$data
 
-        meta.df <- REDCapR::redcap_metadata_read(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          verbose = FALSE
-        )$data
-      } else {
-        df <- REDCapR::redcap_read_oneshot(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          raw_or_label = "raw",
-          verbose = FALSE
-        )$data
-
-        meta.df <- REDCapR::redcap_metadata_read(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          verbose = FALSE
-        )$data
-      }
+      meta.df <- REDCapR::redcap_metadata_read(
+        redcap_uri = redcap.api.uri,
+        token = current.token,
+        verbose = FALSE
+      )$data
 
       # save data
       MAPfreeze.list[[epoch]][["data"]][[current.shortname]] <- df

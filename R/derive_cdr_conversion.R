@@ -33,14 +33,15 @@ derive_cdr_conversion <- function(data) {
           )
         ),
         TRUE ~ NA_character_
-      ),
-      cdr.factor = factor(cdr.factor)
+      )
     ) %>%
     ungroup()
 
-    data$cdr.conversion.factor <- factor(data$cdr.conversion.factor, levels = c("Stable", "Conversion", "Reversion"))
+  data$cdr.factor <- factor(data$cdr.factor, levels = c(0, 0.5, 1, 2, 3))
 
-    label(data$cdr.conversion.factor) <- "CDR Conversion"
+  data$cdr.conversion.factor <- factor(data$cdr.conversion.factor, levels = c("Stable", "Conversion", "Reversion"))
+
+  label(data$cdr.conversion.factor) <- "CDR Conversion"
 
   return(data)
 
