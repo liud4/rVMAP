@@ -331,6 +331,17 @@ derive_automated_3T <- function(data) {
     asl.reac.right.ttg.transverse.temporal.gyrus <- 100 * (asl.chall.right.ttg.transverse.temporal.gyrus - asl.rest.right.ttg.transverse.temporal.gyrus) / asl.rest.right.ttg.transverse.temporal.gyrus / asl.3t.change.etco2
     asl.reac.left.ttg.transverse.temporal.gyrus <- 100 * (asl.chall.left.ttg.transverse.temporal.gyrus - asl.rest.left.ttg.transverse.temporal.gyrus) / asl.rest.left.ttg.transverse.temporal.gyrus / asl.3t.change.etco2
 
+    # CMRO2 and OEF  (OAK 20191203)
+
+    cmro2 <- asl.rest.grey.matter.hct * (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv.hct) * (55.6 * bld.c.hgb)
+    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen"
+
+    oef.oef <- (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv) / (oef.yv * 100)
+    label(oef.oef) <- "Oxygen Extraction Fraction"
+
+    oef.oef.hct <- (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv.hct) / (oef.yv.hct * 100)
+    label(oef.oef.hct) <- "Oxygen Extraction Fraction Hct corrected"
+
   })
 
   return(data)
