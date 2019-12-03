@@ -333,14 +333,17 @@ derive_automated_3T <- function(data) {
 
     # CMRO2 and OEF  (OAK 20191203)
 
-    cmro2 <- asl.rest.grey.matter.hct * (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv.hct) * (55.6 * bld.c.hgb)
-    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen, µmol/100 g/min"
+    oef.ya <- (asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3
+    label(oef.ya) <- "Arterial Oxygenation (%)"
 
-    oef.oef <- (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv) / (oef.yv * 100)
-    label(oef.oef) <- "Oxygen Extraction Fraction"
+    cmro2 <- asl.rest.grey.matter.hct * (oef.ya - oef.yv.hct) * (55.6 * bld.c.hgb)
+    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
 
-    oef.oef.hct <- (((asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3) - oef.yv.hct) / (oef.yv.hct * 100)
-    label(oef.oef.hct) <- "Oxygen Extraction Fraction Hct corrected"
+    oef.oef <- 100 * ((oef.ya - oef.yv) / oef.ya)
+    label(oef.oef) <- "Oxygen Extraction Fraction (%)"
+
+    oef.oef.hct <- 100 * ((oef.ya - oef.yv.hct) / oef.ya)
+    label(oef.oef.hct) <- "Oxygen Extraction Fraction (%) Hct corrected"
 
   })
 
