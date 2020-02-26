@@ -36,7 +36,7 @@ derive_automated_3T <- function(data) {
 
     # Derive ASL reactivity variables (OAK 20181217)
 
-    asl.reac.grey.matter.hct <- 100 * (asl.chall.grey.matter.hct - asl.rest.grey.matter.hct) / asl.rest.grey.matter.hct / asl.3t.change.etco2
+      asl.reac.grey.matter.hct <- 100 * (asl.chall.grey.matter.hct - asl.rest.grey.matter.hct) / asl.rest.grey.matter.hct / asl.3t.change.etco2
     asl.reac.left.hemisphere.hct <- 100 * (asl.chall.left.hemisphere.hct - asl.rest.left.hemisphere.hct) / asl.rest.left.hemisphere.hct / asl.3t.change.etco2
     asl.reac.right.hemisphere.hct <- 100 * (asl.chall.right.hemisphere.hct - asl.rest.right.hemisphere.hct) / asl.rest.right.hemisphere.hct / asl.3t.change.etco2
     asl.reac.right.frontal.lobe.hct <- 100 * (asl.chall.right.frontal.lobe.hct - asl.rest.right.frontal.lobe.hct) / asl.rest.right.frontal.lobe.hct / asl.3t.change.etco2
@@ -336,8 +336,8 @@ derive_automated_3T <- function(data) {
     oef.ya <- (asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3
     label(oef.ya) <- "Arterial Oxygenation (%)"
 
-    cmro2 <- asl.rest.grey.matter.hct * ((oef.ya - oef.yv.hct) * 0.01) * (0.556 * bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
-    label(cmro2) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
+    oef.cmro2.hct <- asl.rest.grey.matter.hct * ((oef.ya - oef.yv.hct) * 0.01) * (0.556 * bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
+    label(oef.cmro2.hct) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
 
     oef.oef <- 100 * ((oef.ya - oef.yv) / oef.ya)
     label(oef.oef) <- "Oxygen Extraction Fraction (%)"
