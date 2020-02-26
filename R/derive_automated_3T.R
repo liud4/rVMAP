@@ -336,7 +336,7 @@ derive_automated_3T <- function(data) {
     oef.ya <- (asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3
     label(oef.ya) <- "Arterial Oxygenation (%)"
 
-    cmro2 <- asl.rest.grey.matter.hct * (oef.ya - oef.yv.hct) * (55.6 * bld.c.hgb)
+    cmro2 <- asl.rest.grey.matter.hct * ((oef.ya - oef.yv.hct) * 0.01) * (0.556 * bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
     label(cmro2) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
 
     oef.oef <- 100 * ((oef.ya - oef.yv) / oef.ya)
