@@ -40,9 +40,9 @@ derive_AD_signature <- function(data) {
       avg.hippocampus = mean(c(right.hippocampus, left.hippocampus)),
       avg.entorhinal.thickness = mean(c(rh.entorhinal.thickness, lh.entorhinal.thickness)),
       avg.middletemporal.thickness = mean(c(rh.middletemporal.thickness, lh.middletemporal.thickness)),
-      avg.bankssts.thickness = mean(c(rh.isthmuscingulate.thickness, lh.isthmuscingulate.thickness)),
-      avg.isthmuscingulate.thickness = mean(c(rh.superiortemporal.thickness, lh.superiortemporal.thickness)),
-      avg.superiortemporal.thickness = mean(c(right.hippocampus, left.hippocampus)),
+      avg.bankssts.thickness = mean(c(rh.bankssts.thickness, rh.bankssts.thickness)),
+      avg.isthmuscingulate.thickness = mean(c(rh.isthmuscingulate.thickness, lh.isthmuscingulate.thickness)),
+      avg.superiortemporal.thickness = mean(c(rh.superiortemporal.thickness, lh.superiortemporal.thickness)),
       avg.medialorbitofrontal.thickness = mean(c(rh.medialorbitofrontal.thickness, lh.medialorbitofrontal.thickness)),
       avg.lateralorbitofrontal.thickness = mean(c(rh.lateralorbitofrontal.thickness, lh.lateralorbitofrontal.thickness))
     )
@@ -66,62 +66,34 @@ derive_AD_signature <- function(data) {
   fit.1 <- lm(formula = avg.hippocampus ~ age + sex.factor + intracranialvol,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  #     (Intercept)               age  sex.factorFemale   intracranialvol
-  #       2908.6376          -24.0563          104.2237            0.0013
-  # SD Residuals: 314.2
 
   fit.2 <- lm(formula = avg.entorhinal.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  #      (Intercept)               age  sex.factorFemale
-  #          3.46652          -0.00924           0.00237
-  # SD Resid: 0.3032
 
   fit.3 <- lm(formula = avg.middletemporal.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  #     (Intercept)               age  sex.factorFemale
-  #          2.8533           -0.0058            0.0800
-  # SD Resid: 0.1278
 
   fit.4 <- lm(formula = avg.bankssts.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  # (Intercept)               age  sex.factorFemale
-  # 2.38087          -0.00229           0.08601
-  # SD Resid: 0.1807
 
   fit.5 <- lm(formula = avg.isthmuscingulate.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  # (Intercept)               age  sex.factorFemale
-  # 2.92362          -0.00829           0.07777
-  # SD Resid: 0.138
-
   fit.6 <- lm(formula = avg.superiortemporal.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-
-  #     (Intercept)               age  sex.factorFemale
-  #    5045.0             -24.6            -209.8
-  # SD RESID: 354.1
 
   fit.7 <- lm(formula = avg.medialorbitofrontal.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  #     (Intercept)               age  sex.factorFemale
-  #    2.283472          0.000498          0.060299
-  # SD RESID: 0.1437
-
   fit.8 <- lm(formula = avg.lateralorbitofrontal.thickness ~ age + sex.factor,
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  #      (Intercept)               age  sex.factorFemale
-  #     2.65155          -0.00525           0.08718
-  # SD RESID: 0.1133
-
 
   data_w_fit.df <- data %>%
     modelr::add_predictions(model = fit.1, var = "mcevoy.fit.1") %>%
