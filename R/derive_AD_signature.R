@@ -40,7 +40,7 @@ derive_AD_signature <- function(data) {
       avg.hippocampus = mean(c(right.hippocampus, left.hippocampus)),
       avg.entorhinal.thickness = mean(c(rh.entorhinal.thickness, lh.entorhinal.thickness)),
       avg.middletemporal.thickness = mean(c(rh.middletemporal.thickness, lh.middletemporal.thickness)),
-      avg.bankssts.thickness = mean(c(rh.bankssts.thickness, rh.bankssts.thickness)),
+      avg.bankssts.thickness = mean(c(rh.bankssts.thickness, lh.bankssts.thickness)),
       avg.isthmuscingulate.thickness = mean(c(rh.isthmuscingulate.thickness, lh.isthmuscingulate.thickness)),
       avg.superiortemporal.thickness = mean(c(rh.superiortemporal.thickness, lh.superiortemporal.thickness)),
       avg.medialorbitofrontal.thickness = mean(c(rh.medialorbitofrontal.thickness, lh.medialorbitofrontal.thickness)),
