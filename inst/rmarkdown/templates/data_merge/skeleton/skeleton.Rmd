@@ -881,7 +881,7 @@ merged.df <- call_function("derive_cardiac_mri", merged.df)
 
 Derive, label, and add thigh variables to the merged data set.
 
-```{r, derive-cmr}
+```{r, derive-thigh}
 merged.df <- call_function("derive_thigh", merged.df)
 ```
 
@@ -1090,15 +1090,19 @@ reference_yes.list <- factor_var.list[purrr::map(factor_var.list, 1) == "Yes"]
 reference_yes.var <- names(reference_yes.list)
 
 for (var.i in reference_yes.var) {
- merged.df[[var.i]] <- relevel(merged.df[[var.i]], "No")
+  merged.df[[var.i]] <- relevel(merged.df[[var.i]], "No")
 }
+
+cat("Reference level has been set to 'No' for the following Yes/No variables:\n")
+
+print(data.frame(variables = reference_yes.var))
 ```
 
 # Adding Memory and Executive Function Composite Scores
 
 These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
 
-```{r warning = FALSE, message = FALSE}
+```{r}
 mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
   rename(np.memory.composite = memory.composite) %>%
   mutate(
@@ -1110,6 +1114,9 @@ ef.composite.df <- MAPfreeze.list$epoch_0$data$np.executive.composite.static %>%
   mutate(
     epoch = as.numeric(epoch)
   )
+
+label(mem.composite.df$map.id) <- label(ef.composite.df$map.id) <- "MAP ID"
+label(mem.composite.df$epoch) <- label(ef.composite.df$epoch) <- "Epoch"
 
 merged.df %<>% left_join(
   mem.composite.df,
@@ -1123,6 +1130,8 @@ merged.df %<>% left_join(
 
 label(merged.df$np.memory.composite) <- 'Memory Composite'
 label(merged.df$np.executive.composite) <- 'EF Composite'
+label(merged.df$diagnosis.factor) <- label(merged.df$diagnosis)
+label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", from Enrollment")
 ```
 
 # Separating Breath Hold and Face Mask Data Sets
