@@ -31,7 +31,16 @@ derive_AD_signature <- function(data) {
     avg.lateralorbitofrontal.thickness
   )
 
-  mcevoy.coef <- c(0.709, 0.597, 0.506, 0.453, 0.395, 0.328, 0.269, 0.250)
+  mcevoy.coef <- c(
+    0.709, # avg.hippocampus
+    0.597, # avg.entorhinal.thickness
+    0.506, # avg.middletemporal.thickness
+    0.453, # avg.bankssts.thickness
+    0.395, # avg.isthmuscingulate.thickness
+    0.328, # avg.superiortemporal.thickness
+    0.269, # avg.medialorbitofrontal.thickness
+    0.250  # avg.lateralorbitofrontal.thickness
+  )
 
   ## create mcevoy.Y variables
   data <- data %>%
@@ -47,7 +56,6 @@ derive_AD_signature <- function(data) {
       avg.lateralorbitofrontal.thickness = mean(c(rh.lateralorbitofrontal.thickness, lh.lateralorbitofrontal.thickness))
     )
 
-  myfit <- paste0("fit.", 1:length(unique(mcevoy.Y)))
   mcevoy.all.temp <- NULL
 
   derive_mcevoy.df <- data %>%
@@ -63,35 +71,35 @@ derive_AD_signature <- function(data) {
 
   derive_mcevoy.df <- droplevels(derive_mcevoy.df)
 
-  fit.1 <- lm(formula = avg.hippocampus ~ age + sex.factor + intracranialvol,
+  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + intracranialvol')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.2 <- lm(formula = avg.entorhinal.thickness ~ age + sex.factor,
+  fit.2 <- lm(formula = as.formula(paste0(mcevoy.Y[2], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.3 <- lm(formula = avg.middletemporal.thickness ~ age + sex.factor,
+  fit.3 <- lm(formula = as.formula(paste0(mcevoy.Y[3], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.4 <- lm(formula = avg.bankssts.thickness ~ age + sex.factor,
+  fit.4 <- lm(formula = as.formula(paste0(mcevoy.Y[4], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.5 <- lm(formula = avg.isthmuscingulate.thickness ~ age + sex.factor,
+  fit.5 <- lm(formula = as.formula(paste0(mcevoy.Y[5], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.6 <- lm(formula = avg.superiortemporal.thickness ~ age + sex.factor,
+  fit.6 <- lm(formula = as.formula(paste0(mcevoy.Y[6], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.7 <- lm(formula = avg.medialorbitofrontal.thickness ~ age + sex.factor,
+  fit.7 <- lm(formula = as.formula(paste0(mcevoy.Y[7], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
-  fit.8 <- lm(formula = avg.lateralorbitofrontal.thickness ~ age + sex.factor,
+  fit.8 <- lm(formula = as.formula(paste0(mcevoy.Y[8], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
