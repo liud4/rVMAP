@@ -68,6 +68,37 @@ derive_cognitive_complaint <- function(data) {
   data$ccqself.short.tot <- apply(data[, ccqself.short], 1, total_score)
   ################################################################
 
+
+  ################################################################
+  ## ccqinform: Informant Cognitive Changes Questionnaire
+  ccqinform <- Hmisc::Cs(
+    ccqinform01, ccqinform02, ccqinform03, ccqinform04, ccqinform05,
+    ccqinform06, ccqinform07, ccqinform08, ccqinform09, ccqinform10,
+    ccqinform11, ccqinform12, ccqinform13, ccqinform14, ccqinform15,
+    ccqinform16, ccqinform17, ccqinform18, ccqinform19, ccqinform20,
+    ccqinform21, ccqinform22, ccqinform23, ccqinform24, ccqinform25,
+    ccqinform26, ccqinform27, ccqinform28, ccqinform29, ccqinform30,
+    ccqinform31, ccqinform32, ccqinform33, ccqinform34, ccqinform35,
+    ccqinform36, ccqinform37, ccqinform38, ccqinform39, ccqinform40,
+    ccqinform41, ccqinform42, ccqinform43, # ccqinform44, ccqinform45, # excluding these to be equivalent to the ccqself calc
+    ccqinform46, ccqinform47, ccqinform48, ccqinform49, ccqinform50,
+    ccqinform51, ccqinform52, ccqinform53, ccqinform54, ccqinform55,
+    ccqinform56, ccqinform57, ccqinform58, ccqinform59
+  )
+
+  data$ccqinform.pnm <- apply(data[, ccqinform], 1, proportion_non_missing)
+  data$ccqinform.tot <- apply(data[, ccqinform], 1, total_score)
+
+  # For the short scale, all items are 01, non-reversed
+  ccqinform.short <- Hmisc::Cs(
+    ccqinform01, ccqinform03, ccqinform05, ccqinform11, ccqinform15,
+    ccqinform25, ccqinform27, ccqinform32, ccqinform33, ccqinform37
+  )
+  data$ccqinform.short.pnm <- apply(data[, ccqinform.short], 1, proportion_non_missing)
+  data$ccqinform.short.tot <- apply(data[, ccqinform.short], 1, total_score)
+
+  ################################################################
+
   # 21 Aug 2014: now make a combined "short" var (request from KG)
   data$scc.or.ccqself.short.tot <- ifelse(!is.na(data$scc.tot), data$scc.tot, data$ccqself.short.tot)
 
@@ -172,8 +203,6 @@ derive_cognitive_complaint <- function(data) {
   data$mfq.tot <- apply(data[, mfq], 1, total_score)
   ################################################################
 
-
-
   ################################################################
   ## ecogself: Everyday Cognition
   # High is bad, so we leave all items as is
@@ -232,6 +261,66 @@ derive_cognitive_complaint <- function(data) {
   data$ecogself.org.tot <- apply(data[, ecogself.org], 1, total_score)
   data$ecogself.att.pnm <- apply(data[, ecogself.att], 1, proportion_non_missing)
   data$ecogself.att.tot <- apply(data[, ecogself.att], 1, total_score)
+  ################################################################
+
+  ################################################################
+  ## ecoginf: Informant Everyday Cognition
+  # High is bad, so we leave all items as is
+
+  ecoginf.mem <- Hmisc::Cs(
+    ecoginf.mem01, ecoginf.mem02, ecoginf.mem03, ecoginf.mem04,
+    ecoginf.mem05, ecoginf.mem06, ecoginf.mem07, ecoginf.mem08
+  )
+
+  ecoginf.lg <- Hmisc::Cs(
+    ecoginf.lang01, ecoginf.lang02, ecoginf.lang03,
+    ecoginf.lang04, ecoginf.lang05, ecoginf.lang06,
+    ecoginf.lang07, ecoginf.lang08, ecoginf.lang09
+  )
+
+  ecoginf.vs <- Hmisc::Cs(
+    ecoginf.vis01, ecoginf.vis02, ecoginf.vis03, ecoginf.vis04,
+    ecoginf.vis05, ecoginf.vis06, ecoginf.vis07
+  )
+
+  ecoginf.plan <- Hmisc::Cs(
+    ecoginf.plan01, ecoginf.plan02, ecoginf.plan03,
+    ecoginf.plan04, ecoginf.plan05
+  )
+
+  ecoginf.org <- Hmisc::Cs(
+    ecoginf.org01, ecoginf.org02, ecoginf.org03,
+    ecoginf.org04, ecoginf.org05, ecoginf.org06
+  )
+
+  ecoginf.att <- Hmisc::Cs(
+    ecoginf.attn01, ecoginf.attn02,
+    ecoginf.attn03, ecoginf.attn04
+  )
+
+  ecoginf <- c(
+    ecoginf.mem,
+    ecoginf.lg,
+    ecoginf.vs,
+    ecoginf.plan,
+    ecoginf.org,
+    ecoginf.att
+  )
+
+  data$ecoginf.pnm <- apply(data[, ecoginf], 1, proportion_non_missing)
+  data$ecoginf.tot <- apply(data[, ecoginf], 1, total_score)
+  data$ecoginf.mem.pnm <- apply(data[, ecoginf.mem], 1, proportion_non_missing)
+  data$ecoginf.mem.tot <- apply(data[, ecoginf.mem], 1, total_score)
+  data$ecoginf.lg.pnm <- apply(data[, ecoginf.lg], 1, proportion_non_missing)
+  data$ecoginf.lg.tot <- apply(data[, ecoginf.lg], 1, total_score)
+  data$ecoginf.vs.pnm <- apply(data[, ecoginf.vs], 1, proportion_non_missing)
+  data$ecoginf.vs.tot <- apply(data[, ecoginf.vs], 1, total_score)
+  data$ecoginf.plan.pnm <- apply(data[, ecoginf.plan], 1, proportion_non_missing)
+  data$ecoginf.plan.tot <- apply(data[, ecoginf.plan], 1, total_score)
+  data$ecoginf.org.pnm <- apply(data[, ecoginf.org], 1, proportion_non_missing)
+  data$ecoginf.org.tot <- apply(data[, ecoginf.org], 1, total_score)
+  data$ecoginf.att.pnm <- apply(data[, ecoginf.att], 1, proportion_non_missing)
+  data$ecoginf.att.tot <- apply(data[, ecoginf.att], 1, total_score)
   ################################################################
 
 
@@ -326,7 +415,7 @@ derive_cognitive_complaint <- function(data) {
     matrix(vc, ncol = length(vc), nrow = dm, byrow = T)
   }
 
-#acquire ranges for each SCD items  
+#acquire ranges for each SCD items
   rescale.range<-function(v) {
     out<-matrix(0, ncol=length(v), nrow=2)
     out[, grepl('cogdif', v)]=c(0,4)
