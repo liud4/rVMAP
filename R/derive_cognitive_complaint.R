@@ -440,15 +440,9 @@ derive_cognitive_complaint <- function(data) {
   ## Deriving tot.complaint.gifford.45
 
   temp.df <- data
-  # temp.df <- temp.df %>% # flagged for removal
-  #   mutate(
-  #     tot.complaint.rescale = rowSums(rescale(Cs(ecogself.tot, mfq.tot, cogdif.tot, ccqself.tot), temp.df))
-  #   )
 
   junk <- t(apply(rescale(tot.complaint.gifford.45, temp.df), MARGIN = 1, totscore.impute))
   junk.rescaled <- rescale2(tot.complaint.gifford.45, junk)
-
-  # data$tot.complaint.rescale <- temp.df$tot.complaint.rescale # flagged for removal
 
   data$tot.complaint.gifford.45 <- rowSums(junk.rescaled)
 
@@ -510,10 +504,7 @@ derive_cognitive_complaint <- function(data) {
 
     label(tot.complaint) <- "Tot cognitive complaint score"
     label(tot.complaint.short) <- "Tot cognitive complaint score using short scale"
-    # label(tot.complaint.gifford) <- "Tot Gifford cognitive complaint score"
-    # label(tot.complaint.gifford.25) <- "Tot Gifford-25 cognitive complaint score"
 
-    # label(tot.complaint.rescale) <- "Tot cognitive complaint score (rescaled)" # flagged for removal
     label(tot.complaint.gifford.45) <- "Tot Gifford-45 cognitive complaint score"
     label(tot.complaint.gifford.45.ef) <- "Tot Gifford-45 - Executive Functioning Subdomain"
     label(tot.complaint.gifford.45.lang) <- "Tot Gifford-45 - Language Subdomain"
