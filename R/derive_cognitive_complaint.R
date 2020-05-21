@@ -83,7 +83,7 @@ derive_cognitive_complaint <- function(data) {
     ccqinform41, ccqinform42, ccqinform43, # ccqinform44, ccqinform45, # excluding these to be equivalent to the ccqself calc
     ccqinform46, ccqinform47, ccqinform48, ccqinform49, ccqinform50,
     ccqinform51, ccqinform52, ccqinform53, ccqinform54, ccqinform55,
-    ccqinform56, ccqinform57, ccqinform58, ccqinform59
+    ccqinform56, ccqinform57
   )
 
   data$ccqinform.pnm <- apply(data[, ccqinform], 1, proportion_non_missing)
