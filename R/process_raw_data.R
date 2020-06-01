@@ -38,7 +38,7 @@ process_raw_data <- function(
   mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] <- mydat[, setdiff(names(mydat), "mhx_tobac_quit_year")] %>%
     mutate_if(
       ~ any(class(.) %in% c("numeric", "integer")),
-      ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+      ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
     ) %>%
     mutate_if(
       ~ any(class(.) %in% c("character")),
@@ -151,7 +151,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -173,7 +173,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -216,7 +216,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -248,7 +248,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -286,7 +286,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -318,7 +318,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -356,7 +356,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -382,7 +382,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -456,7 +456,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
@@ -499,7 +499,7 @@ process_raw_data <- function(
       remove_unnecesary_vars() %>%
       mutate_if(
         ~ any(class(.) %in% c("numeric", "integer")),
-        ~ missing_to_na(., mod.val = -1111, restrict.sign = TRUE)
+        ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), restrict.sign = TRUE)
       ) %>%
       mutate_if(
         ~ any(class(.) %in% c("character")),
