@@ -460,10 +460,14 @@ derive_cognitive_complaint <- function(data) {
 
     label(ccqself.pnm) <- "Self-Report Cog Changes Quest.- Full Form: Prop. non-miss"
     label(ccqself.tot) <- "Self-Report Cog Changes Quest.- Full Form: Tot score, re-calc."
-
     label(ccqself.short.pnm) <- "Self-Report Cog Changes Quest.- Short Form: Prop. non-miss"
     label(ccqself.short.tot) <- "Self-Report Cog Changes Quest.- Short Form: Tot score, re-calc."
     label(scc.or.ccqself.short.tot) <- "Tot score from scc if avail. or from ccqself.short if scc not avail."
+
+    label(ccqinform.pnm) <- "Informant-Report Cog Changes Quest.- Full Form: Prop. non-miss"
+    label(ccqinform.tot) <- "Informant-Report Cog Changes Quest.- Full Form: Tot score, re-calc."
+    label(ccqinform.short.pnm) <- "Informant-Report Cog Changes Quest.- Short Form: Prop. non-miss"
+    label(ccqinform.short.tot) <- "Informant-Report Cog Changes Quest.- Short Form: Tot score, re-calc."
 
     label(cogdif.pnm) <- "Cognitive Difficulties Quest.: Prop. non-miss"
     label(cogdif.tot) <- "Cognitive Difficulties Quest.: Tot score, re-calc."
@@ -501,6 +505,21 @@ derive_cognitive_complaint <- function(data) {
     label(ecogself.org.tot) <- "ECog-Self Organization: Tot score, re-calc."
     label(ecogself.att.pnm) <- "ECog-Self Attention: Prop. non-miss"
     label(ecogself.att.tot) <- "ECog-Self Attention: Tot score, re-calc."
+
+    label(ecoginf.pnm) <- "Everyday Cognition- Informant: Prop. non-miss"
+    label(ecoginf.tot) <- "Everyday Cognition- Informant: Tot score, re-calc."
+    label(ecoginf.mem.pnm) <- "ECog-Informant Memory: Prop. non-miss"
+    label(ecoginf.mem.tot) <- "ECog-Informant Memory: Tot score, re-calc."
+    label(ecoginf.lg.pnm) <- "ECog-Informant Language: Prop. non-miss"
+    label(ecoginf.lg.tot) <- "ECog-Informant Language: Tot score, re-calc."
+    label(ecoginf.vs.pnm) <- "ECog-Informant Visuospatial: Prop. non-miss"
+    label(ecoginf.vs.tot) <- "ECog-Informant Visuospatial: Tot score, re-calc."
+    label(ecoginf.plan.pnm) <- "ECog-Informant Planning: Prop. non-miss"
+    label(ecoginf.plan.tot) <- "ECog-Informant Planning: Tot score, re-calc."
+    label(ecoginf.org.pnm) <- "ECog-Informant Organization: Prop. non-miss"
+    label(ecoginf.org.tot) <- "ECog-Informant Organization: Tot score, re-calc."
+    label(ecoginf.att.pnm) <- "ECog-Informant Attention: Prop. non-miss"
+    label(ecoginf.att.tot) <- "ECog-Informant Attention: Tot score, re-calc."
 
     label(tot.complaint) <- "Tot cognitive complaint score"
     label(tot.complaint.short) <- "Tot cognitive complaint score using short scale"
