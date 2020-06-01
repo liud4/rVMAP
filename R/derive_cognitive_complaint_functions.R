@@ -1,4 +1,4 @@
-#' Functions to be used in the derivation of cognitive complaint variables: derive_cognitive_complaint()
+#' Functions to be used in derive_cognitive_complaint() for the derivation of cognitive complaint variables
 
 totscore <- function(vec, threshold = 0.85) {
   # calc tot score only if >= <threshold> of items are nonmissing
