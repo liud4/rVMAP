@@ -140,14 +140,14 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
         predictor = as.character(predictor),
         outcomeA = as.character(outcomeA),
         outcomeB = as.character(outcomeB),
-        N = NA,
-        A.R2 = NA,
-        B.R2 = NA,
-        A_covar.R2 = NA,
-        B_covar.R2 = NA,
-        A.incr.R2 = NA,
-        B.incr.R2 = NA,
-        A.B.incr.R2.diff = NA
+        N = NA_integer_,
+        A.R2 = NA_real_,
+        B.R2 = NA_real_,
+        A_covar.R2 = NA_real_,
+        B_covar.R2 = NA_real_,
+        A.incr.R2 = NA_real_,
+        B.incr.R2 = NA_real_,
+        A.B.incr.R2.diff = NA_real_,
       )
     )
   }
