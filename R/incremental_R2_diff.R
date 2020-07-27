@@ -8,12 +8,12 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
     covariatesB <- unique(c(covariatesB, "diagnosis.factor.base"))
     data.df <- subset(data, diagnosis.factor.base %in% c("Normal", "MCI"))
     predictor_phrase.str <- paste0(predictor, "*diagnosis.factor.base")
-  } else if (grepl("sub.dx.nc", model)) {
+  } else if (grepl("sub.*nc", model)) {
     covariatesA <- setdiff(covariatesA, "diagnosis.factor.base")
     covariatesB <- setdiff(covariatesB, "diagnosis.factor.base")
     data.df <- subset(data, diagnosis.factor.base == "Normal")
     predictor_phrase.str <- predictor
-  } else if (grepl("sub.dx.mci", model)) {
+  } else if (grepl("sub.*mci", model)) {
     covariatesA <- setdiff(covariatesA, "diagnosis.factor.base")
     covariatesB <- setdiff(covariatesB, "diagnosis.factor.base")
     data.df <- subset(data, diagnosis.factor.base == "MCI")
@@ -69,7 +69,7 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
 
   # Subset data
 
-  subset.df <- clear_labels(data.df)
+  subset.df <- clear_labels(data.df[inds, ])
   subset.df <- na.omit(subset.df[, unique(c(outcomeA, outcomeB, predictor, covariatesA, covariatesB))])
   subset.df <- droplevels(subset.df)
 
@@ -116,11 +116,11 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
     A.B.incr.R2.diff <- A.incr.R2 - B.incr.R2
 
     return(
-      tibble(
-        model = as.character(model),
-        predictor = as.character(predictor),
-        outcomeA = as.character(outcomeA),
-        outcomeB = as.character(outcomeB),
+      c(
+        # model = as.character(model),
+        # predictor = as.character(predictor),
+        # outcomeA = as.character(outcomeA),
+        # outcomeB = as.character(outcomeB),
         N = N,
         A.R2 = A.R2,
         B.R2 = B.R2,
@@ -135,19 +135,19 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
 
   error = function(err) {
     return(
-      tibble(
-        model = as.character(model),
-        predictor = as.character(predictor),
-        outcomeA = as.character(outcomeA),
-        outcomeB = as.character(outcomeB),
-        N = NA_integer_,
+      c(
+        # model = as.character(model),
+        # predictor = as.character(predictor),
+        # outcomeA = as.character(outcomeA),
+        # outcomeB = as.character(outcomeB),
+        N = NA_real_,
         A.R2 = NA_real_,
         B.R2 = NA_real_,
         A_covar.R2 = NA_real_,
         B_covar.R2 = NA_real_,
         A.incr.R2 = NA_real_,
         B.incr.R2 = NA_real_,
-        A.B.incr.R2.diff = NA_real_,
+        A.B.incr.R2.diff = NA_real_
       )
     )
   }
@@ -155,18 +155,10 @@ incremental_R2_diff <- function(data, inds, predictor, model, outcomeA, outcomeB
 }
 
 incremental_R2_diff_boot <- function(data, replicates = 250, predictor, model, outcomeA, outcomeB, covariatesA, covariatesB) {
-  incremental_R2_diff.out <- incremental_R2_diff(
-    predictor = predictor,
-    model = model,
-    outcomeA = outcomeA,
-    outcomeB = outcomeB,
-    covariatesA = covariatesA,
-    covariatesB = covariatesB
-  )
 
   boot.out <- boot::boot(
     data = data,
-    statistic = incremental_diff_R2,
+    statistic = incremental_R2_diff,
     R = replicates,
     predictor = predictor,
     model = model,
@@ -180,19 +172,19 @@ incremental_R2_diff_boot <- function(data, replicates = 250, predictor, model, o
     boot.out,
     type = "perc",
     t0 = as.numeric(boot.out$t0["A.incr.R2"]),
-    t = as.numeric(boot.out$t[, 6]) # need to check that this is correct column
+    t = as.numeric(boot.out$t[, 6])
   )
   B.boot.ci <- boot::boot.ci(
     boot.out,
     type = "perc",
     t0 = as.numeric(boot.out$t0["B.incr.R2"]),
-    t = as.numeric(boot.out$t[, 7]) # need to check that this is correct column
+    t = as.numeric(boot.out$t[, 7])
   )
   A.B.boot.ci <- boot::boot.ci(
     boot.out,
     type = "perc",
     t0 = as.numeric(boot.out$t0["A.B.incr.R2.diff"]),
-    t = as.numeric(boot.out$t[, 8]) # need to check that this is correct column
+    t = as.numeric(boot.out$t[, 8])
   )
 
   output.df <- tibble(
@@ -200,8 +192,8 @@ incremental_R2_diff_boot <- function(data, replicates = 250, predictor, model, o
     predictor = predictor,
     outcomeA = outcomeA,
     outcomeB = outcomeB,
-    N = incremental_R2_diff.out$N,
-    replicates = replicates,
+    N = as.integer(boot.out$t0[["N"]]),
+    replicates = as.integer(replicates),
     A.incr.R2 = boot.out$t0["A.incr.R2"],
     A.incr.R2.LCI = A.boot.ci$percent[4],
     A.incr.R2.UCI = A.boot.ci$percent[5],
@@ -215,4 +207,3 @@ incremental_R2_diff_boot <- function(data, replicates = 250, predictor, model, o
 
   return(output.df)
 }
-
