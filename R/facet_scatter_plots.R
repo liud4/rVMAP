@@ -22,7 +22,7 @@ cor_label <- function(data, xvar, yvar, method = "spearman") {
 
 ###
 
-facet_baseline_scatter <- function(data, x_var, y_var) {
+facet_baseline_scatter <- function(data, x_var, y_var, ...) {
   y_var <- setdiff(y_var, x_var)
 
   labels.vec <- paste0("Baseline ", y_var)
@@ -30,7 +30,7 @@ facet_baseline_scatter <- function(data, x_var, y_var) {
   y_labels <- as_labeller(labels.vec)
 
   label.df <- data.frame(
-    label = purrr::map_chr(y_var, ~ cor_label(data = data, xvar = x_var, yvar = .)),
+    label = purrr::map_chr(y_var, ~ cor_label(data = data, xvar = x_var, yvar = ., ...)),
     variable = y_var
   )
 
@@ -63,14 +63,14 @@ facet_baseline_scatter <- function(data, x_var, y_var) {
 
 ###
 
-facet_ac_scatter <- function(data, baseline_var, ac_var) {
+facet_ac_scatter <- function(data, baseline_var, ac_var, ...) {
   labels.vec <- paste0("Annual Change in ", ac_var)
   names(labels.vec) = ac_var
 
   ac_labels <- as_labeller(labels.vec)
 
   label.df <- data.frame(
-    label = purrr::map_chr(ac_var, ~ cor_label(data = data, xvar = baseline_var, yvar = .)),
+    label = purrr::map_chr(ac_var, ~ cor_label(data = data, xvar = baseline_var, yvar = ., ...)),
     variable = ac_var
   )
 
