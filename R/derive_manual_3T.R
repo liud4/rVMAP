@@ -45,47 +45,6 @@ derive_manual_3T <- function(data) {
     lacunar.infarcts.number.factor<-factor(lacunar.infarcts.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
     label(lacunar.infarcts.number.factor) <- 'Lacunar Infarcts Present'
 
-    # # Derive bHold versions
-    # # ADDING DUPLICATE OF ABOVE
-    #
-    # bHold.pvs.pat.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.pat.basal.ganglia), NA, ifelse(bHold.pvs.pat.basal.ganglia <= 2, 0,1))
-    # bHold.pvs.pat.basal.ganglia.factor <- factor(bHold.pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    # label(bHold.pvs.pat.basal.ganglia.factor) <- paste0(label(bHold.pvs.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
-    #
-    # bHold.pvs.pat.centrum.factor <- ifelse(is.na(bHold.pvs.pat.centrum), NA, ifelse(bHold.pvs.pat.centrum <= 1, 0, 1))
-    # bHold.pvs.pat.centrum.factor <- factor(bHold.pvs.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    # label(bHold.pvs.pat.centrum.factor) <- paste0(label(bHold.pvs.pat.centrum), ", dichotomized [0-1]vs.[2+]")
-    #
-    # bHold.pvs.han.basal.ganglia.factor <- ifelse(is.na(bHold.pvs.han.basal.ganglia), NA, ifelse(bHold.pvs.han.basal.ganglia <= 1, 0, 1))
-    # bHold.pvs.han.basal.ganglia.factor <- factor(bHold.pvs.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    # label(bHold.pvs.han.basal.ganglia.factor) <- paste0(label(bHold.pvs.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
-    #
-    # bHold.pvs.han.centrum.factor <- ifelse(is.na(bHold.pvs.han.centrum <= 1), NA, ifelse(bHold.pvs.han.centrum <= 1, 0, 1))
-    # bHold.pvs.han.centrum.factor <- factor(bHold.pvs.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    # label(bHold.pvs.han.centrum.factor) <- paste0(label(bHold.pvs.han.centrum), ", dichotomized [0-1]vs.[2+]")
-    #
-    # bHold.pvs.han.total.factor <- ifelse(is.na(bHold.pvs.han.total), NA, ifelse(bHold.pvs.han.total <= 3, 0, 1))
-    # bHold.pvs.han.total.factor <- factor(bHold.pvs.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
-    # label(bHold.pvs.han.total.factor) <- paste0(label(bHold.pvs.han.total), ", dichotomized [0-3]vs.[4+]")
-    #
-    # bHold.swi.microbleeds.number.orig <- bHold.swi.microbleeds.number
-    # bHold.swi.microbleeds.number <- as.character(bHold.swi.microbleeds.number)
-    # bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "", NA, bHold.swi.microbleeds.number)
-    # bHold.swi.microbleeds.number <- ifelse(bHold.swi.microbleeds.number == "-9999", NA, bHold.swi.microbleeds.number)
-    #
-    # bHold.swi.microbleeds.number <- gsub("+", "", bHold.swi.microbleeds.number, fixed = TRUE)
-    # bHold.swi.microbleeds.number <- as.numeric(bHold.swi.microbleeds.number)
-    # label(bHold.swi.microbleeds.number) <- paste0(label(bHold.swi.microbleeds.number.orig), ", recoded")
-    #
-    # bHold.swi.microbleeds.number.factor <- ifelse(is.na(bHold.swi.microbleeds.number), NA, ifelse(bHold.swi.microbleeds.number < 1, 0, 1))
-    # bHold.swi.microbleeds.number.factor <- factor(bHold.swi.microbleeds.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
-    # label(bHold.swi.microbleeds.number.factor) <- "Microbleeds Present"
-    #
-    # bHold.lacunar.infarcts.number.factor <- ifelse(is.na(bHold.lacunar.infarcts.number), NA, ifelse(bHold.lacunar.infarcts.number < 1, 0, 1))
-    # bHold.lacunar.infarcts.number.factor <- factor(bHold.lacunar.infarcts.number.factor, levels = c(0, 1), labels = c("No", "Yes"))
-    # label(bHold.lacunar.infarcts.number.factor) <- 'Lacunar Infarcts Present'
-    # # END DUPLICATE OF ABOVE
-
     #VWI Derivation
     vwi.right.ica.thick <- (vwi.right.ica.od - vwi.right.ica.id)/2
     vwi.left.ica.thick  <- (vwi.left.ica.od  - vwi.left.ica.id)/2
@@ -147,6 +106,33 @@ derive_manual_3T <- function(data) {
     label(mca.right.wall.ratio) <- 'Right MCA wall ratio'
     label(mca.left.wall.ratio)  <- 'Left MCA wall ratio'
     label(vb.wall.ratio)        <- 'VB wall ratio'
+
+    # New PVS variable derivation
+    pvs.count.basal.ganglia.plus.1.log <- log(pvs.count.basal.ganglia + 1)
+    pvs.volume.basal.ganglia.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.standardized + 1)
+    pvs.count.caudate.plus.1.log <- log(pvs.count.caudate + 1)
+    pvs.volume.caudate.standardized.plus.1.log <- log(pvs.volume.caudate.standardized + 1)
+    pvs.count.putamen.plus.1.log <- log(pvs.count.putamen + 1)
+    pvs.volume.putamen.standardized.plus.1.log <- log(pvs.volume.putamen.standardized + 1)
+    pvs.count.pallidum.plus.1.log <- log(pvs.count.pallidum + 1)
+    pvs.volume.pallidum.standardized.plus.1.log <- log(pvs.volume.pallidum.standardized + 1)
+    pvs.count.basal.ganglia.upper.plus.1.log <- log(pvs.count.basal.ganglia.upper + 1)
+    pvs.volume.basal.ganglia.upper.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.upper.standardized + 1)
+    pvs.count.basal.ganglia.lower.plus.1.log <- log(pvs.count.basal.ganglia.lower + 1)
+    pvs.volume.basal.ganglia.lower.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.lower.standardized + 1)
+
+    label(pvs.count.basal.ganglia.plus.1.log) <- "Log of pvs.count.basal.ganglia + 1"
+    label(pvs.volume.basal.ganglia.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.standardized + 1"
+    label(pvs.count.caudate.plus.1.log) <- "Log of pvs.count.caudate + 1"
+    label(pvs.volume.caudate.standardized.plus.1.log) <- "Log of pvs.volume.caudate.standardized + 1"
+    label(pvs.count.putamen.plus.1.log) <- "Log of pvs.count.putamen + 1"
+    label(pvs.volume.putamen.standardized.plus.1.log) <- "Log of pvs.volume.putamen.standardized + 1"
+    label(pvs.count.pallidum.plus.1.log) <- "Log of pvs.count.pallidum + 1"
+    label(pvs.volume.pallidum.standardized.plus.1.log) <- "Log of pvs.volume.pallidum.standardized + 1"
+    label(pvs.count.basal.ganglia.upper.plus.1.log) <- "Log of pvs.count.basal.ganglia.upper + 1"
+    label(pvs.volume.basal.ganglia.upper.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.upper.standardized + 1"
+    label(pvs.count.basal.ganglia.lower.plus.1.log) <- "Log of pvs.count.basal.ganglia.lower + 1"
+    label(pvs.volume.basal.ganglia.lower.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.lower.standardized + 1"
   })
 
   return(data)
