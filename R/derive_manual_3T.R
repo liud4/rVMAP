@@ -108,18 +108,18 @@ derive_manual_3T <- function(data) {
     label(vb.wall.ratio)        <- 'VB wall ratio'
 
     # New PVS variable derivation
-    pvs.count.basal.ganglia.plus.1.log <- log(pvs.count.basal.ganglia + 1)
-    pvs.volume.basal.ganglia.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.standardized + 1)
-    pvs.count.caudate.plus.1.log <- log(pvs.count.caudate + 1)
-    pvs.volume.caudate.standardized.plus.1.log <- log(pvs.volume.caudate.standardized + 1)
-    pvs.count.putamen.plus.1.log <- log(pvs.count.putamen + 1)
-    pvs.volume.putamen.standardized.plus.1.log <- log(pvs.volume.putamen.standardized + 1)
-    pvs.count.pallidum.plus.1.log <- log(pvs.count.pallidum + 1)
-    pvs.volume.pallidum.standardized.plus.1.log <- log(pvs.volume.pallidum.standardized + 1)
-    pvs.count.basal.ganglia.upper.plus.1.log <- log(pvs.count.basal.ganglia.upper + 1)
-    pvs.volume.basal.ganglia.upper.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.upper.standardized + 1)
-    pvs.count.basal.ganglia.lower.plus.1.log <- log(pvs.count.basal.ganglia.lower + 1)
-    pvs.volume.basal.ganglia.lower.standardized.plus.1.log <- log(pvs.volume.basal.ganglia.lower.standardized + 1)
+    pvs.count.basal.ganglia.plus.1.log <- log1p(pvs.count.basal.ganglia)
+    pvs.volume.basal.ganglia.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.standardized)
+    pvs.count.caudate.plus.1.log <- log1p(pvs.count.caudate)
+    pvs.volume.caudate.standardized.plus.1.log <- log1p(pvs.volume.caudate.standardized)
+    pvs.count.putamen.plus.1.log <- log1p(pvs.count.putamen)
+    pvs.volume.putamen.standardized.plus.1.log <- log1p(pvs.volume.putamen.standardized)
+    pvs.count.pallidum.plus.1.log <- log1p(pvs.count.pallidum)
+    pvs.volume.pallidum.standardized.plus.1.log <- log1p(pvs.volume.pallidum.standardized)
+    pvs.count.basal.ganglia.upper.plus.1.log <- log1p(pvs.count.basal.ganglia.upper)
+    pvs.volume.basal.ganglia.upper.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.upper.standardized)
+    pvs.count.basal.ganglia.lower.plus.1.log <- log1p(pvs.count.basal.ganglia.lower)
+    pvs.volume.basal.ganglia.lower.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.lower.standardized)
 
     label(pvs.count.basal.ganglia.plus.1.log) <- "Log of pvs.count.basal.ganglia + 1"
     label(pvs.volume.basal.ganglia.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.standardized + 1"
