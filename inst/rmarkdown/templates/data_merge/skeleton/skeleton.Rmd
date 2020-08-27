@@ -105,11 +105,12 @@ packages <- Hmisc::Cs(
   REDCapR,
   secret,
   arsenal,
-  fs,
-  rVMAP
+  fs
 )
 
 rVMAP::load_pkg(packages)
+
+devtools::load_all(path = file.path("~", "dev", "rVMAP"))
 
 # set timezone
 Sys.setenv(TZ = 'US/Central')
@@ -278,6 +279,17 @@ list(
 ) %>% rbind.data.frame()
 ```
 
+## Epoch 5
+
+The following is a list of available data sets to be merged that were collected during Epoch 5.
+
+```{r list-projects-epoch4}
+list(
+  project = MAPfreeze.list[["epoch_5"]][["project"]],
+  shortname = MAPfreeze.list[["epoch_5"]][["shortname"]]
+) %>% rbind.data.frame()
+```
+
 # Process Raw Data {.tabset .tabset-fade .tabset-pills}
 
 We begin by processing a subset of raw data sets within each available epoch. The `process_raw_data()` function tidies each inputted data set, formats certain variables, and sets some VMAC-specified values to missing.
@@ -358,6 +370,24 @@ process_raw_data(
 )
 ```
 
+## Process Epoch 5 Raw Data
+
+```{r process-epoch5}
+process_raw_data(
+  epoch = 5,
+  main = MAPfreeze.list$epoch_5$data$main,
+  # abp = MAPfreeze.list$epoch_5$data$abp.static,
+  # biomarkers = MAPfreeze.list$epoch_5$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_5$data$auto3T,
+  # auto3TBH = MAPfreeze.list$epoch_5$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_5$data$man3T,
+  # man3TBH = MAPfreeze.list$epoch_5$data$man3T.bh,
+  # qmass = MAPfreeze.list$epoch_5$data$cardiac.mri,
+  # addendum = MAPfreeze.list$epoch_5$data$addendum,
+  csf = MAPfreeze.list$epoch_5$data$csf
+  # srt = MAPfreeze.list$epoch_5$data$srt.static
+)
+```
 # Data Merge {.tabset .tabset-fade .tabset-pills}
 
 Next, with the processing of raw data complete, we will merge the processed data sets within each available epoch. This is handled by the `merge_within_epoch()` function.
@@ -435,6 +465,25 @@ epoch_4_merge.df <- merge_within_epoch(
   # addendum = MAPfreeze.list$epoch_4$data$addendum,
   csf = MAPfreeze.list$epoch_4$data$csf
   # srt = MAPfreeze.list$epoch_4$data$srt.static
+)
+```
+
+## Merge within Epoch 5
+
+```{r merge-within-epoch5}
+epoch_5_merge.df <- merge_within_epoch(
+  epoch = 5,
+  main = MAPfreeze.list$epoch_5$data$main,
+  # abp = MAPfreeze.list$epoch_5$data$abp.static,
+  # biomarkers = MAPfreeze.list$epoch_5$data$biomarkers,
+  auto3T = MAPfreeze.list$epoch_5$data$auto3T,
+  # auto3TBH = MAPfreeze.list$epoch_5$data$auto3T.bh,
+  man3T = MAPfreeze.list$epoch_5$data$man3T,
+  # man3TBH = MAPfreeze.list$epoch_5$data$man3T.bh,
+  qmass = MAPfreeze.list$epoch_5$data$cardiac.mri,
+  # addendum = MAPfreeze.list$epoch_5$data$addendum,
+  csf = MAPfreeze.list$epoch_5$data$csf
+  # srt = MAPfreeze.list$epoch_5$data$srt.static
 )
 ```
 
@@ -536,6 +585,38 @@ factors_to_unify.var <- NULL
 merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
 
 merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)] <- sapply(merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)], as.numeric)
+```
+
+### Compare and Stack: Epoch 5 with Epochs 1, 2, 3, and 4
+
+Here we refer to the Epoch 5 data as "new" and the previous epochs (Epochs 1, 2, 3, and 4) as "old."
+
+```{r compare-epoch1234-epoch5}
+compare_variables(new_data = epoch_5_merge.df, old_data = merged.df)
+compare_ids(new_data = epoch_5_merge.df, old_data = merged.df)
+factors_to_unify.var <- compare_factors(new_data = epoch_5_merge.df, old_data = merged.df) %>% pull(Variable)
+```
+
+```{r}
+for (var.i in factors_to_unify.var) {
+  refactored_var.list <- forcats::fct_unify(list(merged.df[[var.i]], epoch_5_merge.df[[var.i]]))
+  merged.df[[var.i]] <- refactored_var.list[[1]]
+  epoch_5_merge.df[[var.i]] <- refactored_var.list[[2]]
+}
+
+cat(paste0(
+  "After manually checking, the differing levels of the following factor variables were unified prior to stacking: ",
+  paste0(factors_to_unify.var, collapse = ", "),
+  ".\n"
+))
+
+factors_to_unify.var <- NULL
+```
+
+```{r coerce-stack-epoch1234-epoch5}
+merged.df <- coerce_and_stack(new_data = epoch_5_merge.df, old_data = merged.df)
+
+#merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)] <- sapply(merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)], as.numeric)
 ```
 
 ## Merge Additional Epoch-Independent Data {.tabset .tabset-fade .tabset-pills}
@@ -679,7 +760,11 @@ labels.4 <- lapply(MAPfreeze.list[["epoch_4"]][["metadata"]], format_metadata) %
   bind_rows() %>%
   mutate(epoch = 4)
 
-labels.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4) %>% 
+labels.5 <- lapply(MAPfreeze.list[["epoch_5"]][["metadata"]], format_metadata) %>%
+  bind_rows() %>%
+  mutate(epoch = 5)
+
+labels.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4, labels.5) %>% 
   dplyr::distinct(field_name, field_label, .keep_all = TRUE)
 
 duplicated.names <- labels.all$field_name[duplicated(labels.all$field_name)]
@@ -786,7 +871,7 @@ label(merged.df$epoch) <- "Epoch"
 The following variables do not have labels (this list excludes variables with the words 'complete', '...', or 'score'):
 
 ```{r}
-sort(grep("complete|\\.\\.\\.|score", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v= T, invert = T))
+print(data.frame(variables = sort(grep("complete|\\.\\.\\.|score", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v= T, invert = T))))
 ```
 
 # Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
@@ -873,7 +958,7 @@ merged.df <- call_function("derive_medical_hx", merged.df)
 
 Derive, label, and add CMR variables to the merged data set.
 
-```{r, derive-cmr}
+```{r derive-cmr}
 merged.df <- call_function("derive_cardiac_mri", merged.df)
 ```
 
@@ -881,7 +966,7 @@ merged.df <- call_function("derive_cardiac_mri", merged.df)
 
 Derive, label, and add thigh variables to the merged data set.
 
-```{r, derive-thigh}
+```{r derive-thigh}
 merged.df <- call_function("derive_thigh", merged.df)
 ```
 
@@ -1013,7 +1098,7 @@ class(merged.df) <- "data.frame"
 
 In this section, we will invalidate certain derived variables for specified individuals as requested by VMAC.
 
-```{r}
+```{r invalidate-derived-np}
 merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
 ```
 
@@ -1071,7 +1156,7 @@ print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 
 ## Re-ordering Levels in `diagnosis.factor` and `diagnosis.factor.base`
 
-```{r}
+```{r reorder-dx-level}
 merged.df <- merged.df %>%
   mutate(
     diagnosis.factor.base = forcats::fct_relevel(diagnosis.factor.base, "Normal", "Ambiguous At Risk", "MCI", "Dementia"),
@@ -1081,7 +1166,7 @@ merged.df <- merged.df %>%
 
 ## Setting Reference to "No" for Yes/No Variables
 
-```{r}
+```{r ref-level-no}
 levels.list <- purrr::map(merged.df, levels)
 factor_var.list <- levels.list[!purrr::map_lgl(levels.list, is.null)]
 
@@ -1092,9 +1177,11 @@ reference_yes.var <- names(reference_yes.list)
 for (var.i in reference_yes.var) {
   merged.df[[var.i]] <- relevel(merged.df[[var.i]], "No")
 }
+```
 
-cat("Reference level has been set to 'No' for the following Yes/No variables:\n")
+Reference level has been set to 'No' for the following Yes/No variables:
 
+```{r print-refno-df}
 print(data.frame(variables = reference_yes.var))
 ```
 
@@ -1102,7 +1189,7 @@ print(data.frame(variables = reference_yes.var))
 
 These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
 
-```{r}
+```{r mem-ef-composite}
 mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
   rename(np.memory.composite = memory.composite) %>%
   mutate(
@@ -1138,7 +1225,7 @@ label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", 
 
 In this step, we create separate data sets for the breath hold and face mask groups.
 
-```{r, separateBHfromFM}
+```{r separateBHfromFM}
 bHold.var <- grep("^bHold\\.", names(merged.df), v = T)
 bHold.index <- match(bHold.var, names(merged.df))
 
@@ -1177,7 +1264,7 @@ merged.fm.df <- call_function("derive_manual_3T", merged.fm.df)
 
 Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 
-```{r, derive-AD-sig}
+```{r derive-AD-sig}
 merged.bh.df <- derive_AD_signature(merged.bh.df)
 merged.fm.df <- derive_AD_signature(merged.fm.df)
 ```
@@ -1191,7 +1278,7 @@ class(merged.bh.df) <- "data.frame"
 class(merged.fm.df) <- "data.frame"
 ```
 
-```{r, save-data}
+```{r save-data}
 saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))
 write.csv(merged.fm.df, file = paste0(data.merge.fm.file, ".csv"), row.names = FALSE)
 
@@ -1432,6 +1519,58 @@ readr::write_csv(
 )
 
 diffs(e4.comparison, by.var = TRUE) %>%
+  filter(n > 0 | NAs > 0)
+```
+
+## Epoch 5
+
+The previous data set did not contain any Epoch 5 data.
+
+```{r diff-e5, eval = FALSE}
+current.e5.df <- merged.bh.df %>%
+  filter(
+    epoch %in% 5
+  ) %>%
+  mutate(
+    epoch = as.integer(epoch)
+  ) %>%
+  select(
+    one_of(c('map.id', 'epoch', current.all.var))
+  ) %>%
+  select_if(~ !all(is.na(.))) %>%
+  droplevels.data.frame()
+
+prev.e5.df <- prev.bh.df %>%
+  filter(
+    epoch %in% 5
+  ) %>%
+  mutate(
+    epoch = as.integer(epoch)
+  ) %>%
+  select(
+    one_of(c('map.id', 'epoch', prev.all.var))
+  ) %>%
+  select_if(~ !all(is.na(.))) %>%
+  droplevels.data.frame()
+
+e5.comparison <- comparedf(
+  current.e5.df, prev.e5.df, 
+  by = c("map.id", "epoch"),
+  int.as.num = TRUE,
+  factor.as.char = TRUE
+)
+
+e5.diff <- diffs(e5.comparison)
+
+readr::write_csv(
+  x = e5.diff,
+  path = file.path(
+    merge.report.dir,
+    paste0("e5_diff.csv")
+  )
+)
+
+diffs(e5.comparison, by.var = TRUE) %>%
   filter(n > 0 | NAs > 0)
 ```
 

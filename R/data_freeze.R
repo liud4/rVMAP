@@ -65,6 +65,11 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       project = tokens.list[tokens.list$epoch == 4, "project"],
       shortname = tokens.list[tokens.list$epoch == 4, "shortname"],
       token = tokens.list[tokens.list$epoch == 4, "token"]
+    ),
+    epoch_5 = list(
+      project = tokens.list[tokens.list$epoch == 5, "project"],
+      shortname = tokens.list[tokens.list$epoch == 5, "shortname"],
+      token = tokens.list[tokens.list$epoch == 5, "token"]
     )
   )
 
