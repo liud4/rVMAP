@@ -1101,6 +1101,16 @@ merged.df <- call_function("derive_cdr_conversion", merged.df)
 class(merged.df) <- "data.frame"
 ```
 
+## Circle of Willis (CoW) Variants
+
+```{r derive-cow-variants}
+merged.df <- call_function("derive_cow_variants", merged.df)
+```
+
+```{r}
+class(merged.df) <- "data.frame"
+```
+
 # Manual Invalidation: Post-Derivation
 
 In this section, we will invalidate certain derived variables for specified individuals as requested by VMAC.
