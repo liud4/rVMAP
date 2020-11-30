@@ -283,7 +283,7 @@ list(
 
 The following is a list of available data sets to be merged that were collected during Epoch 5.
 
-```{r list-projects-epoch4}
+```{r list-projects-epoch5}
 list(
   project = MAPfreeze.list[["epoch_5"]][["project"]],
   shortname = MAPfreeze.list[["epoch_5"]][["shortname"]]
@@ -388,6 +388,7 @@ process_raw_data(
   # srt = MAPfreeze.list$epoch_5$data$srt.static
 )
 ```
+
 # Data Merge {.tabset .tabset-fade .tabset-pills}
 
 Next, with the processing of raw data complete, we will merge the processed data sets within each available epoch. This is handled by the `merge_within_epoch()` function.
@@ -708,6 +709,12 @@ MAP IDs 028, 033, 131, 169, 176, 201 require color-related variables to be inval
 
 ```{r}
 merged.df <- call_function("invalidate_color_blind", merged.df)
+```
+
+Any infinite values that result from dividing by zero in REDCap formulas will be set to missing.
+
+```{r}
+merged.df <- merged.df %>% replace(., is.infinite(.), NA)
 ```
 
 # Format Variable Names and Apply Labels to each Variable
