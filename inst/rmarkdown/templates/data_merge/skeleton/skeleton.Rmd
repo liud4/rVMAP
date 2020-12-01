@@ -714,7 +714,7 @@ merged.df <- call_function("invalidate_color_blind", merged.df)
 Any infinite values that result from dividing by zero in REDCap formulas will be set to missing.
 
 ```{r}
-merged.df <- merged.df %>% replace(., is.infinite(.), NA)
+is.na(merged.df) <- sapply(merged.df, is.infinite)
 ```
 
 # Format Variable Names and Apply Labels to each Variable
