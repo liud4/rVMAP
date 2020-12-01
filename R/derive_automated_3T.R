@@ -333,7 +333,7 @@ derive_automated_3T <- function(data) {
 
     # CMRO2 and OEF  (OAK 20191203)
 
-    oef.ya <- (asl.3t.trust.spo2 + asl.3t.trust.spo2.1 + asl.3t.trust.spo2.2) / 3
+    oef.ya <- mean(c(asl.3t.trust.spo2, asl.3t.trust.spo2.1, asl.3t.trust.spo2.2), na.rm = TRUE)
     label(oef.ya) <- "Arterial Oxygenation (%)"
 
     oef.cmro2.hct <- asl.rest.grey.matter.hct * ((oef.ya - oef.yv.hct) * 0.01) * (0.556 * bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
