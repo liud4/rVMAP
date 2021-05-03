@@ -112,9 +112,9 @@ generate_inclusion_exclusion <- function(
 
   if (step == "first") {
 
-    if (exists("flow_chart.df")) {
-      stop("An object by the name of 'flow_chart.df' exists. Please remove this object from the global environment and retry.\n")
-    }
+    # if (exists("flow_chart.df")) {
+    #   stop("An object by the name of 'flow_chart.df' exists. Please remove this object from the global environment and retry.\n")
+    # }
 
     if ("epoch" %in% names(data.df)) {
       epochs <- unique(data.df$epoch)
@@ -138,6 +138,8 @@ generate_inclusion_exclusion <- function(
       data.frame(matrix(ncol = length(column_names), nrow = 0), stringsAsFactors = FALSE),
       column_names
     )
+
+    flow_chart.df[] <- lapply(flow_chart.df, as.character)
 
     new_description <- ifelse(
       all(epochs == 1),
