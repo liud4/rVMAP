@@ -730,7 +730,7 @@ format_metadata <- function(data) {
   data %>%
     dplyr::select(
       one_of(
-        c("field_name", "form_name", "field_type", "field_label", "select_choices_or_calculations")
+        c("field_name", "form_name", "field_type", "field_label", "select_choices_or_calculations", "field_annotation")
       )
     ) %>%
     dplyr::mutate(
@@ -879,6 +879,85 @@ The following variables do not have labels (this list excludes variables with th
 
 ```{r}
 print(data.frame(variables = sort(grep("complete|\\.\\.\\.|score", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v= T, invert = T))))
+```
+
+# Add Units Attribute to Each Variable
+
+```{r}
+units.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4, labels.5) %>% 
+  dplyr::distinct(field_name, field_annotation, .keep_all = TRUE)
+
+units.all %<>%
+  group_by(field_name) %>%
+  arrange(field_name, epoch) %>%
+  select(field_name, field_annotation, epoch) %>%
+  slice(1) %>%
+  ungroup() %>%
+  drop_na()
+
+units.bHold.df <- units.all %>%
+  filter(
+    field_name %in% gsub("bHold.", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", units.all$field_name)])
+  ) %>%
+  select(
+    Cs(field_name, field_annotation, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0("bHold.", field_name)
+  )
+
+units.factor.df <- units.all %>%
+  filter(
+    field_name %in% gsub(".factor", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".factor")])
+  ) %>%
+  select(
+    Cs(field_name, field_annotation, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".factor")
+  )
+
+units.bHold.factor.df <- units.all %>%
+  filter(
+    field_name %in% gsub("bHold\\.|\\.factor", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", units.all$field_name, ".factor")])
+  ) %>%
+  select(
+    Cs(field_name, field_annotation, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0("bHold.", field_name, ".factor")
+  )
+
+units.elig.df <- units.all %>%
+  filter(
+    field_name %in% gsub(".elig", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".elig")])
+  ) %>%
+  select(
+    Cs(field_name, field_annotation, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".elig")
+  )
+
+units.elig.factor.df <- units.all %>%
+  filter(
+    field_name %in% gsub(".factor.elig", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".factor.elig")])
+  ) %>%
+  select(
+    Cs(field_name, field_annotation, epoch)
+  ) %>%
+  mutate(
+    field_name = paste0(field_name, ".factor.elig")
+  )
+
+units.df <- bind_rows(units.all, units.bHold.df, units.factor.df, units.bHold.factor.df, units.elig.df, units.elig.factor.df) %>%
+  filter(
+    field_name %in% names(merged.df)
+  )
+
+for (var.i in units.df$field_name) {
+  units(merged.df[, var.i]) <- pull(units.df[units.df$field_name == var.i, "field_annotation"])[1]
+}
 ```
 
 # Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
