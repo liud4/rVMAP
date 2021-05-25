@@ -717,7 +717,7 @@ Any infinite values that result from dividing by zero in REDCap formulas will be
 is.na(merged.df) <- sapply(merged.df, is.infinite)
 ```
 
-# Format Variable Names and Apply Labels to each Variable
+# Format Variable Names and Apply Labels to Each Variable
 
 ```{r}
 merged.df <- format_names(merged.df)
@@ -782,7 +782,7 @@ variables_with_contradicting_labels_on_REDCap.df <-
 
 readr::write_csv(
   x = variables_with_contradicting_labels_on_REDCap.df,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("variables_with_contradicting_labels_on_REDCap.csv")
   )
@@ -862,7 +862,7 @@ variables_without_labels.df <- data.frame(
 
 readr::write_csv(
   x = variables_without_labels.df,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("variables_without_labels_pre-derivation.csv")
   )

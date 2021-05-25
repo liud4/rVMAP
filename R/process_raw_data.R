@@ -89,8 +89,8 @@ process_raw_data <- function(
   if (length(pvlt.var) > 0) {
     mydat <- mydat %>%
       mutate_at(
-        vars(pvlt.var),
-        funs(rVMAP::missing_to_na(., equal.val = -99, restrict.sign = TRUE))
+        all_of(pvlt.var),
+        list(~ rVMAP::missing_to_na(., equal.val = -99, restrict.sign = TRUE))
       )
   }
 
@@ -412,7 +412,7 @@ process_raw_data <- function(
         np_pvlt10_fruit, np_pvlt10_office, np_pvlt10_clothing, np_pvlt10,
         np_pvltrecog_m, np_pvltrecog_foil, np_pvltrecog_falsepos, np_pvltrecog_discrim
       ),
-      funs(missing_to_na(., equal.val = -99))
+      list(~ missing_to_na(., equal.val = -99))
     )
 
     var_w_comparison_operators <- NULL
