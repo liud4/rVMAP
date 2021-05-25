@@ -116,7 +116,7 @@ process_raw_data <- function(
   var_w_comparison_operators <- NULL
 
   mydat <- invalidate_raw_neuropsych_items(mydat)
-  mydat <- invalidate_color_blind(mydat)
+  # mydat <- invalidate_color_blind(mydat)
 
   mydat <- process_calculated_fields(data = mydat, data_label = "main", epoch = current_epoch)
 
