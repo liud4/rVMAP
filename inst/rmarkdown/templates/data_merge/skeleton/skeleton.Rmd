@@ -751,7 +751,7 @@ labels.apoe <- format_metadata(MAPfreeze.list[["epoch_0"]][["metadata"]][["apoe"
     epoch = 0
   )
 
-labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "srt", "addendum")], format_metadata) %>% 
+labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "addendum")], format_metadata) %>% 
   bind_rows() %>% 
   mutate(epoch = 1)
 
@@ -1541,8 +1541,6 @@ diffs(e4.comparison, by.var = TRUE) %>%
 ```
 
 ## Epoch 5
-
-The previous data set did not contain any Epoch 5 data.
 
 ```{r diff-e5, eval = FALSE}
 current.e5.df <- merged.bh.df %>%
