@@ -19,7 +19,8 @@ coerce_and_stack <- function(new_data, old_data) {
       modes <- c(mode(new_vec), mode(old_vec))
       # If all the values are NA, R thinks the mode is 'logical'.
       #   In that case we don't care whether the modes are different.
-      if ((!identical(modes[1], modes[2])) & !(all(is.na(new_vec)) | all(is.na(old_vec)))) {
+      # if ((!identical(modes[1], modes[2])) & !(all(is.na(new_vec)) | all(is.na(old_vec)))) {
+      if ((!identical(modes[1], modes[2]))) {
         new_row <- c(
           `Variable` = vname,
           `Mode in New Data Set` = mode(new_vec),
