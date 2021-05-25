@@ -691,7 +691,7 @@ check_shared_vars(merged.df, polygenetic.df, 'map_id')
 merged.df %<>% left_join(
   polygenetic.df,
   by = "map_id"
-) 
+)
 ```
 
 # Manual Invalidation: Pre-Derivation
@@ -1249,7 +1249,7 @@ cat("The following variables were added to each epoch for each participant:\n")
 print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 ```
 
-# Manual Modification of Factor Levels
+# Modification of Factor Levels
 
 ## Re-ordering Levels in `diagnosis.factor` and `diagnosis.factor.base`
 
@@ -1318,6 +1318,12 @@ label(merged.df$diagnosis.factor) <- label(merged.df$diagnosis)
 label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", from Enrollment")
 ```
 
+# Adding Neuroimaging Scanner Data
+
+```{r neuroimaging-link}
+merged.df <- process_neuroimaging_link(scanner_data = MAPfreeze.list$epoch_0$data$scanner, data = merged.df)
+```
+
 # Separating Breath Hold and Face Mask Data Sets
 
 In this step, we create separate data sets for the breath hold and face mask groups.
@@ -1366,16 +1372,28 @@ merged.bh.df <- derive_AD_signature(merged.bh.df)
 merged.fm.df <- derive_AD_signature(merged.fm.df)
 ```
 
+# Ordering Variables Alphabetically
+
+```{r ordering-alphabetically}
+merged.bh.df <- merged.bh.df[, order(colnames(merged.bh.df))] %>%
+  select(
+    map.id, epoch, everything()
+  )
+
+merged.fm.df <- merged.fm.df[, order(colnames(merged.fm.df))] %>%
+  select(
+    map.id, epoch, everything()
+  )
+```
+
 # Saving the Final Data
 
 We will save the Face Mask and Breath Hold data sets to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory as RDS and CSV files.
 
-```{r}
+```{r save-data}
 class(merged.bh.df) <- "data.frame"
 class(merged.fm.df) <- "data.frame"
-```
 
-```{r save-data}
 saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))
 write.csv(merged.fm.df, file = paste0(data.merge.fm.file, ".csv"), row.names = FALSE)
 

@@ -17,8 +17,7 @@ format_id <- function(data) {
       ) %>%
       dplyr::mutate(
         map_id = as.character(formatC(map_id, width = 3, format = "d", flag = "0"))
-      ) %>%
-      dplyr::distinct(map_id, .keep_all = TRUE)
+      )
   } else if ("map.id" %in% names(data)) {
     data %>%
       dplyr::arrange(map.id) %>%
@@ -31,8 +30,7 @@ format_id <- function(data) {
       ) %>%
       dplyr::mutate(
         map.id = as.character(formatC(map.id, width = 3, format = "d", flag = "0"))
-      ) %>%
-      dplyr::distinct(map.id, .keep_all = TRUE)
+      )
   } else {
     warning("This data frame does not contain a MAP ID variable.")
     data

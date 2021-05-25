@@ -91,23 +91,39 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       list.names
 
     for (index.token in 1:length(MAPfreeze.list[[epoch]][["token"]])) {
-
       current.shortname <- MAPfreeze.list[[epoch]][["shortname"]][index.token]
       current.token <- MAPfreeze.list[[epoch]][["token"]][index.token]
 
       # grab data
-      df <- REDCapR::redcap_read_oneshot(
-        redcap_uri = redcap.api.uri,
-        token = current.token,
-        raw_or_label = "raw",
-        verbose = FALSE
-      )$data
+      if (current.shortname == "scanner") {
+        df <- REDCapR::redcap_read_oneshot(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          raw_or_label = "raw",
+          fields = c("map_id", "epoch", "session_id", "scanner", "head_coil", "scanner_software"),
+          verbose = FALSE
+        )$data
 
-      meta.df <- REDCapR::redcap_metadata_read(
-        redcap_uri = redcap.api.uri,
-        token = current.token,
-        verbose = FALSE
-      )$data
+        meta.df <- REDCapR::redcap_metadata_read(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          fields = c("map_id", "epoch", "session_id", "scanner", "head_coil", "scanner_software"),
+          verbose = FALSE
+        )$data
+      } else {
+        df <- REDCapR::redcap_read_oneshot(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          raw_or_label = "raw",
+          verbose = FALSE
+        )$data
+
+        meta.df <- REDCapR::redcap_metadata_read(
+          redcap_uri = redcap.api.uri,
+          token = current.token,
+          verbose = FALSE
+        )$data
+      }
 
       # save data
       MAPfreeze.list[[epoch]][["data"]][[current.shortname]] <- df
