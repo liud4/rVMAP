@@ -154,7 +154,7 @@ process_eligibility <- function(elig_data) {
   names(dataToKeep) <- c("map_id", paste0(setdiff(names(dataToKeep), "map_id"), "_elig"))
 
   dataToKeep <- invalidate_neuropsych_eligibility(dataToKeep)
-  dataToKeep <- invalidate_color_blind(dataToKeep)
+  # dataToKeep <- invalidate_color_blind(dataToKeep)
 
   return(dataToKeep)
 }
