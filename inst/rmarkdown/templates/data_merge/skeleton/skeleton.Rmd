@@ -1101,6 +1101,7 @@ merged.df <- call_function("derive_neuropsych", merged.df)
 Derive, convert, label, and add MLTA and CHAMPS variables to the merged data set.
 
 ```{r derive-mltaChamps}
+merged.df$mlta10 <- as.numeric(merged.df$mlta10)
 merged.df <- call_function("derive_mlta_champs", merged.df)
 ```
 
@@ -1125,6 +1126,8 @@ merged.df <- call_function("derive_biomarkers", merged.df)
 Derive, label, and add informant information variables to the merged data set.
 
 ```{r derive-informatInfo}
+merged.df$inform.length.yrs <- as.numeric(merged.df$inform.length.yrs)
+merged.df$inform.length.mos <- as.numeric(merged.df$inform.length.mos)
 merged.df <- call_function("derive_informant_info", merged.df)
 ```
 
@@ -1321,7 +1324,7 @@ label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", 
 # Adding Neuroimaging Scanner Data
 
 ```{r neuroimaging-link}
-merged.df <- process_neuroimaging_link(scanner_data = MAPfreeze.list$epoch_0$data$scanner, data = merged.df)
+merged.df <- call_function("process_neuroimaging_link", merged.df)
 ```
 
 # Separating Breath Hold and Face Mask Data Sets
@@ -1476,9 +1479,9 @@ e1.comparison <- comparedf(
 
 e1.diff <- diffs(e1.comparison)
 
-readr::write_csv(
+write.csv(
   x = e1.diff,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("e1_diff.csv")
   )
@@ -1526,9 +1529,9 @@ e2.comparison <- comparedf(
 
 e2.diff <- diffs(e2.comparison)
 
-readr::write_csv(
+write.csv(
   x = e2.diff,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("e2_diff.csv")
   )
@@ -1575,9 +1578,9 @@ e3.comparison <- comparedf(
 
 e3.diff <- diffs(e3.comparison)
 
-readr::write_csv(
+write.csv(
   x = e3.diff,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("e3_diff.csv")
   )
@@ -1625,9 +1628,9 @@ e4.comparison <- comparedf(
 
 e4.diff <- diffs(e4.comparison)
 
-readr::write_csv(
+write.csv(
   x = e4.diff,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("e4_diff.csv")
   )
@@ -1675,9 +1678,9 @@ e5.comparison <- comparedf(
 
 e5.diff <- diffs(e5.comparison)
 
-readr::write_csv(
+write.csv(
   x = e5.diff,
-  path = file.path(
+  file = file.path(
     merge.report.dir,
     paste0("e5_diff.csv")
   )
