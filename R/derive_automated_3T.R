@@ -330,22 +330,22 @@ derive_automated_3T <- function(data) {
     asl.reac.left.trifg.triangular.part.of.the.inferior.frontal.gyrus <- 100 * (asl.chall.left.trifg.triangular.part.of.the.inferior.frontal.gyrus - asl.rest.left.trifg.triangular.part.of.the.inferior.frontal.gyrus) / asl.rest.left.trifg.triangular.part.of.the.inferior.frontal.gyrus / asl.3t.change.etco2
     asl.reac.right.ttg.transverse.temporal.gyrus <- 100 * (asl.chall.right.ttg.transverse.temporal.gyrus - asl.rest.right.ttg.transverse.temporal.gyrus) / asl.rest.right.ttg.transverse.temporal.gyrus / asl.3t.change.etco2
     asl.reac.left.ttg.transverse.temporal.gyrus <- 100 * (asl.chall.left.ttg.transverse.temporal.gyrus - asl.rest.left.ttg.transverse.temporal.gyrus) / asl.rest.left.ttg.transverse.temporal.gyrus / asl.3t.change.etco2
-
-    # CMRO2 and OEF  (OAK 20191203)
-
-    oef.ya <- mean(c(asl.3t.trust.spo2, asl.3t.trust.spo2.1, asl.3t.trust.spo2.2), na.rm = TRUE)
-    label(oef.ya) <- "Arterial Oxygenation (%)"
-
-    oef.cmro2.hct <- asl.rest.grey.matter.hct * ((oef.ya - oef.yv.hct) * 0.01) * (0.556 * bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
-    label(oef.cmro2.hct) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
-
-    oef.oef <- 100 * ((oef.ya - oef.yv) / oef.ya)
-    label(oef.oef) <- "Oxygen Extraction Fraction (%)"
-
-    oef.oef.hct <- 100 * ((oef.ya - oef.yv.hct) / oef.ya)
-    label(oef.oef.hct) <- "Oxygen Extraction Fraction (%) Hct corrected"
-
   })
+
+  # CMRO2 and OEF  (OAK 20191203)
+
+  data$oef.ya <- rowMeans(data[, c("asl.3t.trust.spo2", "asl.3t.trust.spo2.1", "asl.3t.trust.spo2.2")], na.rm = TRUE)
+  data$oef.ya[is.nan(data$oef.ya)] <- NA
+  label(data$oef.ya) <- "Arterial Oxygenation (%)"
+
+  data$oef.cmro2.hct <- data$asl.rest.grey.matter.hct * ((data$oef.ya - data$oef.yv.hct) * 0.01) * (0.556 * data$bld.c.hgb) # see https://github.com/liud4/rVMAP/issues/39
+  label(data$oef.cmro2.hct) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
+
+  data$oef.oef <- 100 * ((data$oef.ya - data$oef.yv) / data$oef.ya)
+  label(data$oef.oef) <- "Oxygen Extraction Fraction (%)"
+
+  data$oef.oef.hct <- 100 * ((data$oef.ya - data$oef.yv.hct) / data$oef.ya)
+  label(data$oef.oef.hct) <- "Oxygen Extraction Fraction (%) Hct corrected"
 
   asl.reac.var <- grep("asl.reac", names(data), v = T)
   asl.reac.labels <- sapply(data[, asl.reac.var], Hmisc::label)
