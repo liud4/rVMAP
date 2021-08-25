@@ -5,7 +5,7 @@
 #' @export
 
 derive_neuropsych <- function(data) {
-  np.towervars <- paste0("np.tower", formatC(1:9, width = 2, flag = "0"))
+  np.towervars <- paste0("np.tower", 1:9)
   data$np.tower <- apply(data[, np.towervars], 1, function(vec) {
     if (all(is.na(vec))) NA else sum(vec, na.rm = TRUE)
   })

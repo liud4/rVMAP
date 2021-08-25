@@ -8,14 +8,14 @@ invalidate_neuropsych_eligibility <- function(data) {
   x <- c(
     "np_srt6_elig",
     "np_srt_immed_elig",
-    "np_srt_immed_z_elig",
+    "np_srt_immed_zscore_elig",
     "np_srt_sdcr_elig",
     "np_srt_ldfr_elig",
-    "np_srt_ldfr_z_elig",
+    "np_srt_ldfr_zscore_elig",
     "np_srt_recog_elig",
-    "np_srt_recog_z_elig",
+    "np_srt_recog_zscore_elig",
     "np_srt_intrus_elig",
-    "np_srt_intrus_z_elig",
+    "np_srt_intrus_zscore_elig",
     "np_srt_reps_elig"
   )
 
@@ -24,7 +24,7 @@ invalidate_neuropsych_eligibility <- function(data) {
 
   x1 <- c(
     "np_blocks_elig",
-    "np_blocks_ss_elig"
+    "np_blocks_sscore_elig"
   )
 
   # Variables to set to NA for MAP 016 & MAP 213
@@ -39,14 +39,14 @@ invalidate_neuropsych_eligibility <- function(data) {
     "np_srt5_elig",
     "np_srt6_elig",
     "np_srt_immed_elig",
-    "np_srt_immed_z_elig",
+    "np_srt_immed_zscore_elig",
     "np_srt_sdcr_elig",
     "np_srt_ldfr_elig",
-    "np_srt_ldfr_z_elig",
+    "np_srt_ldfr_zscore_elig",
     "np_srt_recog_elig",
-    "np_srt_recog_z_elig",
+    "np_srt_recog_zscore_elig",
     "np_srt_intrus_elig",
-    "np_srt_intrus_z_elig",
+    "np_srt_intrus_zscore_elig",
     "np_srt_reps_elig"
   )
 
@@ -56,7 +56,7 @@ invalidate_neuropsych_eligibility <- function(data) {
   # Variables for MAP 039
   x3 <- c(
     "np_tmtb_elig",
-    "np_tmtb_ss_elig",
+    "np_tmtb_sscore_elig",
     "np_tmtb_seqerr_elig",
     "np_tmtb_seterr_elig"
   )
@@ -67,11 +67,11 @@ invalidate_neuropsych_eligibility <- function(data) {
   # MAP 137
   x4 <- c(
     "np_srt_ldfr_elig",
-    "np_srt_ldfr_z_elig",
+    "np_srt_ldfr_zscore_elig",
     "np_srt_recog_elig",
-    "np_srt_recog_z_elig",
+    "np_srt_recog_zscore_elig",
     "np_srt_intrus_elig",
-    "np_srt_intrus_z_elig"
+    "np_srt_intrus_zscore_elig"
   )
 
   # Set variables to missing for MAP 137
@@ -80,11 +80,11 @@ invalidate_neuropsych_eligibility <- function(data) {
   # MAP 201
   x5 <- c(
     "np_strp_color_elig",
-    "np_strp_color_ss_elig",
+    "np_strp_color_sscore_elig",
     "np_strp_color_ucerr_elig",
     "np_strp_color_scerr_elig",
     "np_strp_colorword_elig",
-    "np_strp_colorword_ss_elig",
+    "np_strp_colorword_sscore_elig",
     "np_strp_colorword_ucerr_elig",
     "np_strp_colorword_scerr_elig",
     "np_strp_ucerr_elig",
@@ -100,7 +100,7 @@ invalidate_neuropsych_eligibility <- function(data) {
     "np_vegq3_elig",
     "np_vegq4_elig",
     "np_veg_elig",
-    "np_veg_z_elig",
+    "np_veg_zscore_elig",
     "np_veg_reps_elig",
     "np_veg_intrus_elig"
   )
@@ -112,9 +112,9 @@ invalidate_neuropsych_eligibility <- function(data) {
   x7 <- c(
     "np_wais_digitsf_elig",
     "np_wais_digits_elig",
-    "np_wais_digits_ss_elig",
+    "np_wais_digits_sscore_elig",
     "np_wais_digitsf_span_elig",
-    "np_wais_digitsf_span_z_elig"
+    "np_wais_digitsf_span_zscore_elig"
   )
 
   # Set variables to missing for MAP 299
