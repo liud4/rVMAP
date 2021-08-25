@@ -95,6 +95,7 @@ map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variab
 packages <- Hmisc::Cs(
   knitr,
   dplyr,
+  tidyr,
   lubridate,
   tidyr,
   stringr,
