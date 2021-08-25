@@ -6,20 +6,28 @@ process_biospecimen_availability <- function(path = "~/box/VMAC BIOSTAT/DATA/MAP
     biospecimen.list[[epoch.i]]$epoch <- epoch.i
   }
 
-  biospecimen.df <- dplyr::bind_rows(biospecimen.list)
+  biospecimen.df <- dplyr::bind_rows(biospecimen.list) %>%
+    format_id()
 
-  biospecimen.df$plasma <- ifelse(biospecimen.df$plasma == "y", TRUE, FALSE)
-  biospecimen.df$serum <- ifelse(biospecimen.df$serum == "y", TRUE, FALSE)
-  biospecimen.df$DNA <- ifelse(biospecimen.df$DNA == "y", TRUE, FALSE)
-  biospecimen.df$PAXGene <- ifelse(biospecimen.df$PAXGene == "y", TRUE, FALSE)
-  biospecimen.df$csf <- ifelse(biospecimen.df$csf == "y", TRUE, FALSE)
+  biospecimen.df$plasma <- ifelse(biospecimen.df$plasma == "y", "Yes", "No")
+  biospecimen.df$serum <- ifelse(biospecimen.df$serum == "y", "Yes", "No")
+  biospecimen.df$DNA <- ifelse(biospecimen.df$DNA == "y", "Yes", "No")
+  biospecimen.df$PAXGene <- ifelse(biospecimen.df$PAXGene == "y", "Yes", "No")
+  biospecimen.df$csf <- ifelse(biospecimen.df$csf == "y", "Yes", "No")
 
   names(biospecimen.df) <- c("map.id", "plasma.availability", "serum.availability",
-                             "dna.availability", "paxgene.availability", "csf.availability", "epoch")
+                             "dna.availability", "paxgene.availability", "csf.availability",
+                             "epoch")
 
-  biospecimen.df <- format_id(biospecimen.df)
-
-  biospecimen.df <- as.data.frame(biospecimen.df)
+  biospecimen.df <- biospecimen.df %>%
+    mutate(
+      plasma.availability = factor(plasma.availability, levels = c("No", "Yes")),
+      serum.availability = factor(serum.availability, levels = c("No", "Yes")),
+      dna.availability = factor(dna.availability, levels = c("No", "Yes")),
+      paxgene.availability = factor(paxgene.availability, levels = c("No", "Yes")),
+      csf.availability = factor(csf.availability, levels = c("No", "Yes")),
+    ) %>%
+    as.data.frame()
 
   return(biospecimen.df)
 }
