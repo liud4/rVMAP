@@ -1287,7 +1287,7 @@ print(data.frame(variables = reference_yes.var))
 
 # Adding Memory and Executive Function Composite Scores
 
-These scores were provided to us in two RDS files dated June 20, 2019 by Timothy Hohman after calculating them in MPlus.
+These scores were provided to us in two RDS files dated March 29, 2021 by Timothy Hohman after calculating them in MPlus.
 
 ```{r mem-ef-composite}
 mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
@@ -1325,6 +1325,14 @@ label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", 
 
 ```{r neuroimaging-link}
 merged.df <- call_function("process_neuroimaging_link", merged.df)
+```
+
+# Adding Biospecimen Availability
+
+```{r biospecimen}
+biospecimen.df <- process_biospecimen_availability(path = "~/box/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1:5)
+
+merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))
 ```
 
 # Separating Breath Hold and Face Mask Data Sets
