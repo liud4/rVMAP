@@ -1193,6 +1193,12 @@ merged.df <- call_function("derive_cow_variants", merged.df)
 class(merged.df) <- "data.frame"
 ```
 
+## CVD/AFib Ever
+
+```{r cvd-afib-ever}
+merged.df <- call_function("derive_cvdafib_ever", merged.df)
+```
+
 # Manual Invalidation: Post-Derivation
 
 In this section, we will invalidate certain derived variables for specified individuals as requested by VMAC.
