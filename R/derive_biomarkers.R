@@ -6,6 +6,11 @@
 
 derive_biomarkers <- function(data) {
 
+  vegf_label <- label(data$biomarkers.vegf)
+  vegf_units <- units(data$biomarkers.vegf)
+  il6_label <- label(data$biomarkers.il6)
+  il6_units <- units(data$biomarkers.il6)
+
   data <- within(data, {
     # label(biomarkers.leptin)         <- "Leptin pg/ml"
     # label(biomarkers.il6)            <- "IL-6 pg/ml"
@@ -114,6 +119,11 @@ derive_biomarkers <- function(data) {
     )
     label(csf.snap) <- label(csf.snap.factor) <- "CSF-defined SNAP based on AB and tau cutpoints"
   })
+
+  label(data$biomarkers.vegf) <- vegf_label
+  units(data$biomarkers.vegf) <- vegf_units
+  label(data$biomarkers.il6) <- il6_label
+  units(data$biomarkers.il6) <- il6_units
 
   return(data)
 }
