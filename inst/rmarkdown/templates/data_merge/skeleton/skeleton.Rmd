@@ -1339,7 +1339,11 @@ merged.df <- call_function("process_neuroimaging_link", merged.df)
 ```{r biospecimen}
 biospecimen.df <- process_biospecimen_availability(path = "~/box/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1:5)
 
-merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))
+biospecimen.df$epoch <- as.numeric(biospecimen.df$epoch)
+label(biospecimen.df$map.id) <- label(merged.df$map.id)
+label(biospecimen.df$epoch) <- label(merged.df$epoch)
+
+merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))```
 ```
 
 # Separating Breath Hold and Face Mask Data Sets
@@ -1454,6 +1458,12 @@ if (is.null(last.data.merge.bh.file)) {
 
 current.all.var <- all.var[all.var %in% names(merged.bh.df)]
 prev.all.var <- all.var[all.var %in% names(prev.bh.df)]
+```
+
+## New Variables in Current Data (Absent from Previous Data)
+
+```{r}
+tibble(new_variable = sort(current.all.var[which(current.all.var %nin% prev.all.var)]))
 ```
 
 ## Epoch 1
