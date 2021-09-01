@@ -34,7 +34,7 @@ process_eligibility <- function(elig_data) {
   elig_data$np_veg <- apply(elig_data[, np.vegvars], 1, total_score, threshold = 1)
 
   # elig_data$np_bvrt_redcap <- elig_data$np_bvrt
-  np.bvrtvars <- paste0("np_bvrt", formatC(1:10, width = 2, flag = "0"))
+  np.bvrtvars <- paste0("np_bvrt", 1:10)
   elig_data$np_bvrt <- apply(elig_data[, np.bvrtvars], 1, total_score, threshold = 1)
 
   elig_data$np_tmta_trun <- ifelse(elig_data$np_tmta > 150, 150, elig_data$np_tmta)
