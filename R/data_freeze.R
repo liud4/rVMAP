@@ -94,6 +94,8 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       current.shortname <- MAPfreeze.list[[epoch]][["shortname"]][index.token]
       current.token <- MAPfreeze.list[[epoch]][["token"]][index.token]
 
+      message(paste0("Currently downloading: ", MAPfreeze.list[[epoch]][["project"]][index.token], "\n\n"))
+
       # grab data
       if (current.shortname == "scanner") {
         df <- REDCapR::redcap_read_oneshot(
@@ -242,12 +244,12 @@ data_freeze <- function(box.dir = file.path("~", "box"),
 
   np.memory.composite.file <- file.path(
     data.raw.dir,
-    "Memory_Scores_20190620.rds"
+    "Memory_Scores_20210324.rds"
   )
 
   np.executive.composite.file <- file.path(
     data.raw.dir,
-    "EF_Scores_20190620.rds"
+    "EF_Scores_20210329.rds"
   )
 
   polygenetic.file <- file.path(
