@@ -2,7 +2,9 @@ process_comparison_operators <- function(number, precision = 7) {
   original.digits <- getOption("digits")
   options(digits = precision)
 
-  # digits_after_dot <- ifelse(grepl("\\.", number), nchar(gsub("(.*\\.)|([0]*$)", "", as.character(number))), NA)
+  number <- gsub("_", "", number)
+  number <- gsub("?", "", number)
+  
   digits_after_dot <- ifelse(grepl("\\.", number), nchar(gsub("(.*\\.)", "", as.character(number))), NA)
 
   if (grepl(">", number)) {

@@ -5,10 +5,6 @@
 #' @export
 
 derive_pvlt <- function(data) {
-  # OAK 20180626: For some reason, these variables are now character. They need to be set to numeric.
-  to_make_numeric <- names(which(lapply(data[, grep("np\\.pvlt", names(data), value = T)], function(x) "character" %in% class(x)) == TRUE))
-  data[, setdiff(to_make_numeric, "np.pvlt.notes")] <- lapply(data[, setdiff(to_make_numeric, "np.pvlt.notes")], as.numeric)
-
   data <- within(data, {
     np.pvlta.tot.redcap <- np.pvlta.tot
     np.pvlta.intrus.redcap <- np.pvlta.intrus
@@ -139,23 +135,17 @@ derive_pvlt <- function(data) {
   data$np.pvlt.cuedrecallint <- data$np.pvlt8.intrus + data$np.pvlt10.intrus
   label(data$np.pvlt.cuedrecallint) <- "pvlt8.intrus + pvlt10.intrus"
 
-  regcoef <- rep(0, length(data$map.id))
-
-  for (ep in unique(data$epoch)) {
-    for (id in unique(data[data$epoch == ep, "map.id"])) {
-      y <- as.numeric(data[data$epoch == ep & data$map.id == id,
-                           c("np.pvlt1", "np.pvlt2", "np.pvlt3", "np.pvlt4", "np.pvlt5")])
-      if (sum(is.na(y)) != 5) {
-        x <- seq(1:5)
-        res <- lm(y ~ x)
-        regcoef <- res$coefficients[2]
-      } else {
-        regcoef <- NA
-      }
-      data[data$epoch == ep & data$map.id == id, "np.pvlt.slope"] <- regcoef
+  for (row.i in 1:nrow(data)) {
+    y <- as.numeric(data[row.i, c("np.pvlt1", "np.pvlt2", "np.pvlt3", "np.pvlt4", "np.pvlt5")])
+    if (sum(is.na(y)) != 5) {
+      x <- seq(1:5)
+      res <- lm(y ~ x)
+      regcoef <- res$coefficients[2]
+    } else {
+      regcoef <- NA
     }
+    data[row.i, "np.pvlt.slope"] <- regcoef  
   }
-  label(data$np.pvlt.slope) <- "PVLT Learning Slope"
 
-  data
+  return(data)
 }

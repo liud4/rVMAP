@@ -5,6 +5,8 @@
 #' @export
 
 derive_AD_signature <- function(data) {
+  # data <- merged.df
+  
   schwarz <- Hmisc::Cs(
     rh.entorhinal.thickness,
     rh.inferiortemporal.thickness,
@@ -57,19 +59,21 @@ derive_AD_signature <- function(data) {
     )
 
   mcevoy.all.temp <- NULL
-
+  
   derive_mcevoy.df <- data %>%
     dplyr::filter(epoch == 1) %>%
+    dplyr::filter(!is.na(avg.hippocampus)) %>%
     dplyr::filter(diagnosis.factor.base == "Normal") %>%
     dplyr::select(
       one_of(
-        Cs(map.id, epoch, age, sex.factor, intracranialvol, avg.hippocampus, avg.entorhinal.thickness,
+        Cs(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance,
+           age, sex.factor, diagnosis.factor.base, intracranialvol, avg.hippocampus, avg.entorhinal.thickness,
            avg.middletemporal.thickness, avg.bankssts.thickness, avg.isthmuscingulate.thickness,
            avg.superiortemporal.thickness, avg.medialorbitofrontal.thickness, avg.lateralorbitofrontal.thickness)
       )
     )
 
-  derive_mcevoy.df <- droplevels(derive_mcevoy.df)
+  # derive_mcevoy.df <- droplevels(derive_mcevoy.df)
 
   fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + intracranialvol')),
               data = derive_mcevoy.df,
@@ -116,6 +120,8 @@ derive_AD_signature <- function(data) {
   mcevoy.temp <- data.frame(
     map.id = data_w_fit.df$map.id,
     epoch = data_w_fit.df$epoch,
+    redcap.repeat.instrument = data_w_fit.df$redcap.repeat.instrument, 
+    redcap.repeat.instance = data_w_fit.df$redcap.repeat.instance,
     stringsAsFactors = FALSE
   )
 
@@ -139,9 +145,9 @@ derive_AD_signature <- function(data) {
   mcevoy.temp$AD.sig.mcevoy <- rowSums(mcevoy.temp[, c("fit.1", "fit.2", "fit.3", "fit.4", "fit.5", "fit.6", "fit.7", "fit.8")])
 
   mcevoy.temp <- mcevoy.temp %>%
-    select(map.id, epoch, AD.sig.mcevoy)
+    select(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance, AD.sig.mcevoy)
 
-  data <- left_join(data, mcevoy.temp, by = c("map.id", "epoch"))
+  data <- left_join(data, mcevoy.temp, by = c("map.id", "epoch", "redcap.repeat.instrument", "redcap.repeat.instance"))
 
   data$AD.sig.schwarz <- rowMeans(data[, schwarz], na.rm = FALSE)
 
@@ -160,3 +166,4 @@ derive_AD_signature <- function(data) {
 
   return(data)
 }
+

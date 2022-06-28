@@ -1,20 +1,5 @@
-#' Freeze data by downloading it from REDCap. Static data sets are also added to the list object. The API tokens must be unlocked from a secure, encrypted vault.
-#'
-#' @param box.dir User path to Box home directory (parent directory of "VMAC BIOSTAT").
-#' @param tokens.list The list of databases and API tokens to download from REDCap.
-#' @param redcap.api.uri The URI for the REDCap API
-#' @param save A logical value indicating whether to save the output as an RDS file in the default directory ("rawData")
-#' @param return A logical value indicating whether to return the output.
-#' @return A comprehensive list object containing all the raw data necessary to perform a data merge.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' MAPfreeze_interim.list <- data_freeze(save = TRUE, return = TRUE)
-#' }
-
-data_freeze <- function(box.dir = file.path("~", "box"),
-                        tokens.list,
+data_freeze <- function(box.dir = file.path("~", "Box Sync"),
+                        output.dir = NULL,
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
                         save = TRUE,
                         return = TRUE) {
@@ -41,109 +26,59 @@ data_freeze <- function(box.dir = file.path("~", "box"),
       ),
       sysinfo = Sys.info()[c("sysname", "release", "nodename", "login", "user", "effective_user")]
     ),
-    epoch_0 = list(
-      project = tokens.list[tokens.list$epoch == 0, "project"],
-      shortname = tokens.list[tokens.list$epoch == 0, "shortname"],
-      token = tokens.list[tokens.list$epoch == 0, "token"]
+    vmap_edc = list(
+      project = "VMAP Electronic Data Capture Epochs 1-6",
+      token = "E727B91E222517FC041A20C728B04A1C"
     ),
-    epoch_1 = list(
-      project = tokens.list[tokens.list$epoch == 1, "project"],
-      shortname = tokens.list[tokens.list$epoch == 1, "shortname"],
-      token = tokens.list[tokens.list$epoch == 1, "token"]
+    questionnaires = list(
+      project = "VMAP Questionnaires",
+      token = "EA09F0B49D7670C3D0F69887B89B9C8D"
     ),
-    epoch_2 = list(
-      project = tokens.list[tokens.list$epoch == 2, "project"],
-      shortname = tokens.list[tokens.list$epoch == 2, "shortname"],
-      token = tokens.list[tokens.list$epoch == 2, "token"]
+    biomarkers = list(
+      project = "VMAP CSF, Plasma, and Serum Biomarkers Epoch 1-6",
+      token = "7E1BFA5259BD5E59FECD095F0324B62A"
     ),
-    epoch_3 = list(
-      project = tokens.list[tokens.list$epoch == 3, "project"],
-      shortname = tokens.list[tokens.list$epoch == 3, "shortname"],
-      token = tokens.list[tokens.list$epoch == 3, "token"]
+    apoe = list(
+      project = "MAP APOE",
+      token = "87BC5364FCBBE6B6942410E415EDE1D2"
     ),
-    epoch_4 = list(
-      project = tokens.list[tokens.list$epoch == 4, "project"],
-      shortname = tokens.list[tokens.list$epoch == 4, "shortname"],
-      token = tokens.list[tokens.list$epoch == 4, "token"]
-    ),
-    epoch_5 = list(
-      project = tokens.list[tokens.list$epoch == 5, "project"],
-      shortname = tokens.list[tokens.list$epoch == 5, "shortname"],
-      token = tokens.list[tokens.list$epoch == 5, "token"]
+    scanner = list(
+      project = "MAP Neuroimaging Link",
+      token = "6C1EE1161B2BF40BA37159F3077FD99E"
     )
   )
 
   ###
 
   # use REDCap API to download data
-  for (index.epoch in unique(tokens.list$epoch)) {
-    epoch <- paste0("epoch_", index.epoch)
+  for (redcap.i in setdiff(names(MAPfreeze.list), "general")) {
 
-    list.names <- MAPfreeze.list[[epoch]][["shortname"]]
-
-    MAPfreeze.list[[epoch]][["metadata"]] <-
-      MAPfreeze.list[[epoch]][["data"]] <-
-      vector("list", length(list.names))
-
-    names(MAPfreeze.list[[epoch]][["metadata"]]) <-
-      names(MAPfreeze.list[[epoch]][["data"]]) <-
-      names(MAPfreeze.list[[epoch]][["token"]]) <-
-      list.names
-
-    for (index.token in 1:length(MAPfreeze.list[[epoch]][["token"]])) {
-      current.shortname <- MAPfreeze.list[[epoch]][["shortname"]][index.token]
-      current.token <- MAPfreeze.list[[epoch]][["token"]][index.token]
-
-      message(paste0("Currently downloading: ", MAPfreeze.list[[epoch]][["project"]][index.token], "\n\n"))
-
-      # grab data
-      if (current.shortname == "scanner") {
-        df <- REDCapR::redcap_read_oneshot(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          raw_or_label = "raw",
-          fields = c("map_id", "epoch", "session_id", "scanner", "head_coil", "scanner_software"),
-          verbose = FALSE
-        )$data
-
-        meta.df <- REDCapR::redcap_metadata_read(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          fields = c("map_id", "epoch", "session_id", "scanner", "head_coil", "scanner_software"),
-          verbose = FALSE
-        )$data
-      } else {
-        df <- REDCapR::redcap_read_oneshot(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          raw_or_label = "raw",
-          verbose = FALSE
-        )$data
-
-        meta.df <- REDCapR::redcap_metadata_read(
-          redcap_uri = redcap.api.uri,
-          token = current.token,
-          verbose = FALSE
-        )$data
-      }
-
-      # save data
-      MAPfreeze.list[[epoch]][["data"]][[current.shortname]] <- df
-      MAPfreeze.list[[epoch]][["metadata"]][[current.shortname]] <- meta.df
-
-      # clean up
-      remove(df, meta.df)
-    }
+    message(paste0("Currently downloading: ", MAPfreeze.list[[redcap.i]][["project"]], "\n\n"))
+    
+    # grab data
+    MAPfreeze.list[[redcap.i]][["data"]] <- REDCapR::redcap_read(
+      batch_size = 50L,
+      redcap_uri = redcap.api.uri,
+      token = MAPfreeze.list[[redcap.i]][["token"]],
+      raw_or_label = "raw",
+      verbose = TRUE
+    )$data
+    
+    MAPfreeze.list[[redcap.i]][["metadata"]] <- REDCapR::redcap_metadata_read(
+      redcap_uri = redcap.api.uri,
+      token = MAPfreeze.list[[redcap.i]][["token"]],
+      verbose = TRUE
+    )$data
   }
-
+  
   MAPfreeze.list$general$versions[["REDCap"]] <- as.character(
     REDCapR::redcap_version(
       redcap_uri = redcap.api.uri,
-      token = MAPfreeze.list$epoch_1$token[1],
+      token = MAPfreeze.list[[redcap.i]][["token"]],
       verbose = FALSE
     )
   )
-
+  
   ###
 
   med.file.date <- 20150817 # date for main medication files
@@ -265,7 +200,6 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     project = paste0(
       "MAP ",
       c("ABP Consent",
-        # "APOE",
         "Selected Eligibility",
         "Cholesterol",
         "Atrial Fibrillation",
@@ -287,7 +221,6 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     ),
     shortname = paste0(
       c("tracking",
-        # "apoe",
         "eligibility",
         "cholesterol",
         "afib",
@@ -310,7 +243,6 @@ data_freeze <- function(box.dir = file.path("~", "box"),
     token = rep("static.file", 17),
     data = list(
       read.csv(track.file, stringsAsFactors = FALSE),
-      # read.csv(apoe.file, stringsAsFactors = FALSE),
       read.csv(elig.file, stringsAsFactors = FALSE),
       read.csv(chol.file, stringsAsFactors = FALSE),
       read.csv(afib.file, stringsAsFactors = FALSE),
@@ -336,7 +268,7 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   names(static.list.0[["metadata"]]) <- static.list.0$shortname
 
   for (list.names in names(static.list.0)) {
-    MAPfreeze.list[["epoch_0"]][[list.names]] <- c(MAPfreeze.list[["epoch_0"]][[list.names]], static.list.0[[list.names]])
+    MAPfreeze.list[["static"]][[list.names]] <- c(MAPfreeze.list[["static"]][[list.names]], static.list.0[[list.names]])
   }
 
   # epoch_1
@@ -368,17 +300,27 @@ data_freeze <- function(box.dir = file.path("~", "box"),
   names(static.list.1[["metadata"]]) <- static.list.1$shortname
 
   for (list.names in names(static.list.1)) {
-    MAPfreeze.list[["epoch_1"]][[list.names]] <- c(MAPfreeze.list[["epoch_1"]][[list.names]], static.list.1[[list.names]])
+    MAPfreeze.list[["static"]][[list.names]] <- c(MAPfreeze.list[["static"]][[list.names]], static.list.1[[list.names]])
   }
 
   if (save == TRUE) {
-    saveRDS(
-      object = MAPfreeze.list,
-      file = file.path(
-        data.raw.dir,
-        paste0("MAPfreeze", "_", format(Sys.time(), "%Y%m%d"), ".rds")
+    if (is.null(output.dir)) {
+      saveRDS(
+        object = MAPfreeze.list,
+        file = file.path(
+          data.raw.dir,
+          paste0("MAPfreeze", "_", format(Sys.time(), "%Y%m%d"), ".rds")
+        )
       )
-    )
+    } else {
+      saveRDS(
+        object = MAPfreeze.list,
+        file = file.path(
+          output.dir,
+          paste0("MAPfreeze", "_", format(Sys.time(), "%Y%m%d"), ".rds")
+        )
+      )
+    }
   }
 
   if (return == TRUE) {

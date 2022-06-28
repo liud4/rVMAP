@@ -83,9 +83,9 @@ derive_psqi <- function(data) {
       TRUE ~ NA_real_
     )
 
-    psqi.bedtime <- ifelse(as.character(psqi.bedtime) %in% "-9999", NA, as.character(psqi.bedtime))
+    # psqi.bedtime <- ifelse(as.character(psqi.bedtime) %in% "-9999", NA, as.character(psqi.bedtime))
     psqi.bedtime.prep <- NA
-    psqi.waketime <- ifelse(as.character(psqi.waketime) %in% "-9999", NA, as.character(psqi.waketime))
+    # psqi.waketime <- ifelse(as.character(psqi.waketime) %in% "-9999", NA, as.character(psqi.waketime))
     psqi.waketime.prep <- NA
   })
 

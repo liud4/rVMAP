@@ -39,7 +39,7 @@ derive_medical_hx <- function(data) {
     #   in epoch 1, we will count map id 293 as having missing
     #   mhx.tobac.pks (-6666 w/ note in redcap)
     mhx.tobac.pks <- ifelse(epoch == 1 & map.id == "293", NA, mhx.tobac.pks)
-    message("Note: In this function, we have manually set mhx.tobac.pks to NA for MAP ID 293 in Epoch 1 (as per discussion on 20161017).\n")
+    # message("Note: In this function, we have manually set mhx.tobac.pks to NA for MAP ID 293 in Epoch 1 (as per discussion on 20161017).\n")
 
     # Pack years
     dob.year <- lubridate::year(dob)
@@ -138,11 +138,12 @@ derive_medical_hx <- function(data) {
       # I am using cmr.date here as a timestamp since we don't have an
       # "epoch" variable yet, so that we do this hard-coding for
       # the first wave (enrollment) only
-      ifelse(map.id == "070" & cmr.date == "2013-08-19", 1,
-             ifelse(map.id == "089" & cmr.date == "2013-10-11", 1,
-                    ifelse(map.id == "176" & cmr.date == "2014-02-17", 1,
-                           ifelse(map.id == "194" & cmr.date == "2014-03-17", 1,
-                                  ifelse(map.id == "196" & cmr.date == "2014-03-21", 1,
+      # 20220602 changed cmr.date to epoch == 1
+      ifelse(map.id == "070" & epoch == 1, 1,
+             ifelse(map.id == "089" & epoch == 1, 1,
+                    ifelse(map.id == "176" & epoch == 1, 1,
+                           ifelse(map.id == "194" & epoch == 1, 1,
+                                  ifelse(map.id == "196" & epoch == 1, 1,
                                          # regular coding starts here
                                          ifelse(is.na(mhx.afib), NA,
                                                 ifelse(mhx.afib == 0, NA,
@@ -364,10 +365,15 @@ derive_medical_hx <- function(data) {
     label(creatinine.clearance) <- "creatinine clearance, calculated (mL/min)"
 
     # Some additional variables created for MAP Methods
-    lp.complete <- ifelse(is.na(csf.abx42),0,1)
+    # lp.complete <- ifelse(is.na(csf.abx42),0,1) # 20220602 OAK
+    # XXX lp.complete DOES NOT MATCH csf.complete XXX 
+    lp.complete <- ifelse(is.na(csf.msdabtriplex.abx42.2014),0,1)
     lp.complete.factor <- factor(lp.complete,levels=c(1,0),labels=c("Yes","No"))
+    csf.complete.factor <- factor(csf.complete, levels = c(1, 0), labels = c("Yes", "No"))
     abp.complete <- ifelse(is.na(time.reading.indicator),0,1)
     abp.complete.factor <- factor(abp.complete,levels=c(1,0),labels=c("Yes","No"))
+    
+    label(abp.complete.factor) <- "Did participant complete abp?"
 
     map.id.afibduringcmr <- c("068", "096", "102", "157", "159", "161", "185", "186", "198")
     afib.during.cmr <- ifelse(map.id %in% map.id.afibduringcmr & epoch==1,1,0)
