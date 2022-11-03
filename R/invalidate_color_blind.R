@@ -34,20 +34,6 @@ invalidate_color_blind <- function(data) {
     np_inhibit_cumperc_ucerr,
     np_inhibit_err,
     np_inhibit_err_sscore
-    # np_strp_word_elig,
-    # np_strp_word_sscore_elig,
-    # np_strp_word_ucerr_elig,
-    # np_strp_word_scerr_elig,
-    # np_strp_color_elig,
-    # np_strp_color_sscore_elig,
-    # np_strp_color_ucerr_elig,
-    # np_strp_color_scerr_elig,
-    # np_strp_colorword_elig,
-    # np_strp_colorword_sscore_elig,
-    # np_strp_colorword_ucerr_elig,
-    # np_strp_colorword_scerr_elig,
-    # np_strp_ucerr_elig,
-    # np_strp_scerr_elig
   )
 
   data[data$map_id %in% color_blind_id.list, color_blind.var] <- NA

@@ -10,9 +10,6 @@
 #' }
 
 clear_labels <- function(data) {
-  labels.list.name <- paste0(deparse(substitute(data)), "_labels")
-  labels.list <- sapply(data, function(x) attr(x, "label"))
-
   if (is.list(data)) {
     for (i in 1:length(data)) {
       class(data[[i]]) <- setdiff(class(data[[i]]), 'labelled')
@@ -20,13 +17,40 @@ clear_labels <- function(data) {
     for (i in 1:length(data)) {
       attr(data[[i]], "label") <- NULL
     }
-  }
-  else {
+  } else {
     class(data) <- setdiff(class(data), "labelled")
-    labels.list <- attr(data, "label")
     attr(data, "label") <- NULL
   }
-  assign(labels.list.name, labels.list, envir = .GlobalEnv)
+
+  return(data)
+}
+
+clear_units <- function(data) {
+  if (is.list(data)) {
+    for (i in 1:length(data)) {
+      attr(data[[i]], "units") <- NULL
+    }
+  } else {
+    attr(data, "units") <- NULL
+  }
+
+  return(data)
+}
+
+clear_labels_and_units <- function(data) {
+  if (is.list(data)) {
+    for (i in 1:length(data)) {
+      class(data[[i]]) <- setdiff(class(data[[i]]), 'labelled')
+    }
+    for (i in 1:length(data)) {
+      attr(data[[i]], "label") <- NULL
+      attr(data[[i]], "units") <- NULL
+    }
+  } else {
+    class(data) <- setdiff(class(data), "labelled")
+    attr(data, "label") <- NULL
+    attr(data, "units") <- NULL
+  }
 
   return(data)
 }
