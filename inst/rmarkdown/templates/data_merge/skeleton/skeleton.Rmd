@@ -1,9 +1,8 @@
 ---
-title: "MAP Data: Merge, Derive, and Label"
-author:
-- name: '[Omair A. Khan, MAS](omair.a.khan@vumc.org)'
-- name: '[Dandan Liu, PhD](dandan.liu@vumc.org)'
-date: "Created: `r format(Sys.time(), '%Y%m%d')`"
+title: "VMAP Data Merge"
+subtitle: "Face Mask Data"
+author: '[Omair A. Khan, MAS, PStat](mailto:omair.a.khan@vumc.org)'
+date: "Data Freeze Date: `r full.freeze.date` | Data Merge Date: `r full.modified.date`"
 output:
   html_notebook:
     code_folding: hide
@@ -66,13 +65,17 @@ output:
 <script>
 function toggletoc(){
 $("#TOC").toggle();
-}
+}x    
 </script>
+
+# Notes
+
+1. Important changes or specific notes to the VMAC team will go here.
 
 ```{r setup, echo = TRUE, results = 'hide'}
 # define important directories
 ## base directories
-box.dir  <- file.path("~", "box")
+box.dir  <- file.path("~", "Box Sync")
 vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
 ## data directories
 data.dir <- file.path(vmac.dir, "DATA", "MAP")
@@ -93,25 +96,24 @@ map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variab
 ##%######################################################%##
 
 packages <- Hmisc::Cs(
+  tidyverse,
   knitr,
-  dplyr,
-  tidyr,
   lubridate,
-  tidyr,
-  stringr,
   magrittr,
   daff,
   Hmisc,
   formattable,
   REDCapR,
-  secret,
   arsenal,
-  fs
+  fs,
+  beepr
 )
 
 rVMAP::load_pkg(packages)
 
-devtools::load_all(path = file.path("~", "dev", "rVMAP"))
+# library(rVMAP)
+
+devtools::load_all("~/dev/rVMAP")
 
 # set timezone
 Sys.setenv(TZ = 'US/Central')
@@ -131,7 +133,7 @@ data.raw.dir <- file.path(data.dir, "rawData")
 data.merge.dir <- file.path(data.dir, 'mergedData')
 ```
 
-```{r finish-setup}
+```{r}
 if (download.data == TRUE) {
   # specify data freeze date
   data.freeze.date <- format(Sys.time(), "%Y%m%d")
@@ -173,7 +175,7 @@ if (download.data == TRUE) {
 
 # define paths for saving current merged files
 data.merge.date <- format(Sys.time(), "%Y%m%d")
-current.data.merge.suffix <- paste0("_d", data.freeze.date, "_m", data.merge.date)
+current.data.merge.suffix <- paste0("_f", data.freeze.date, "_m", data.merge.date)
 
 merge.report.dir <- file.path(data.merge.dir, paste0("MAP_data_merge", current.data.merge.suffix))
 
@@ -221,418 +223,688 @@ last.data.merge.bh.file <- file.path(
 )
 ```
 
-# Overview of Available Data
-
-The raw data to be used in this script was downloaded from REDCap on `r strsplit(MAPfreeze.list$general$timestamp, "\\ ")[[1]][1]` at `r strsplit(MAPfreeze.list$general$timestamp, "\\ ")[[1]][2]` by user `r MAPfreeze.list$general$sysinfo[["login"]]` using `r MAPfreeze.list$general$versions[["R"]]`.
-
-## Epoch Independent
-
-The following is a list of available data sets to be merged that can be considered independent of any specific time period. The suffix, ".static", indicates that the data set was manually saved at some time and is therefore a static representation of the data.
-
-```{r list-projects-epoch0}
-list(
-  project = MAPfreeze.list[["epoch_0"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_0"]][["shortname"]]
-) %>% rbind.data.frame()
+```{r}
+full.freeze.date <- format(ymd_hm(MAPfreeze.list$general$timestamp), '%B %d, %Y')
+full.freeze.dttm <- format(ymd_hm(MAPfreeze.list$general$timestamp), '%B %d, %Y at %H:%M')
+full.modified.date <- format(Sys.time(), '%B %d, %Y')
+full.modified.dttm <- format(Sys.time(), '%B %d, %Y at %H:%M')
 ```
 
-## Epoch 1
+# Data Freeze Info
 
-The following is a list of available data sets to be merged that were collected during Epoch 1.
+**The data used in this merge was frozen on `r paste0(full.freeze.dttm)`.**
 
-```{r list-projects-epoch1}
-list(
-  project = MAPfreeze.list[["epoch_1"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_1"]][["shortname"]]
-) %>% rbind.data.frame()
+## REDCap Downloaded Data
+
+```{r}
+raw_data_info <- function(list = MAPfreeze.list, index) {
+  tibble(
+    project = list[[index]][["project"]],
+    rows = dim(list[[index]][["data"]])[1],
+    cols = dim(list[[index]][["data"]])[2]
+  )
+} 
+
+purrr::map_dfr(2:5, ~ raw_data_info(index = .x))
 ```
 
-## Epoch 2
+## Static (Unchanging) Data
 
-The following is a list of available data sets to be merged that were collected during Epoch 2.
+```{r}
+static.length <- length(MAPfreeze.list[["static"]][["project"]])
 
-```{r list-projects-epoch2}
 list(
-  project = MAPfreeze.list[["epoch_2"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_2"]][["shortname"]]
-) %>% rbind.data.frame()
+  project = MAPfreeze.list[["static"]][["project"]],
+  rows = sapply(1:static.length, function(x) nrow(MAPfreeze.list[["static"]][["data"]][[x]])),
+  cols = sapply(1:static.length, function(x) ncol(MAPfreeze.list[["static"]][["data"]][[x]]))
+) %>% bind_rows()
 ```
 
-## Epoch 3
+# Data Pre-Processing
 
-The following is a list of available data sets to be merged that were collected during Epoch 3.
+Here we will pre-process the VMAP EDC data due to its repeated instruments structure.
 
-```{r list-projects-epoch3}
-list(
-  project = MAPfreeze.list[["epoch_3"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_3"]][["shortname"]]
-) %>% rbind.data.frame()
+```{r}
+pre_vmap_edc_temp.df <- MAPfreeze.list$vmap_edc$data %>%
+  mutate(
+    epoch = case_when(
+      redcap_event_name == "eligibility_arm_1" ~ 0L,
+      redcap_event_name == "enrollmentbaseline_arm_1" ~ 1L,
+      redcap_event_name == "18month_followup_arm_1" ~ 2L,
+      redcap_event_name == "3year_followup_arm_1" ~ 3L,
+      redcap_event_name == "5year_followup_arm_1" ~ 4L,
+      redcap_event_name == "7year_followup_arm_1" ~ 5L,
+      redcap_event_name == "9year_followup_arm_1" ~ 6L,
+      redcap_event_name == "11year_followup_arm_1" ~ 7L,
+      redcap_event_name == "13year_followup_arm_1" ~ 8L,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  relocate(
+    epoch, .after = map_id
+  ) %>%
+  arrange(
+    map_id, epoch
+  ) %>%
+  tibble()
+
+pre_vmap_edc_non_repeating.df <- pre_vmap_edc_temp.df %>% # non-repeating data frame for brain scans to be left joined into
+  filter(
+    is.na(redcap_repeat_instrument)
+  )
+
+# check that there is only one row per participant and epoch
+## pre_vmap_edc_non_repeating.df %>% count(map_id, epoch) %>% filter(n > 1)
+
+pre_vmap_edc_repeating.df <- pre_vmap_edc_temp.df %>% # data frame with repeating instruments
+  filter(
+    !is.na(redcap_repeat_instrument)
+  )
+
+brain_mri.variables <- c("map_id", "epoch", "session_id", "scanner", "scanner_software", "head_coil", grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T))
+
+pre_vmap_edc_brain_mri.df <- pre_vmap_edc_repeating.df %>% # data frame with repeating instruments limited to brain MRI variables only
+  filter(
+    redcap_repeat_instrument == "brain_mri"
+  ) %>% 
+  select(
+    all_of(brain_mri.variables)
+  )
 ```
 
-## Epoch 4
+## Create brain MRI data frames to merge together
 
-The following is a list of available data sets to be merged that were collected during Epoch 4.
+### Collapse `scan_acquired` variables
 
-```{r list-projects-epoch4}
-list(
-  project = MAPfreeze.list[["epoch_4"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_4"]][["shortname"]]
-) %>% rbind.data.frame()
+```{r}
+pre_vmap_edc_brain_mri_scan_acquired.df <- pre_vmap_edc_brain_mri.df %>%
+  select(
+    map_id, epoch, all_of(grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T))
+  ) %>%
+  group_by(map_id, epoch) %>%
+  mutate(
+    across(
+      all_of(grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T)),
+      ~ 1 * (sum(.x, na.rm = TRUE) > 0),
+      .names = "{.col}"
+    )
+  ) %>%
+  slice(1) %>%
+  ungroup()
+
+# check that there is only one row per participant and epoch
+## pre_vmap_edc_brain_mri_scan_acquired.df %>% count(map_id, epoch) %>% filter(n > 1)
 ```
 
-## Epoch 5
+### Create appropriate scanner variables for each brain MRI form
 
-The following is a list of available data sets to be merged that were collected during Epoch 5.
+```{r}
+brain_mri.metadata <- MAPfreeze.list$vmap_edc$metadata %>% 
+  filter(
+    field_name %in% c("session_id", "scanner", "scanner_software", "head_coil")
+  )
 
-```{r list-projects-epoch5}
-list(
-  project = MAPfreeze.list[["epoch_5"]][["project"]],
-  shortname = MAPfreeze.list[["epoch_5"]][["shortname"]]
-) %>% rbind.data.frame()
+pre_vmap_edc_scanner.df <- pre_vmap_edc_brain_mri.df %>% # data frame with repeating instruments limited to select scanner variables only
+  select(
+    c("session_id", "scanner", "scanner_software", "head_coil")
+  ) %>% filter(
+    !is.na(session_id)
+  ) %>%
+  process_factor_variables(data = ., metadata = brain_mri.metadata) %>%
+  select(
+    session_id, scanner_factor, head_coil_factor, scanner_software_factor
+  ) %>%
+  mutate(
+    scanner_factor = forcats::fct_recode(
+      scanner_factor,
+      "3Tb" = "3Tb Philips Acheiva system",
+      "3Ta" = "3Ta Philips Acheiva system",
+      "3TbUDHW" = "3Tb Philips Acheiva system updated digital hardware"
+    ),
+    head_coil_factor = forcats::fct_recode(
+      head_coil_factor,
+      "8chSENSE" = "8 channel SENSE head coil",
+      "8chdStream" = "dStream 8 channel head coil",
+      "32chdStream" = "dStream 32 channel head coil"
+    ),
+    scanner_software_factor = forcats::fct_recode(
+      scanner_software_factor,
+      "3.2.2.0" = "3.2.2/3.2.2.0",
+      "5.1.7.1" = "5.1.7/5.1.7.1",
+      "5.3.0.2" = "5.3.0/5.3.0.2",
+      "5.3.0.3" = "5.3.0/5.3.0.3",
+      "5.6.1.0" = "5.6.1/5.6.1.0"
+    ),
+  ) %>%
+  mutate(
+    scanner_coil_factor = paste0(scanner_factor, "; ", head_coil_factor),
+    scanner_coil_software_factor = paste0(scanner_factor, "; ", head_coil_factor, "; ", scanner_software_factor)
+  )
+
+pre_vmap_edc_scanner.df[pre_vmap_edc_scanner.df$scanner_coil_factor == "NA; NA", "scanner_coil_factor"] <- NA
+pre_vmap_edc_scanner.df[pre_vmap_edc_scanner.df$scanner_coil_software_factor == "NA; NA; NA", "scanner_coil_software_factor"] <- NA
+
+pre_vmap_edc_scanner.df <- pre_vmap_edc_scanner.df %>%
+  mutate(
+    scanner_coil_factor = forcats::as_factor(scanner_coil_factor),
+    scanner_coil_software_factor = forcats::as_factor(scanner_coil_software_factor)
+  )
 ```
 
-# Process Raw Data {.tabset .tabset-fade .tabset-pills}
+```{r}
+form_names <- setdiff(unique(pre_vmap_edc_repeating.df$redcap_repeat_instrument), "brain_mri") # names of non-brain_mri forms
 
-We begin by processing a subset of raw data sets within each available epoch. The `process_raw_data()` function tidies each inputted data set, formats certain variables, and sets some VMAC-specified values to missing.
+# form_names <- c("freesurfer_2005_reconstats", "freesurfer_2009_reconstats", 
+# "freesurfer_lobes", "freesurfer_hippocampal_subfields", "freesurfer_brain_volume",
+# "multiatlas_stats", "lesion_segmentation_tool_stats", "vbm_qa_stats",
+# "fsl_first_stats", "hippodeep", "white_matter_stamper_stats",
+# "asl_multiatlas_stats", "dtiroi", "veasl_stats", "oxygen_extraction_fraction",
+# "neck", "circle_of_willis", "lacunar_infarcts", "perivascular_space",
+# "swi", "vessel_wall_imaging")
 
-## Process Epoch 1 Raw Data
+get_form_variables <- function(db = "vmap_edc", form) {
+  tibble(
+    form = form,
+    variable = MAPfreeze.list[[db]][["metadata"]] %>% filter(form_name %in% form) %>% pull(field_name)
+  )
+}
 
-```{r process-epoch1}
-process_raw_data(
-  epoch = 1,
-  main = MAPfreeze.list$epoch_1$data$main,
-  abp = MAPfreeze.list$epoch_1$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_1$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_1$data$auto3T,
-  auto3TBH = MAPfreeze.list$epoch_1$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_1$data$man3T,
-  man3TBH = MAPfreeze.list$epoch_1$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_1$data$cardiac.mri,
-  addendum = MAPfreeze.list$epoch_1$data$addendum,
-  csf = MAPfreeze.list$epoch_1$data$csf,
-  srt = MAPfreeze.list$epoch_1$data$srt.static
+form_variables.df <- bind_rows(
+  tibble(
+    form = "brain_mri",
+    variable = brain_mri.variables
+  ),
+  map_df(.x = form_names, ~ get_form_variables(form = .x))
 )
 ```
 
-## Process Epoch 2 Raw Data
+```{r}
+indicator.df <- form_variables.df %>% 
+  filter(grepl("indicator", .$variable)) %>%
+  setNames(c("form", "indicator"))
 
-```{r process-epoch2}
-process_raw_data(
-  epoch = 2,
-  main = MAPfreeze.list$epoch_2$data$main,
-  # abp = MAPfreeze.list$epoch_2$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_2$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_2$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_2$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_2$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_2$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_2$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_2$data$addendum,
-  csf = MAPfreeze.list$epoch_2$data$csf
-  # srt = MAPfreeze.list$epoch_2$data$srt.static
+session_id.df <- form_variables.df %>% 
+  filter(grepl("session_id", .$variable)) %>%
+  setNames(c("form", "session_id"))
+
+breath_hold.df <- tibble(
+  form = form_names,
+  bh = TRUE
 )
+
+# the variables associated with these forms do not have a breath hold version, according to NJ's email on 2022-09-01 09:12 CT
+form_names.bh_false <- c("oxygen_extraction_fraction", "asl_multiatlas_stats", "vessel_wall_imaging", "veasl_stats")
+
+breath_hold.df[breath_hold.df$form %in% form_names.bh_false, "bh"] <- FALSE
+
+lookup.df <- list(indicator.df, session_id.df, breath_hold.df) %>% 
+  reduce(left_join, by = "form")
 ```
 
-## Process Epoch 3 Raw Data
+### Create scanner data frames for all neuroimaging forms
 
-```{r process-epoch3}
-process_raw_data(
-  epoch = 3,
-  main = MAPfreeze.list$epoch_3$data$main,
-  # abp = MAPfreeze.list$epoch_3$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_3$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_3$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_3$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_3$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_3$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_3$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_3$data$addendum,
-  csf = MAPfreeze.list$epoch_3$data$csf
-  # srt = MAPfreeze.list$epoch_3$data$srt.static
+```{r version_two}
+create_individual_form_df <- function(form) {
+  session_indicator.var <- lookup.df[lookup.df$form == form, ] %>% pull(indicator)
+  session_id.var <- lookup.df[lookup.df$form == form, ] %>% pull(session_id)
+  form.var <- form_variables.df[form_variables.df$form == form, ] %>% pull(variable)
+  
+  form.var <- form.var[form.var %in% names(pre_vmap_edc_repeating.df)]
+  
+  prefix <- gsub("_session_id", "", session_id.var)
+  
+  pre_vmap_edc_scanner.df_mod <- pre_vmap_edc_scanner.df %>%
+    setNames(
+      paste0(prefix, "_", names(pre_vmap_edc_scanner.df))
+    )
+  
+  output.df <- pre_vmap_edc_repeating.df %>%
+    filter(redcap_repeat_instrument == form) %>%
+    filter(.data[[session_indicator.var]] == 1) %>%
+    select(
+      map_id, epoch, all_of(form.var)
+    ) %>%
+    left_join(
+      .,
+      pre_vmap_edc_scanner.df_mod, 
+      by = session_id.var
+    )
+  
+  return(output.df)
+}
+
+neuroimaging.list <- map(
+  .x = form_names,
+  ~ create_individual_form_df(form = .x)
 )
+
+names(neuroimaging.list) <- form_names
 ```
 
-## Process Epoch 4 Raw Data
+## Merge together all brain MRI data to create a master VMAP EDC data set
 
-```{r process-epoch4}
-process_raw_data(
-  epoch = 4,
-  main = MAPfreeze.list$epoch_4$data$main,
-  # abp = MAPfreeze.list$epoch_4$data$abp.static,
-  # biomarkers = MAPfreeze.list$epoch_4$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_4$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_4$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_4$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_4$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_4$data$addendum,
-  csf = MAPfreeze.list$epoch_4$data$csf
-  # srt = MAPfreeze.list$epoch_4$data$srt.static
-)
+```{r}
+variables_to_remove_from_non_repeating <- form_variables.df %>% 
+  filter(
+    variable %nin% c("map_id", "epoch")
+  ) %>% 
+  pull(variable)
+
+pre_vmap_edc_non_repeating_v2.df <- pre_vmap_edc_non_repeating.df[, !(names(pre_vmap_edc_non_repeating.df) %in% variables_to_remove_from_non_repeating)]
+
+vmap_edc_temp01.df <- c(list(pre_vmap_edc_non_repeating_v2.df), list(pre_vmap_edc_brain_mri_scan_acquired.df), neuroimaging.list) %>% 
+  reduce(left_join, by = c("map_id", "epoch"))
+
+# check that there are no duplicated variables
+## grep("\\.x$", names(vmap_edc_temp01.df), v = T) # should be character(0)
 ```
 
-## Process Epoch 5 Raw Data
+# Data Processing
 
-```{r process-epoch5}
-process_raw_data(
-  epoch = 5,
-  main = MAPfreeze.list$epoch_5$data$main,
-  # abp = MAPfreeze.list$epoch_5$data$abp.static,
-  # biomarkers = MAPfreeze.list$epoch_5$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_5$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_5$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_5$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_5$data$man3T.bh,
-  # qmass = MAPfreeze.list$epoch_5$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_5$data$addendum,
-  csf = MAPfreeze.list$epoch_5$data$csf
-  # srt = MAPfreeze.list$epoch_5$data$srt.static
-)
+## Process VMAP EDC
+
+```{r}
+process_scanner_factor_variables <- function(data, metadata) {
+  metadata.df <- metadata %>%
+    filter(
+      field_type == "radio"
+    ) %>%
+    select(
+      c("field_name", "field_label", "select_choices_or_calculations")
+    ) %>%
+    filter(
+      field_name %nin% c("scanner", "scanner_software", "head_coil")
+    ) %>%
+    as_tibble()
+  
+  if (!is.null(metadata.df)) {
+    for (factor_var.i in metadata.df$field_name) {
+      levels.list <- as.list(REDCapR::checkbox_choices(pull(metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"])))
+      
+      data[[paste0(factor_var.i, "_factor")]] <- factor(data[[factor_var.i]], levels = levels.list$id, labels = levels.list$label)
+    }
+  }
+  
+  return(data)
+}
+```
+
+```{r}
+vmap_edc_temp02.df <- vmap_edc_temp01.df %>%
+  mutate(
+    across(
+      .cols = where(is.numeric),
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+    ),
+    across(
+      .cols = where(is.character),
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+    ),
+    across(
+      .cols = where(lubridate::is.Date),
+      .fns = ~ replace(.x, .x %in% as.Date("1111-11-11"), NA)
+    )
+  ) %>%
+  as.data.frame()
+
+###
+
+vars_w_comparison_operators.var <- grep(
+  "bld|np|csf|biomarkers",
+  grep(
+    "notes|flow|occup",
+    names(vmap_edc_temp02.df)[grepl("(>|<)([[:space:]]*)(\\d+)", vmap_edc_temp02.df)],
+    invert = T,
+    v = T),
+  v = T)
+
+vars_w_comparison_operators.var <- setdiff(vars_w_comparison_operators.var, "bld_c_coag")
+
+if (length(vars_w_comparison_operators.var) > 0) {
+  for (var in vars_w_comparison_operators.var) {
+    vmap_edc_temp02.df[, var] <- suppressWarnings(sapply(vmap_edc_temp02.df[, var], process_comparison_operators, USE.NAMES = FALSE))
+  }
+}
+
+###
+
+vmap_edc_temp03.df <- process_scanner_factor_variables(data = vmap_edc_temp02.df, metadata = MAPfreeze.list$vmap_edc$metadata)
+
+###
+
+# improperly_formatted_dttm.var <- grep("date_time$", names(vmap_edc_temp03.df), v = T)[sapply(vmap_edc_temp03.df[, grep("date_time$", names(vmap_edc_temp03.df), v = T)], is.character)]
+
+# vmap_edc_temp04.df <- vmap_edc_temp03.df %>% 
+#   mutate(
+#     across(
+#       .cols = all_of(improperly_formatted_dttm.var),
+#       .fns = ~ mdy_hm(.x, truncated = 5)
+#     )
+#   )
+
+###
+
+vmap_edc_temp04.df <- convert_dates(vmap_edc_temp03.df)
+```
+
+### Copying data from Eligibility
+
+Variables in the following REDCap forms are copied from eligibility to enrollment for all participants: `r print_tt(forms_to_pull_down_from_eligibility.var)`.
+
+```{r}
+forms_to_pull_down_from_eligibility.var <- c("informant_information", "map_interview_form_cognitive_changes", "map_interview_form_medical_history", "functional_activities_questionnaire", "family_history", "cdr_informant", "cdr_participant", "interview_summary", "diagnosis")
+
+vars_to_pull_down_from_eligibility.var <- MAPfreeze.list$vmap_edc$metadata %>%
+  filter(
+    form_name %in% forms_to_pull_down_from_eligibility.var
+  ) %>%
+  pull(
+    field_name
+  )
+
+vars_to_pull_down_from_eligibility.var <- c(vars_to_pull_down_from_eligibility.var, paste0(vars_to_pull_down_from_eligibility.var, "_factor"))
+
+vars_to_pull_down_from_eligibility.var <- vars_to_pull_down_from_eligibility.var[vars_to_pull_down_from_eligibility.var %in% names(vmap_edc_temp04.df)]
+
+vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1), c("map_id", "epoch", vars_to_pull_down_from_eligibility.var)] <- vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1), c("map_id", "epoch", vars_to_pull_down_from_eligibility.var)] %>%
+  group_by(
+    map_id
+  ) %>%
+  tidyr::fill(
+    all_of(vars_to_pull_down_from_eligibility.var), .direction = "down"
+  ) %>%
+  ungroup()
+```
+
+Variables in the following REDCap forms are copied from eligibility to enrollment for the VMAP 2.0 cohort only (MAP ID > 336): `r print_tt(extra_forms_to_pull_down_from_eligibility.var)`. For VMAP 1.0, the data was already collected at enrollment.
+
+```{r}
+extra_forms_to_pull_down_from_eligibility.var <- c("gds", "qids")
+
+extra_vars_to_pull_down_from_eligibility.var <- MAPfreeze.list$vmap_edc$metadata %>%
+  filter(
+    form_name %in% extra_forms_to_pull_down_from_eligibility.var
+  ) %>%
+  pull(
+    field_name
+  )
+
+extra_vars_to_pull_down_from_eligibility.var <- c(extra_vars_to_pull_down_from_eligibility.var, paste0(extra_vars_to_pull_down_from_eligibility.var, "_factor"))
+
+extra_vars_to_pull_down_from_eligibility.var <- extra_vars_to_pull_down_from_eligibility.var[extra_vars_to_pull_down_from_eligibility.var %in% names(vmap_edc_temp04.df)]
+
+vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1) & vmap_edc_temp04.df$map_id >= 337, c("map_id", "epoch", extra_vars_to_pull_down_from_eligibility.var)] <- vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1) & vmap_edc_temp04.df$map_id >= 337, c("map_id", "epoch", extra_vars_to_pull_down_from_eligibility.var)] %>%
+  group_by(
+    map_id
+  ) %>%
+  tidyr::fill(
+    all_of(extra_vars_to_pull_down_from_eligibility.var), .direction = "down"
+  ) %>%
+  ungroup()
+```
+
+### Joining end tidal CO~2~ variables (Physlog Data)
+
+The following variables contain values of "--" instead of NA, causing them to be of character class. In this merge, they are manually coerced to numeric (hence the outputted warning messages): `asl_3t_bl_etco2e`, `asl_rest_trimmedmean2525_etco2`, `fmri_rest_trimmedmean2525_etco2`.
+
+```{r}
+physlog.df <- read_csv("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/20220916 - vmap_physlog_data.csv", show_col_types = FALSE) %>%
+  select(
+    -session_id
+  ) %>%
+  mutate(
+    across(
+      c(asl_3t_bl_etco2e, asl_rest_trimmedmean2525_etco2, fmri_rest_trimmedmean2525_etco2),
+      ~ as.numeric(.x)
+    )
+  )
+
+vars_to_exclude_from_vmap_edc.var <- setdiff(names(physlog.df), c("map_id", "redcap_event_name"))
+
+vmap_edc_temp05.df <- vmap_edc_temp04.df %>%
+  select(
+    -all_of(vars_to_exclude_from_vmap_edc.var)
+  ) %>%
+  left_join(
+    physlog.df, by = c("map_id", "redcap_event_name")
+  )
+```
+
+### Removing observations lacking chart finalization
+
+```{r}
+vmap_edc_temp06.df <- vmap_edc_temp05.df %>%
+  filter(
+    chart_finalization == 1 & chart_finalization_review == 1 & chart_merge == 1
+  )
+```
+
+```{r}
+vmap_edc.df <- vmap_edc_temp06.df
+cat(paste0("NOTE: `vmap_edc.df` has ", nrow(vmap_edc.df), " rows and ", ncol(vmap_edc.df), " columns."))
+```
+
+## Process Questionnaires
+
+```{r}
+questionnaires_temp01.df <- MAPfreeze.list$questionnaires$data %>% 
+  mutate(
+    epoch = case_when(
+      redcap_event_name == "eligibility_arm_1" ~ 0L,
+      redcap_event_name == "enrollmentbaseline_arm_1" ~ 1L,
+      redcap_event_name == "18month_followup_arm_1" ~ 2L,
+      redcap_event_name == "3year_followup_arm_1" ~ 3L,
+      redcap_event_name == "5year_followup_arm_1" ~ 4L,
+      redcap_event_name == "7year_followup_arm_1" ~ 5L,
+      redcap_event_name == "9year_followup_arm_1" ~ 6L,
+      redcap_event_name == "11year_followup_arm_1" ~ 7L,
+      redcap_event_name == "13year_followup_arm_1" ~ 8L,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  relocate(
+    epoch, .after = map_id
+  ) %>%
+  arrange(
+    map_id, epoch
+  )
+
+###
+
+questionnaires_temp02.df <- questionnaires_temp01.df %>%
+  mutate(
+    across(
+      .cols = where(is.numeric),
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+    ),
+    across(
+      .cols = where(is.character),
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+    ),
+    across(
+      .cols = where(lubridate::is.Date),
+      .fns = ~ replace(.x, .x %in% as.Date("1111-11-11"), NA)
+    )
+  ) %>%
+  mutate_at(
+    grep("notes|date", grep("^ecogself\\_", names(.), value = T), value = T, invert = T),
+    ~ missing_to_na(., equal.val = 0, restrict.sign = TRUE)
+  ) %>%
+  as.data.frame()
+
+###
+
+questionnaires_temp03.df <- process_factor_variables(data = questionnaires_temp02.df, metadata = MAPfreeze.list$questionnaires$metadata)
+
+###
+
+questionnaires_temp04.df <- convert_dates(questionnaires_temp03.df) # will output warning -- see "Notes" section above
+
+###
+
+questionnaires_temp04.df[questionnaires_temp04.df$epoch %in% c(0, 1), ] <- questionnaires_temp04.df[questionnaires_temp04.df$epoch %in% c(0, 1), ] %>%
+  group_by(
+    map_id
+  ) %>%
+  tidyr::fill(
+    setdiff(names(questionnaires_temp04.df), c("vmac_id", "redcap_event_name", "map_id", "epoch")), .direction = "down"
+  ) %>%
+  ungroup()
+```
+
+```{r}
+questionnaires.df <- questionnaires_temp04.df
+cat(paste0("NOTE: `questionnaires.df` has ", nrow(questionnaires.df), " rows and ", ncol(questionnaires.df), " columns."))
+```
+
+## Process Biomarkers EDC
+
+```{r}
+biomarkers_temp01.df <- MAPfreeze.list$biomarkers$data %>%
+  mutate(
+    epoch = case_when(
+      redcap_event_name == "eligibility_arm_1" ~ 0L,
+      redcap_event_name == "enrollmentbaseline_arm_1" ~ 1L,
+      redcap_event_name == "18month_followup_arm_1" ~ 2L,
+      redcap_event_name == "3year_followup_arm_1" ~ 3L,
+      redcap_event_name == "5year_followup_arm_1" ~ 4L,
+      redcap_event_name == "7year_followup_arm_1" ~ 5L,
+      redcap_event_name == "9year_followup_arm_1" ~ 6L,
+      redcap_event_name == "11year_followup_arm_1" ~ 7L,
+      redcap_event_name == "13year_followup_arm_1" ~ 8L,
+      TRUE ~ NA_integer_
+    )
+  ) %>%
+  relocate(
+    epoch, .after = map_id
+  ) %>%
+  arrange(
+    map_id, epoch
+  )
+
+###
+
+biomarkers_temp02.df <- biomarkers_temp01.df %>%
+  mutate(
+    across(
+      .cols = where(is.numeric),
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+    ),
+    across(
+      .cols = where(is.character),
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+    ),
+    across(
+      .cols = where(lubridate::is.Date),
+      .fns = ~ replace(.x, .x %in% as.Date("1111-11-11"), NA)
+    )
+  ) %>%
+  as.data.frame()
+
+###
+
+vars_w_comparison_operators.var <- grep(
+  "bld|np|csf|biomarkers",
+  grep(
+    "notes|flow|occup",
+    names(biomarkers_temp02.df)[grepl("(>|<)([[:space:]]*)(\\d+)", biomarkers_temp02.df)],
+    invert = T,
+    v = T),
+  v = T)
+
+vars_w_comparison_operators.var <- setdiff(vars_w_comparison_operators.var, "bld_c_coag")
+
+if (length(vars_w_comparison_operators.var) > 0) {
+  for (var in vars_w_comparison_operators.var) {
+    biomarkers_temp02.df[, var] <- suppressWarnings(sapply(biomarkers_temp02.df[, var], process_comparison_operators, USE.NAMES = FALSE))
+  }
+}
+
+###
+
+biomarkers_temp03.df <- convert_dates(biomarkers_temp02.df)
+```
+
+```{r}
+biomarkers.df <- biomarkers_temp03.df
+cat(paste0("NOTE: `biomarkers.df` has ", nrow(biomarkers.df), " rows and ", ncol(biomarkers.df), " columns."))
+```
+
+## Process `abp.static`
+
+```{r}
+abp.df <- MAPfreeze.list$static$data$abp.static
+
+names(abp.df) <- gsub("\\.", "\\_", names(abp.df))
+
+abp.df <- abp.df %>%
+  clear_labels() %>%
+  convert_dates() %>%
+  mutate(
+    across(
+      .cols = where(is.numeric),
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+    ),
+    across(
+      .cols = where(is.character),
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+    ),
+    across(
+      .cols = where(lubridate::is.Date),
+      .fns = ~ replace(.x, .x %in% as.Date("1111-11-11"), NA)
+    )
+  ) %>%
+  mutate(
+    epoch = 1L, .after = map_id
+  )
+```
+
+```{r}
+cat(paste0("NOTE: `abp.df` has ", nrow(abp.df), " rows and ", ncol(abp.df), " columns."))
 ```
 
 # Data Merge {.tabset .tabset-fade .tabset-pills}
 
-Next, with the processing of raw data complete, we will merge the processed data sets within each available epoch. This is handled by the `merge_within_epoch()` function.
-
-## Merge within Epoch 1
-
-```{r merge-within-epoch1}
-epoch_1_merge.df <- merge_within_epoch(
-  epoch = 1,
-  main = MAPfreeze.list$epoch_1$data$main,
-  abp = MAPfreeze.list$epoch_1$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_1$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_1$data$auto3T,
-  auto3TBH = MAPfreeze.list$epoch_1$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_1$data$man3T,
-  man3TBH = MAPfreeze.list$epoch_1$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_1$data$cardiac.mri,
-  addendum = MAPfreeze.list$epoch_1$data$addendum,
-  csf = MAPfreeze.list$epoch_1$data$csf,
-  srt = MAPfreeze.list$epoch_1$data$srt.static
-)
-```
-
-## Merge within Epoch 2
-
-```{r merge-within-epoch2}
-epoch_2_merge.df <- merge_within_epoch(
-  epoch = 2,
-  main = MAPfreeze.list$epoch_2$data$main,
-  # abp = MAPfreeze.list$epoch_2$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_2$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_2$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_2$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_2$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_2$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_2$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_2$data$addendum,
-  csf = MAPfreeze.list$epoch_2$data$csf
-  # srt = MAPfreeze.list$epoch_2$data$srt.static
-)
-```
-
-## Merge within Epoch 3
-
-```{r merge-within-epoch3}
-epoch_3_merge.df <- merge_within_epoch(
-  epoch = 3,
-  main = MAPfreeze.list$epoch_3$data$main,
-  # abp = MAPfreeze.list$epoch_3$data$abp.static,
-  biomarkers = MAPfreeze.list$epoch_3$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_3$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_3$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_3$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_3$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_3$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_3$data$addendum,
-  csf = MAPfreeze.list$epoch_3$data$csf
-  # srt = MAPfreeze.list$epoch_3$data$srt.static
-)
-```
-
-## Merge within Epoch 4
-
-```{r merge-within-epoch4}
-epoch_4_merge.df <- merge_within_epoch(
-  epoch = 4,
-  main = MAPfreeze.list$epoch_4$data$main,
-  # abp = MAPfreeze.list$epoch_4$data$abp.static,
-  # biomarkers = MAPfreeze.list$epoch_4$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_4$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_4$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_4$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_4$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_4$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_4$data$addendum,
-  csf = MAPfreeze.list$epoch_4$data$csf
-  # srt = MAPfreeze.list$epoch_4$data$srt.static
-)
-```
-
-## Merge within Epoch 5
-
-```{r merge-within-epoch5}
-epoch_5_merge.df <- merge_within_epoch(
-  epoch = 5,
-  main = MAPfreeze.list$epoch_5$data$main,
-  # abp = MAPfreeze.list$epoch_5$data$abp.static,
-  # biomarkers = MAPfreeze.list$epoch_5$data$biomarkers,
-  auto3T = MAPfreeze.list$epoch_5$data$auto3T,
-  # auto3TBH = MAPfreeze.list$epoch_5$data$auto3T.bh,
-  man3T = MAPfreeze.list$epoch_5$data$man3T,
-  # man3TBH = MAPfreeze.list$epoch_5$data$man3T.bh,
-  qmass = MAPfreeze.list$epoch_5$data$cardiac.mri,
-  # addendum = MAPfreeze.list$epoch_5$data$addendum,
-  csf = MAPfreeze.list$epoch_5$data$csf
-  # srt = MAPfreeze.list$epoch_5$data$srt.static
-)
-```
-
-## Merge across all Epochs {.tabset .tabset-fade .tabset-pills}
-
-Now that we have created a single data frame for each available epoch, we will investigate any differences between the epochs and stack the data frames into one longitudinal data set.
-
-### Compare and Stack: Epoch 2 with Epoch 1
-
-Here we refer to the Epoch 2 data as "new" and the previous epochs (Epoch 1) as "old."
-
-```{r compare-epoch1-epoch2}
-compare_variables(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
-compare_ids(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
-factors_to_unify.var <- compare_factors(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df) %>% pull(Variable)
+```{r}
+vmap_edc_with_eligibility.df <- vmap_edc.df
+vmap_edc.df <- vmap_edc.df %>% filter(epoch != 0)
 ```
 
 ```{r}
-refactored_var.list <- NULL
+merged_temp01.df <- left_join(
+  vmap_edc.df, abp.df, by = c("map_id", "epoch")
+)
 
-for (var.i in factors_to_unify.var) {
-  refactored_var.list <- forcats::fct_unify(list(epoch_1_merge.df[[var.i]], epoch_2_merge.df[[var.i]]))
-  epoch_1_merge.df[[var.i]] <- refactored_var.list[[1]]
-  epoch_2_merge.df[[var.i]] <- refactored_var.list[[2]]
-  refactored_var.list <- NULL
-}
+merged_temp02.df <- left_join(
+  merged_temp01.df, questionnaires.df, by = c("map_id", "epoch", "vmac_id", "redcap_event_name"), suffix = c(".vmap_edc", ".questionnaires")
+)
 
-cat(paste0(
-  "The differing levels of the following factor variables were unified prior to stacking: ",
-  paste0(factors_to_unify.var, collapse = ", "),
-  ".\n"
-))
+merged.df <- left_join(
+  merged_temp02.df, biomarkers.df, by = c("map_id", "epoch", "redcap_event_name")
+)
 
-factors_to_unify.var <- NULL
-```
-
-```{r coerce-stack-epoch1-epoch2}
-merged.df <- coerce_and_stack(new_data = epoch_2_merge.df, old_data = epoch_1_merge.df)
-```
-
-### Compare and Stack: Epoch 3 with Epochs 1 and 2
-
-Here we refer to the Epoch 3 data as "new" and the previous epochs (Epochs 1 and 2) as "old."
-
-```{r compare-epoch12-epoch3}
-compare_variables(new_data = epoch_3_merge.df, old_data = merged.df)
-compare_ids(new_data = epoch_3_merge.df, old_data = merged.df)
-factors_to_unify.var <- compare_factors(new_data = epoch_3_merge.df, old_data = merged.df) %>% pull(Variable)
+merged.df <- merged.df %>%
+  arrange(
+    map_id, epoch, redcap_repeat_instrument, redcap_repeat_instance
+  )
 ```
 
 ```{r}
-for (var.i in factors_to_unify.var) {
-  refactored_var.list <- forcats::fct_unify(list(merged.df[[var.i]], epoch_3_merge.df[[var.i]]))
-  merged.df[[var.i]] <- refactored_var.list[[1]]
-  epoch_3_merge.df[[var.i]] <- refactored_var.list[[2]]
-  refactored_var.list <- NULL
-}
-
-cat(paste0(
-  "After manually checking, the differing levels of the following factor variables were unified prior to stacking: ",
-  paste0(factors_to_unify.var, collapse = ", "),
-  ".\n"
-))
-
-factors_to_unify.var <- NULL
-```
-
-```{r coerce-stack-epoch12-epoch3}
-merged.df <- coerce_and_stack(new_data = epoch_3_merge.df, old_data = merged.df)
-```
-
-### Compare and Stack: Epoch 4 with Epochs 1, 2, and 3
-
-Here we refer to the Epoch 4 data as "new" and the previous epochs (Epochs 1, 2, and 3) as "old."
-
-```{r compare-epoch123-epoch4}
-compare_variables(new_data = epoch_4_merge.df, old_data = merged.df)
-compare_ids(new_data = epoch_4_merge.df, old_data = merged.df)
-factors_to_unify.var <- compare_factors(new_data = epoch_4_merge.df, old_data = merged.df) %>% pull(Variable)
-```
-
-```{r}
-for (var.i in factors_to_unify.var) {
-  refactored_var.list <- forcats::fct_unify(list(merged.df[[var.i]], epoch_4_merge.df[[var.i]]))
-  merged.df[[var.i]] <- refactored_var.list[[1]]
-  epoch_4_merge.df[[var.i]] <- refactored_var.list[[2]]
-}
-
-cat(paste0(
-  "After manually checking, the differing levels of the following factor variables were unified prior to stacking: ",
-  paste0(factors_to_unify.var, collapse = ", "),
-  ".\n"
-))
-
-factors_to_unify.var <- NULL
-```
-
-```{r coerce-stack-epoch123-epoch4}
-merged.df <- coerce_and_stack(new_data = epoch_4_merge.df, old_data = merged.df)
-
-merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)] <- sapply(merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)], as.numeric)
-```
-
-### Compare and Stack: Epoch 5 with Epochs 1, 2, 3, and 4
-
-Here we refer to the Epoch 5 data as "new" and the previous epochs (Epochs 1, 2, 3, and 4) as "old."
-
-```{r compare-epoch1234-epoch5}
-compare_variables(new_data = epoch_5_merge.df, old_data = merged.df)
-compare_ids(new_data = epoch_5_merge.df, old_data = merged.df)
-factors_to_unify.var <- compare_factors(new_data = epoch_5_merge.df, old_data = merged.df) %>% pull(Variable)
-```
-
-```{r}
-for (var.i in factors_to_unify.var) {
-  refactored_var.list <- forcats::fct_unify(list(merged.df[[var.i]], epoch_5_merge.df[[var.i]]))
-  merged.df[[var.i]] <- refactored_var.list[[1]]
-  epoch_5_merge.df[[var.i]] <- refactored_var.list[[2]]
-}
-
-cat(paste0(
-  "After manually checking, the differing levels of the following factor variables were unified prior to stacking: ",
-  paste0(factors_to_unify.var, collapse = ", "),
-  ".\n"
-))
-
-factors_to_unify.var <- NULL
-```
-
-```{r coerce-stack-epoch1234-epoch5}
-merged.df <- coerce_and_stack(new_data = epoch_5_merge.df, old_data = merged.df)
-
-#merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)] <- sapply(merged.df[, Cs(actigraph_day4_mins, actigraph_day6_mins)], as.numeric)
+merged.orig <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup <- merged.orig
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` begins with ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Merge Additional Epoch-Independent Data {.tabset .tabset-fade .tabset-pills}
 
-### Add APOE Genetic Data
+### Add APOE genetic data
 
 ```{r}
-apoe.df <- MAPfreeze.list$epoch_0$data$apoe %>%
+apoe.df <- MAPfreeze.list$apoe$data %>%
   select(
     map_id, rs429358_allele, rs7412_allele, alleles
-  ) %>%
-  format_id()
-
-check_shared_vars(merged.df, apoe.df, 'map_id')
+  )
 
 merged.df %<>% left_join(
   apoe.df,
@@ -640,20 +912,35 @@ merged.df %<>% left_join(
 ) 
 ```
 
-### Add ABPM Consent Data
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+### Add ABPM consent data
 
 ```{r}
-tracking.static.df <- MAPfreeze.list$epoch_0$data$tracking.static %>%
+tracking.static.df <- MAPfreeze.list$static$data$tracking.static %>%
   select(
     map_id, elig_visit_consent_abpm, elig_visit_consent_lp, elig_visit_consent_lp_ineligible
   ) %>%
-  format_id(.) %>%
-  mutate_if(
-    ~ any(class(.) %in% c("numeric", "integer", "character")),
-    ~ missing_to_na(., equal.val = c(-6666, -7777, -8888, -9999), mod.val = -1111, restrict.sign = TRUE)
+  rVMAP::format_id(.) %>%
+  mutate(
+    across(
+      .cols = where(is.numeric),
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+    ),
+    across(
+      .cols = where(is.character),
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+    ),
+    across(
+      .cols = where(lubridate::is.Date),
+      .fns = ~ replace(.x, .x %in% as.Date("1111-11-11"), NA)
+    )
   )
-
-check_shared_vars(merged.df, tracking.static.df, 'map_id')
 
 merged.df %<>% left_join(
   tracking.static.df,
@@ -665,29 +952,19 @@ merged.df %<>% left_join(
   )
 ```
 
-### Add Eligibility Data
-
 ```{r}
-eligibility.df <- MAPfreeze.list$epoch_0$data$eligibility %>%
-  format_id() %>%
-  process_eligibility()
-
-check_shared_vars(merged.df, eligibility.df, 'map_id')
-
-merged.df %<>% left_join(
-  eligibility.df,
-  by = "map_id"
-) 
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
-### Add Polygenetic Risk Score Data
+### Add polygenetic risk score data
 
 ```{r}
-polygenetic.df <- MAPfreeze.list$epoch_0$data$polygenetic.static
+polygenetic.df <- MAPfreeze.list$static$data$polygenetic.static
 names(polygenetic.df) <- tolower(names(polygenetic.df))
 names(polygenetic.df)[1] <- "map_id"
-
-check_shared_vars(merged.df, polygenetic.df, 'map_id')
 
 merged.df %<>% left_join(
   polygenetic.df,
@@ -695,38 +972,150 @@ merged.df %<>% left_join(
 )
 ```
 
-# Manual Invalidation: Pre-Derivation
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
 
-MAP ID 163 has a set of variables to be invalidated due to the presence of a brain cyst.
+# Post-Merge (Pre-Derivation) Modifications
+
+## Convert time duration variables (`hms` class) to time variables (`character` class)
 
 ```{r}
-map_163_invalid_variables.vec <- readxl::read_excel(map_163_invalidation.file) %>%
+hms.var <- names(merged.df)[sapply(merged.df, function(x) "hms" %in% class(x))]
+
+for (var.i in hms.var) {
+  merged.df[, var.i] <- lubridate::seconds_to_period(merged.df[, var.i])
+  merged.df[, var.i] <- sprintf('%02d:%02d', hour(merged.df[, var.i]), minute(merged.df[, var.i]))
+  merged.df[, var.i] <- na_if(merged.df[, var.i], "NA:NA")
+}
+```
+
+## Manual Invalidation: Pre-Derivation
+
+### Brain cyst related variable invalidation
+
+The following variables are manually invalidated for MAP ID 163 due to the presence of a brain cyst: `r print_tt(map_163_invalid_variables.var)`.
+
+```{r}
+map_163_invalid_variables.var <- MAPfreeze.list$static$data$map_163_invalidation.static %>%
   pull(., 1)
 
-merged.df[merged.df$map_id == "163", map_163_invalid_variables.vec] <- NA
+merged.df[merged.df$map_id == "163", intersect(names(merged.df), map_163_invalid_variables.var)] <- NA
 ```
-
-MAP IDs 028, 033, 131, 169, 176, 201 require color-related variables to be invalidated due to color blindness.
 
 ```{r}
-merged.df <- call_function("invalidate_color_blind", merged.df)
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
-Any infinite values that result from dividing by zero in REDCap formulas will be set to missing.
+### Color blind related variable invalidation
+
+MAP IDs 028, 033, 131, 169, 176, 201 require the following color-related variables to be invalidated due to color blindness: `r print_tt(color_blind.var)`.
+
+```{r}
+color_blind.var <- Hmisc::Cs(
+  np_color,
+  np_color_sscore,
+  np_word,
+  np_word_sscore,
+  np_inhibit,
+  np_inhibit_sscore,
+  np_colorword_sum,
+  np_colorword_comp,
+  np_inhibitcolor_diff,
+  np_inhibitcolor_contrast,
+  np_color_scerr,
+  np_color_ucerr,
+  np_color_err,
+  np_color_cumperc_err,
+  np_word_scerr,
+  np_word_ucerr,
+  np_word_err,
+  np_word_cumperc_err,
+  np_inhibit_scerr,
+  np_inhibit_cumperc_scerr,
+  np_inhibit_ucerr,
+  np_inhibit_cumperc_ucerr,
+  np_inhibit_err,
+  np_inhibit_err_sscore
+)
+
+merged.df <- invalidate_color_blind(merged.df)
+```
+
+```{r}
+merged.df.pre_np_invalid <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+### Neuropsychological variable invalidation
+
+```{r}
+# merged.df %>% tibble() %>% filter(map_id == "007") %>% select(epoch, np_tower1)
+
+invalid_np.df <- readxl::read_excel("~/Box Sync/VMAC BIOSTAT/DATA/MAP/Documentation/InvalidNeuropsych/VMAP NP Invalids QC 8.29.22_DL.xlsx") %>%
+  format_id() %>%
+  filter(
+    epoch != 0
+  ) %>%
+  mutate(
+    test = trimws(test)
+  ) %>%
+  arrange(
+    epoch, map_id
+  )
+
+invalid_np.df <- bind_rows(
+  invalid_np.df,
+  invalid_np.df %>% mutate(test = paste0(test, "_factor"))
+) %>%
+  filter(
+    test %in% names(merged.df)
+  ) %>%
+  as.data.frame()
+
+for (row.i in 1:nrow(invalid_np.df)) {
+  invalidation.df <- invalid_np.df[row.i, ]
+  merged.df[merged.df$map_id == invalidation.df$map_id & merged.df$epoch == invalidation.df$epoch, invalidation.df$test] <- NA
+}
+
+# merged.df %>% tibble() %>% filter(map_id == "007") %>% select(epoch, np_tower1)
+```
+
+```{r}
+merged.df.post_np_invalid <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+## Set any infinite values that result from dividing by zero in REDCap formulas to missing
 
 ```{r}
 is.na(merged.df) <- sapply(merged.df, is.infinite)
 ```
 
+```{r}
+merged.df.pre_format_names <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 # Format Variable Names and Apply Labels to Each Variable
 
 ```{r}
-merged.df <- format_names(merged.df)
+merged.df <- rVMAP::format_names(merged.df)
 ```
 
 ```{r}
-nolabel <- names(merged.df)[lapply(merged.df, function(x) label(x)) == ""]
-
 format_metadata <- function(data) {
   data %>%
     dplyr::select(
@@ -739,135 +1128,58 @@ format_metadata <- function(data) {
     )
 }
 
-labels.elig <- format_metadata(MAPfreeze.list[["epoch_0"]][["metadata"]][["eligibility"]]) %>% 
-  mutate(
-    epoch = 0
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".elig")
-  )
-
-labels.apoe <- format_metadata(MAPfreeze.list[["epoch_0"]][["metadata"]][["apoe"]]) %>% 
-  mutate(
-    epoch = 0
-  )
-
-labels.1 <- lapply(MAPfreeze.list[["epoch_1"]][["metadata"]][c("main", "cardiac.mri", "man3T", "man3T.bh", "auto3T", "auto3T.bh", "csf", "biomarkers", "addendum")], format_metadata) %>% 
-  bind_rows() %>% 
-  mutate(epoch = 1)
-
-labels.2 <- lapply(MAPfreeze.list[["epoch_2"]][["metadata"]], format_metadata) %>%
-  bind_rows() %>%
-  mutate(epoch = 2)
-
-labels.3 <- lapply(MAPfreeze.list[["epoch_3"]][["metadata"]], format_metadata) %>%
-  bind_rows() %>%
-  mutate(epoch = 3)
-
-labels.4 <- lapply(MAPfreeze.list[["epoch_4"]][["metadata"]], format_metadata) %>%
-  bind_rows() %>%
-  mutate(epoch = 4)
-
-labels.5 <- lapply(MAPfreeze.list[["epoch_5"]][["metadata"]], format_metadata) %>%
-  bind_rows() %>%
-  mutate(epoch = 5)
-
-labels.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4, labels.5) %>% 
-  dplyr::distinct(field_name, field_label, .keep_all = TRUE)
-
-duplicated.names <- labels.all$field_name[duplicated(labels.all$field_name)]
-
-variables_with_contradicting_labels_on_REDCap.df <- 
-  labels.all[labels.all$field_name %in% duplicated.names, Hmisc::Cs(field_name, field_label, form_name, epoch)] %>% 
-    arrange(field_name, epoch)
-
-readr::write_csv(
-  x = variables_with_contradicting_labels_on_REDCap.df,
-  file = file.path(
-    merge.report.dir,
-    paste0("variables_with_contradicting_labels_on_REDCap.csv")
-  )
+abp.labels <- tibble(
+  field_name = gsub("\\.", "\\_", names(MAPfreeze.list$static$data$abp.static))[-1],
+  form_name = NA,
+  field_type = NA,
+  field_label = sapply(MAPfreeze.list$static$data$abp.static, Hmisc::label)[-1],
+  select_choices_or_calculations = NA,
+  field_annotation = NA
 )
 
-labels.all %<>%
-  group_by(field_name) %>%
-  arrange(field_name, epoch) %>%
-  select(field_name, field_label, epoch) %>%
-  slice(1) %>%
-  ungroup()
+metadata.df <- list(
+  MAPfreeze.list[["vmap_edc"]][["metadata"]],
+  abp.labels,
+  MAPfreeze.list[["questionnaires"]][["metadata"]] %>% filter(!field_name %in% c("map_id", "vmac_id", "consent_proxy")),
+  MAPfreeze.list[["biomarkers"]][["metadata"]] %>% filter(!field_name %in% c("map_id", "vmac_id", "consent_proxy")),
+  MAPfreeze.list[["apoe"]][["metadata"]] %>% filter(field_name %in% c("rs429358_allele", "rs7412_allele", "alleles"))
+) %>%
+  bind_rows()
 
-labels.bHold.df <- labels.all %>%
-  filter(
-    field_name %in% gsub("bHold.", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", labels.all$field_name)])
-  ) %>%
-  select(
-    Cs(field_name, field_label, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0("bHold.", field_name)
-  )
+metadata.df <- format_metadata(metadata.df)
 
-labels.factor.df <- labels.all %>%
+metadata.factor.df <- metadata.df %>%
   filter(
-    field_name %in% gsub(".factor", "", names(merged.df)[names(merged.df) %in% paste0(labels.all$field_name, ".factor")])
-  ) %>%
-  select(
-    Cs(field_name, field_label, epoch)
+    field_name %in% gsub("\\.factor", "", grep("\\.factor", names(merged.df), v = T))
   ) %>%
   mutate(
     field_name = paste0(field_name, ".factor")
   )
 
-labels.bHold.factor.df <- labels.all %>%
-  filter(
-    field_name %in% gsub("bHold\\.|\\.factor", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", labels.all$field_name, ".factor")])
-  ) %>%
-  select(
-    Cs(field_name, field_label, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0("bHold.", field_name, ".factor")
-  )
+strip_html <- function(string) {
+  return(gsub("<.*?>", "", string))
+}
 
-labels.elig.df <- labels.all %>%
-  filter(
-    field_name %in% gsub(".elig", "", names(merged.df)[names(merged.df) %in% paste0(labels.all$field_name, ".elig")])
-  ) %>%
-  select(
-    Cs(field_name, field_label, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".elig")
-  )
-
-labels.elig.factor.df <- labels.all %>%
-  filter(
-    field_name %in% gsub(".factor.elig", "", names(merged.df)[names(merged.df) %in% paste0(labels.all$field_name, ".factor.elig")])
-  ) %>%
-  select(
-    Cs(field_name, field_label, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".factor.elig")
-  )
-
-labels.df <- bind_rows(labels.all, labels.bHold.df, labels.factor.df, labels.bHold.factor.df, labels.elig.df, labels.elig.factor.df) %>%
+labels.df <- bind_rows(metadata.df, metadata.factor.df) %>%
   filter(
     field_name %in% names(merged.df)
-  )
+  ) 
 
-variables_without_labels.df <- data.frame(
-  variable = names(merged.df)[names(merged.df) %nin% labels.df$field_name], 
-  stringsAsFactors = FALSE
-)
+whitespace_labels.var <- labels.df %>% filter(grepl("\\\n", field_label)) %>% pull(field_name)
+whitespace_labels.var <- whitespace_labels.var[grep("factor", whitespace_labels.var, invert = TRUE)]
+whitespace_labels.var <- gsub("\\.", "\\_", whitespace_labels.var)
 
-readr::write_csv(
-  x = variables_without_labels.df,
-  file = file.path(
-    merge.report.dir,
-    paste0("variables_without_labels_pre-derivation.csv")
+html_factor_labels.var <- labels.df %>% filter(grepl("<.*?>", select_choices_or_calculations)) %>% pull(field_name)
+html_factor_labels.var <- html_factor_labels.var[grep("factor", html_factor_labels.var, invert = TRUE)]
+html_factor_labels.var <- gsub("\\.", "\\_", html_factor_labels.var)
+
+labels.df <- labels.df %>%
+  mutate(
+    field_label = stringr::str_squish(field_label)
+  ) %>%
+  mutate(
+    select_choices_or_calculations = strip_html(select_choices_or_calculations)
   )
-)
 
 for (var.i in labels.df$field_name) {
   Hmisc::label(merged.df[, var.i]) <- pull(labels.df[labels.df$field_name == var.i, "field_label"])[1]
@@ -876,89 +1188,43 @@ for (var.i in labels.df$field_name) {
 label(merged.df$epoch) <- "Epoch"
 ```
 
-The following variables do not have labels (this list excludes variables with the words 'complete', '...', or 'score'):
+The following pre-derivation variables (excluding those containing the strings `'complete'`, `'...'`, `'score'`, or `'factor'`) do not have labels:
 
 ```{r}
-print(data.frame(variables = sort(grep("complete|\\.\\.\\.|score", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v= T, invert = T))))
+tibble(variables_without_labels = sort(grep("complete|\\.\\.\\.|score|factor", names(merged.df)[lapply(merged.df, function(x) label(x)) == ""], v = T, invert = T)))
 ```
 
-# Add Units Attribute to Each Variable
+# Add Units to Each Variable
 
 ```{r}
-units.all <- dplyr::bind_rows(labels.elig, labels.apoe, labels.1, labels.2, labels.3, labels.4, labels.5) %>% 
+units.all <- metadata.df %>% 
   dplyr::distinct(field_name, field_annotation, .keep_all = TRUE)
 
 units.all %<>%
-  group_by(field_name) %>%
-  arrange(field_name, epoch) %>%
-  select(field_name, field_annotation, epoch) %>%
-  slice(1) %>%
-  ungroup() %>%
-  drop_na()
-
-units.bHold.df <- units.all %>%
+  select(field_name, field_annotation) %>%
+  drop_na() %>%
   filter(
-    field_name %in% gsub("bHold.", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", units.all$field_name)])
-  ) %>%
-  select(
-    Cs(field_name, field_annotation, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0("bHold.", field_name)
+    !grepl("^\\@", field_annotation)
   )
 
-units.factor.df <- units.all %>%
-  filter(
-    field_name %in% gsub(".factor", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".factor")])
-  ) %>%
-  select(
-    Cs(field_name, field_annotation, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".factor")
-  )
-
-units.bHold.factor.df <- units.all %>%
-  filter(
-    field_name %in% gsub("bHold\\.|\\.factor", "", names(merged.df)[names(merged.df) %in% paste0("bHold.", units.all$field_name, ".factor")])
-  ) %>%
-  select(
-    Cs(field_name, field_annotation, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0("bHold.", field_name, ".factor")
-  )
-
-units.elig.df <- units.all %>%
-  filter(
-    field_name %in% gsub(".elig", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".elig")])
-  ) %>%
-  select(
-    Cs(field_name, field_annotation, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".elig")
-  )
-
-units.elig.factor.df <- units.all %>%
-  filter(
-    field_name %in% gsub(".factor.elig", "", names(merged.df)[names(merged.df) %in% paste0(units.all$field_name, ".factor.elig")])
-  ) %>%
-  select(
-    Cs(field_name, field_annotation, epoch)
-  ) %>%
-  mutate(
-    field_name = paste0(field_name, ".factor.elig")
-  )
-
-units.df <- bind_rows(units.all, units.bHold.df, units.factor.df, units.bHold.factor.df, units.elig.df, units.elig.factor.df) %>%
+units.df <- units.all %>%
   filter(
     field_name %in% names(merged.df)
+  ) %>%
+  mutate(
+    field_annotation = stringr::str_squish(field_annotation)
   )
 
 for (var.i in units.df$field_name) {
   units(merged.df[, var.i]) <- pull(units.df[units.df$field_name == var.i, "field_annotation"])[1]
 }
+```
+
+```{r}
+merged.df.pre_deriv <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup <- merged.df.pre_deriv
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 # Derivation of New Variables {.tabset .tabset-fade .tabset-pills}
@@ -968,7 +1234,14 @@ for (var.i in units.df$field_name) {
 Derive, label, and add date variables to the merged data set.
 
 ```{r derive-dates}
-merged.df <- call_function("derive_dates", merged.df)
+merged.df <- derive_dates(merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Demographics
@@ -976,15 +1249,29 @@ merged.df <- call_function("derive_dates", merged.df)
 Derive, label, and add demographic variables to the merged data set.
 
 ```{r derive-demographic}
-merged.df <- call_function("derive_demographics", merged.df)
+merged.df <- derive_demographics(merged.df)
 ```
 
-## ApoE
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
 
-Derive, label, and add ApoE variables to the merged data set.
+## APOE
+
+Derive, label, and add APOE variables to the merged data set.
 
 ```{r derive-apoe}
 merged.df <- call_function("derive_apoe", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Medication and Surgery
@@ -993,18 +1280,25 @@ Derive, label, and add medication and surgery variables to the merged data set.
 
 ```{r derive-medicationsAndSurgery}
 merged.df <- call_function("derive_medication_surgery", merged.df,
-  diabetes.file                    = MAPfreeze.list$epoch_0$data$diabetes.static,
-  cholesterol.file                 = MAPfreeze.list$epoch_0$data$cholesterol.static,
-  afib.file                        = MAPfreeze.list$epoch_0$data$afib.static,
-  afib_surgery.file                = MAPfreeze.list$epoch_0$data$afibsurg.static,
-  AH_beta_blocker.file             = MAPfreeze.list$epoch_0$data$antihypBetaBlocker.static,
-  AH_beta_blocker_if_not_drop.file = MAPfreeze.list$epoch_0$data$antihypBetaBlockerIfNotDrop.static,
-  AH_ace_inhibitor.file            = MAPfreeze.list$epoch_0$data$antihypACEInhib.static,
-  AH_arb.file                      = MAPfreeze.list$epoch_0$data$antihypARB.static,
-  AH_ccb.file                      = MAPfreeze.list$epoch_0$data$antihypCCB.static,
-  AH_ksd.file                      = MAPfreeze.list$epoch_0$data$antihypKSD.static,
-  AH_other.file                    = MAPfreeze.list$epoch_0$data$antihypOther.static
+  diabetes.file                    = MAPfreeze.list$static$data$diabetes.static,
+  cholesterol.file                 = MAPfreeze.list$static$data$cholesterol.static,
+  afib.file                        = MAPfreeze.list$static$data$afib.static,
+  afib_surgery.file                = MAPfreeze.list$static$data$afibsurg.static,
+  AH_beta_blocker.file             = MAPfreeze.list$static$data$antihypBetaBlocker.static,
+  AH_beta_blocker_if_not_drop.file = MAPfreeze.list$static$data$antihypBetaBlockerIfNotDrop.static,
+  AH_ace_inhibitor.file            = MAPfreeze.list$static$data$antihypACEInhib.static,
+  AH_arb.file                      = MAPfreeze.list$static$data$antihypARB.static,
+  AH_ccb.file                      = MAPfreeze.list$static$data$antihypCCB.static,
+  AH_ksd.file                      = MAPfreeze.list$static$data$antihypKSD.static,
+  AH_other.file                    = MAPfreeze.list$static$data$antihypOther.static
 )
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Blood Values
@@ -1013,6 +1307,13 @@ Derive, convert, label, and add blood variables to the merged data set.
 
 ```{r derive-bloodConversion}
 merged.df <- call_function("derive_blood", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Medical History
@@ -1038,7 +1339,16 @@ cmr.findings.rhythm.normal <- c(
   "sinus with frequent pvcs often in a trigeminy pattern"
 )
 
-merged.df <- call_function("derive_medical_hx", merged.df)
+# merged.df <- call_function("derive_medical_hx", merged.df)
+# merged.df <- derive_medical_hx(merged.df)
+merged.df <- derive_medical_hx(merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Cardiac MRI
@@ -1049,12 +1359,26 @@ Derive, label, and add CMR variables to the merged data set.
 merged.df <- call_function("derive_cardiac_mri", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## Thigh
 
 Derive, label, and add thigh variables to the merged data set.
 
 ```{r derive-thigh}
 merged.df <- call_function("derive_thigh", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Cardiac Structure
@@ -1065,12 +1389,26 @@ Derive, label, and add cardiac structure variables to the merged data set.
 merged.df <- call_function("derive_cardiac_structure", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## ABP QC
 
 Derive, label, and add ABP QC variables to the merged data set.
 
 ```{r derive-abpqc}
 merged.df <- call_function("derive_abp_qc", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## FSRP
@@ -1081,12 +1419,26 @@ Derive, label, and add FSRP variables to the merged data set.
 merged.df <- call_function("derive_fsrp", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## Cognitive Complaint, FCADL, and FAQ
 
 Derive, label, and add cognitive complaint, FCADL, and FAQ variables to the merged data set.
 
 ```{r derive-cognitiveComplaint}
 merged.df <- call_function("derive_cognitive_complaint", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Neuropsychological Variables
@@ -1097,13 +1449,34 @@ Derive, label, and add neuropsychological variables to the merged data set.
 merged.df <- call_function("derive_neuropsych", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## MLTA and CHAMPS
 
 Derive, convert, label, and add MLTA and CHAMPS variables to the merged data set.
 
+```{r}
+merged.df <- merged.df %>%
+  mutate_at(
+    grep("mlta\\d+$|champs\\d+\\.hrs$|champs\\d+\\.wk$", names(.), v = T),
+    as.numeric
+  )
+```
+
 ```{r derive-mltaChamps}
-merged.df$mlta10 <- as.numeric(merged.df$mlta10)
 merged.df <- call_function("derive_mlta_champs", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Depression
@@ -1114,22 +1487,42 @@ Derive, label, and add depression variables to the merged data set.
 merged.df <- call_function("derive_depression", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## Biomarkers
 
 Derive, label, and add biomarker variables to the merged data set.
 
 ```{r derive-biomarkers}
-merged.df <- call_function("derive_biomarkers", merged.df)
+# merged.df <- call_function("derive_biomarkers", merged.df)
+merged.df <- derive_biomarkers(merged.df)
 ```
 
-## Informant Information
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+## Informant Information 
 
 Derive, label, and add informant information variables to the merged data set.
 
 ```{r derive-informatInfo}
-merged.df$inform.length.yrs <- as.numeric(merged.df$inform.length.yrs)
-merged.df$inform.length.mos <- as.numeric(merged.df$inform.length.mos)
 merged.df <- call_function("derive_informant_info", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Diagnosis and Staging
@@ -1140,12 +1533,27 @@ Derive, label, and add diagnosis and staging variables to the merged data set.
 merged.df <- call_function("derive_diagnosis_staging", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## PSQI
 
 Derive, label, and add PSQI variables to the merged data set.
 
 ```{r derive-psqi}
-merged.df <- call_function("derive_psqi", merged.df)
+# merged.df <- call_function("derive_psqi", merged.df)
+merged.df <- derive_psqi(merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Frailty
@@ -1156,6 +1564,13 @@ Derive, label, and add frailty variables to the merged data set.
 merged.df <- call_function("derive_frailty", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## Food Scan
 
 Derive, convert, label, and add food scan variables to the merged data set.
@@ -1164,12 +1579,47 @@ Derive, convert, label, and add food scan variables to the merged data set.
 merged.df <- call_function("derive_food_scan", merged.df)
 ```
 
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
 ## PVLT
 
 Derive, label, and add PVLT variables to the merged data set.
 
+```{r}
+pvlt.chr.var <- grep("np\\.pvlt", names(merged.df), value = T)[sapply(merged.df[, grep("np\\.pvlt", names(merged.df), value = T)], is.character)] %>%
+  setdiff(., "np.pvlt.notes")
+
+pvlt.chr.labels.df <- labels.df %>% filter(field_name %in% pvlt.chr.var)
+
+# np.pvlt.sdfr.sdcr, np.pvlt.ldfr.ldcr, np.pvlt.sdfr.ldfr, np.pvlt.perc.free.intrus, np.pvlt.perc.cued.intrus
+
+merged.df <- merged.df %>%
+  mutate(
+    across(
+      .cols = all_of(pvlt.chr.var),
+      .fns = ~ replace(.x, .x == "INF", NA) %>% as.numeric()
+    )
+  )
+
+for (var.i in pvlt.chr.labels.df$field_name) {
+  Hmisc::label(merged.df[, var.i]) <- pull(pvlt.chr.labels.df[pvlt.chr.labels.df$field_name == var.i, "field_label"])[1]
+}
+```
+
 ```{r derive-pvlt}
-merged.df <- call_function("derive_pvlt", merged.df)
+merged.df <- derive_pvlt(merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## CDR Conversion
@@ -1178,20 +1628,28 @@ Derive, label, and add CDR conversion variables to the merged data set.
 
 ```{r derive-cdr-conversion}
 merged.df <- call_function("derive_cdr_conversion", merged.df)
+class(merged.df) <- "data.frame"
 ```
 
 ```{r}
-class(merged.df) <- "data.frame"
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Circle of Willis (CoW) Variants
 
 ```{r derive-cow-variants}
 merged.df <- call_function("derive_cow_variants", merged.df)
+class(merged.df) <- "data.frame"
 ```
 
 ```{r}
-class(merged.df) <- "data.frame"
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## CVD/AFib Ever
@@ -1200,7 +1658,16 @@ class(merged.df) <- "data.frame"
 merged.df <- call_function("derive_cvdafib_ever", merged.df)
 ```
 
-# Manual Invalidation: Post-Derivation
+```{r}
+merged.df.post_derivation_pre_invalidation <- merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+# Post-Derivation Modifications
+
+## Manual Invalidation: Post-Derivation
 
 In this section, we will invalidate certain derived variables for specified individuals as requested by VMAC.
 
@@ -1208,7 +1675,14 @@ In this section, we will invalidate certain derived variables for specified indi
 merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
 ```
 
-# Repeating Baseline Variables in Each Epoch
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+## Repeat Baseline Variables at Each Epoch
 
 ```{r repeatBaseline}
 enrollment_vars <- Cs(
@@ -1218,7 +1692,6 @@ enrollment_vars <- Cs(
   race.factor,
   ethnicity.factor,
   raceethnicity.factor,
-  usa.born.factor,
   lang.prim.factor,
   alleles,
   alleles.factor,
@@ -1237,7 +1710,10 @@ enrollment_vars <- Cs(
 baseline_vars <- Cs( # will have ".base" appended to the end
   diagnosis.factor,
   mci.stage.factor, 
-  albert.mci.stage.factor, 
+  innotest.albert.mci.stage.factor,
+  mod.innotest.albert.mci.stage.factor,
+  lumipulse.albert.mci.stage.factor,
+  mod.lumipulse.albert.mci.stage.factor,
   age
 )
 
@@ -1254,14 +1730,24 @@ merged.df <- merged.df[, names(merged.df)[!names(merged.df) %in% enrollment_vars
     to_repeat.df,
     by = "map.id"
   )
-
-cat("The following variables were added to each epoch for each participant:\n")
-print(data.frame(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 ```
 
-# Modification of Factor Levels
+**The following variables were pulled from baseline (Epoch 1) to all epochs for every participant:**
 
-## Re-ordering Levels in `diagnosis.factor` and `diagnosis.factor.base`
+```{r}
+print(tibble(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+## Modify Factor Levels
+
+### Re-ordering levels in `diagnosis.factor` and `diagnosis.factor.base`
 
 ```{r reorder-dx-level}
 merged.df <- merged.df %>%
@@ -1271,109 +1757,58 @@ merged.df <- merged.df %>%
   )
 ```
 
-## Setting Reference to "No" for Yes/No Variables
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+### Setting reference to "No" for factor variables containing "No" as a level
 
 ```{r ref-level-no}
 levels.list <- purrr::map(merged.df, levels)
 factor_var.list <- levels.list[!purrr::map_lgl(levels.list, is.null)]
 
-reference_yes.list <- factor_var.list[purrr::map(factor_var.list, 1) == "Yes"]
+contains_no.list <- keep(factor_var.list, ~all("No" %in% .x))
 
-reference_yes.var <- names(reference_yes.list)
+# reference_yes.list <- factor_var.list[purrr::map(factor_var.list, 1) == "Yes"]
 
-for (var.i in reference_yes.var) {
+contains_no.var <- names(contains_no.list)
+
+for (var.i in contains_no.var) {
   merged.df[[var.i]] <- relevel(merged.df[[var.i]], "No")
 }
 ```
 
-Reference level has been set to 'No' for the following Yes/No variables:
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+**Reference levels have been set to 'No' for the following variables:**
 
 ```{r print-refno-df}
-print(data.frame(variables = reference_yes.var))
+print(data.frame(variables = contains_no.var))
 ```
 
-# Adding Memory and Executive Function Composite Scores
-
-These scores were provided to us in two RDS files dated March 29, 2021 by Timothy Hohman after calculating them in MPlus.
-
-```{r mem-ef-composite}
-mem.composite.df <- MAPfreeze.list$epoch_0$data$np.memory.composite.static %>%
-  rename(np.memory.composite = memory.composite) %>%
-  mutate(
-    epoch = as.numeric(epoch)
-  )
-
-ef.composite.df <- MAPfreeze.list$epoch_0$data$np.executive.composite.static %>%
-  rename(np.executive.composite = executive.composite) %>%
-  mutate(
-    epoch = as.numeric(epoch)
-  )
-
-label(mem.composite.df$map.id) <- label(ef.composite.df$map.id) <- "MAP ID"
-label(mem.composite.df$epoch) <- label(ef.composite.df$epoch) <- "Epoch"
-
-merged.df %<>% left_join(
-  mem.composite.df,
-  by = c("map.id", "epoch")
-)
-
-merged.df %<>% left_join(
-  ef.composite.df,
-  by = c("map.id", "epoch")
-)
-
-label(merged.df$np.memory.composite) <- 'Memory Composite'
-label(merged.df$np.executive.composite) <- 'EF Composite'
-label(merged.df$diagnosis.factor) <- label(merged.df$diagnosis)
-label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis), ", from Enrollment")
-```
-
-# Adding Neuroimaging Scanner Data
-
-```{r neuroimaging-link}
-merged.df <- call_function("process_neuroimaging_link", merged.df)
-```
-
-# Adding Biospecimen Availability
-
-```{r biospecimen}
-biospecimen.df <- process_biospecimen_availability(path = "~/box/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1:5)
-
-biospecimen.df$epoch <- as.numeric(biospecimen.df$epoch)
-label(biospecimen.df$map.id) <- label(merged.df$map.id)
-label(biospecimen.df$epoch) <- label(merged.df$epoch)
-
-merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))```
-```
-
-# Separating Breath Hold and Face Mask Data Sets
-
-In this step, we create separate data sets for the breath hold and face mask groups.
-
-```{r separateBHfromFM}
-bHold.var <- grep("^bHold\\.", names(merged.df), v = T)
-bHold.index <- match(bHold.var, names(merged.df))
-
-regnames <- gsub("^bHold\\.", "", bHold.var)
-bHoldnamesWithCounterparts <- bHold.var[regnames %in% names(merged.df)]
-
-merged.fm.df <- merged.df[, -bHold.index]
-
-merged.bh.df <- merged.df
-merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, regnames] <- 
-  merged.bh.df[merged.df$epoch == 1 & as.numeric(merged.df$map.id) <= 25, bHoldnamesWithCounterparts]
-merged.bh.df <- merged.bh.df[, -bHold.index]
-```
-
-# Derivation of Variables after Separation of Breath Hold and Face Mask Data Sets
+# Final Derivations
 
 ## Automated 3T
 
-Derive, label, and add automated 3T variables to the merged data set. ASL reactivity variables are also calculated in this step.
+Derive, label, and add automated 3T and ASL reactivity variables to the merged data set.
 
 ```{r derive-auto3T}
-merged.bh.df <- call_function("derive_automated_3T", merged.bh.df)
-merged.fm.df <- call_function("derive_automated_3T", merged.fm.df)
+merged.df <- call_function("derive_automated_3T", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## Manual 3T
@@ -1381,8 +1816,14 @@ merged.fm.df <- call_function("derive_automated_3T", merged.fm.df)
 Derive, label, and add manual 3T variables to the merged data set.
 
 ```{r derive-man3T}
-merged.bh.df <- call_function("derive_manual_3T", merged.bh.df)
-merged.fm.df <- call_function("derive_manual_3T", merged.fm.df)
+merged.df <- call_function("derive_manual_3T", merged.df)
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 ## AD Signature
@@ -1390,333 +1831,248 @@ merged.fm.df <- call_function("derive_manual_3T", merged.fm.df)
 Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 
 ```{r derive-AD-sig}
-merged.bh.df <- derive_AD_signature(merged.bh.df)
-merged.fm.df <- derive_AD_signature(merged.fm.df)
+merged.df <- derive_AD_signature(merged.df)
+class(merged.df) <- "data.frame"
 ```
 
-# Ordering Variables Alphabetically
+```{r}
+merged.df.bkup.final <- merged.df
+merged.df <- merged.df.bkup.final
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
 
-```{r ordering-alphabetically}
-merged.bh.df <- merged.bh.df[, order(colnames(merged.bh.df))] %>%
-  select(
-    map.id, epoch, everything()
-  )
+# Adding Memory and Executive Function Composite Scores
 
-merged.fm.df <- merged.fm.df[, order(colnames(merged.fm.df))] %>%
-  select(
-    map.id, epoch, everything()
-  )
+**These scores were derived by Dandan Liu on September 12, 2022 in MPlus.**
+
+```{r mem-ef-composite}
+composite.df <- readRDS("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/np_composite_20220912.rds")
+
+label(composite.df$map.id) <- label(merged.df$map.id)
+label(composite.df$epoch) <- label(merged.df$epoch)
+
+merged.df %<>% left_join(
+  composite.df,
+  by = c("map.id", "epoch")
+)
+
+label(merged.df$np.memory.composite) <- 'Memory Composite'
+label(merged.df$np.executive.composite) <- 'EF Composite'
+label(merged.df$diagnosis.factor) <- label(merged.df$diagnosis)
+label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis.factor), ", from Enrollment")
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+# Adding Biospecimen Availability
+
+**Biospecimen availability was last updated on `20210719`.**
+
+```{r biospecimen}
+biospecimen.df <- process_biospecimen_availability(path = "~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1L:5L)
+
+label(biospecimen.df$map.id) <- label(merged.df$map.id)
+label(biospecimen.df$epoch) <- label(merged.df$epoch)
+
+merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))
+```
+
+```{r}
+merged.df.bkup <- merged.df
+merged.df <- merged.df.bkup
+# dim(merged.df)
+cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 # Saving the Final Data
 
-We will save the Face Mask and Breath Hold data sets to the `box/VMAC BIOSTAT/DATA/MAP/mergedData` directory as RDS and CSV files.
+We will save the final data set to the `VMAC BIOSTAT/DATA/MAP/mergedData` directory as RDS and CSV files.
 
 ```{r save-data}
-class(merged.bh.df) <- "data.frame"
-class(merged.fm.df) <- "data.frame"
+output_file_name <- paste0("f", data.freeze.date, "_m", format(Sys.time(), '%Y%m%d'))
 
-saveRDS(merged.fm.df, file = paste0(data.merge.fm.file, ".rds"))
-write.csv(merged.fm.df, file = paste0(data.merge.fm.file, ".csv"), row.names = FALSE)
-
-saveRDS(merged.bh.df, file = paste0(data.merge.bh.file, ".rds"))
-write.csv(merged.bh.df, file = paste0(data.merge.bh.file, ".csv"), row.names = FALSE)
+saveRDS(merged.df, file = paste0("~/Box Sync/VMAC BIOSTAT/DATA/MAP/mergedData/MAP_fm_", output_file_name, ".rds"))
+write.csv(merged.df, file = paste0("~/Box Sync/VMAC BIOSTAT/DATA/MAP/mergedData/MAP_fm_", output_file_name, ".csv"), row.names = FALSE)
 ```
 
-# Current vs Previous Data Comparison {.tabset .tabset-fade .tabset-pills}
+# Current vs Previous Data Comparison
 
-This section highlights changes between the current and previous breath hold data sets. To reduce the size of the output, variables matching the following criteria will be excluded from the comparison:
+This section highlights changes between the current and previously generated data sets. Variables matching the following criteria will be excluded from the comparison:
 
-- variable name starts with "med" and is followed by one or more numbers
-- variable name includes "notes"
-- variable name starts with "entry"
-- variable name contains "famhx" and is followed by one or more numbers
-- variable name ends with "complete"
-- all values are missing
+- variable names that contain three consecutive dots
+- variable names that start with "med" followed by one or more numbers
+- variable names that contain "notes"
+- variable names that start with "entry"
+- variable names that contain "famhx" followed by one or more numbers
+- variable names that end with "complete"
 
-For sake of simplicity, we will code integer-type variables as numeric and factor-type variables as character prior to comparison.
+As part of the comparison process:
+
+- variables will be stripped of their label and units attributes before being compared
+- variables of class "integer" will be coerced to "numeric" before being compared
+- variables of class "POSIXt" will be coerced to "character" before being compared
+- strings will be flagged if a difference is detected in their first 75 characters only (i.e, variables of class "character" will be truncated to be 75 characters long)
+- variables of class "factor" will be compared based on their labels, not their underlying numerical representation in R
+- variables of class "numeric" will be flagged if they differ by more than a percentage tolerance defined as `0.00001` (`0.001%`)
 
 ```{r diff-setup}
-if (is.null(last.data.merge.bh.file)) {
+if (is.null(last.data.merge.fm.file)) {
   warning("Please specify the download and merge dates for the previous data set.\n")
 } else {
-  prev.bh.df <- readRDS(paste0(last.data.merge.bh.file, ".rds")) %>% clear_labels()
-  merged.bh.df <- clear_labels(merged.bh.df)
+  merged.current.diff.df <- merged.df %>%
+    clear_labels_and_units() %>%
+    arrange(
+      map.id, epoch
+    )
+  
+  merged.current.diff.df <- merged.current.diff.df[, colSums(is.na(merged.current.diff.df)) < nrow(merged.current.diff.df)]
+  
+  ###
+  
+  merged.prev.diff.df <- readRDS(paste0(last.data.merge.fm.file, ".rds")) %>% 
+    clear_labels_and_units() %>%
+    arrange(
+      map.id, epoch
+    )
+  
+  merged.prev.diff.df <- merged.prev.diff.df[, colSums(is.na(merged.prev.diff.df)) < nrow(merged.prev.diff.df)]
+  
+  ###
+  
+  all.var <- union(names(merged.current.diff.df), names(merged.prev.diff.df))
 
-  all.var <- union(names(merged.bh.df), names(prev.bh.df))
-  vars_to_exclude <- unique(c(
+  vars_to_exclude.var <- unique(c(
     grep("\\.{3}", all.var, v = T),
     grep("^med\\d+", all.var, v = T), 
     grep("notes", all.var, v = T), 
     grep("^entry", all.var, v = T), 
     grep("famhx\\d+", all.var, v = T),
     grep("complete$", all.var, v = T)
-    ))
+  ))
   
-  all.var <- all.var[!all.var %in% vars_to_exclude]
+  keep.var <- all.var[!all.var %in% vars_to_exclude.var]
 }
 
-current.all.var <- all.var[all.var %in% names(merged.bh.df)]
-prev.all.var <- all.var[all.var %in% names(prev.bh.df)]
+current.var <- keep.var[keep.var %in% names(merged.current.diff.df)] 
+prev.var <- keep.var[keep.var %in% names(merged.prev.diff.df)]
+
+merged.current.diff.df.bkup <- merged.current.diff.df
+merged.prev.diff.df.bkup <- merged.prev.diff.df
+```
+
+```{r}
+merged.current.diff.df <- merged.current.diff.df %>%
+  select(
+    all_of(current.var)
+  ) %>%
+  # modify_if(is.factor, as.character) %>%
+  modify_if(is.integer, as.numeric) %>%
+  modify_if(is.POSIXt, as.character)  %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ ifelse(nchar(.x) > 75, str_trunc(.x, width = 75+3), .x)
+    )
+  )
+
+merged.prev.diff.df <- merged.prev.diff.df %>%
+  select(
+    all_of(prev.var)
+  ) %>%
+  # modify_if(is.factor, as.character) %>%
+  modify_if(is.integer, as.numeric) %>%
+  modify_if(is.POSIXt, as.character)  %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ ifelse(nchar(.x) > 75, str_trunc(.x, width = 75+3), .x)
+    )
+  )
+```
+
+```{r}
+data_comparison <- comparedf(
+  merged.current.diff.df, merged.prev.diff.df, 
+  by = c("map.id", "epoch"),
+  tol.num = "percent",
+  tol.num.val = 0.00001,
+  tol.factor = "labels" # match only factor labels
+)
+
+data_comparison.list <- summary(data_comparison)
+
+write_csv(
+  x = data_comparison.list$diffs.byvar.table %>% tibble() %>% arrange(desc(n)),
+  file = file.path(
+    merge.report.dir,
+    paste0("data_differences_summary.csv")
+  )
+)
+
+data_diffs <- diffs(data_comparison) %>%
+  mutate(
+    values.x = unlist(values.x),
+    values.y = unlist(values.y)
+  ) %>%
+  filter(
+    values.x != values.y
+  )
+
+write_csv(
+  x = data_diffs,
+  file = file.path(
+    merge.report.dir,
+    paste0("data_differences_detailed.csv")
+  )
+)
 ```
 
 ## New Variables in Current Data (Absent from Previous Data)
 
 ```{r}
-tibble(new_variable = sort(current.all.var[which(current.all.var %nin% prev.all.var)]))
-```
+new_vars.var <- current.var[which(current.var %nin% prev.var)]
 
-## Epoch 1
-
-```{r diff-e1}
-current.e1.df <- merged.bh.df %>%
-  filter(
-    epoch %in% 1
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', current.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-prev.e1.df <- prev.bh.df %>%
-  filter(
-    epoch %in% 1
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', prev.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-e1.comparison <- comparedf(
-  current.e1.df, prev.e1.df, 
-  by = c("map.id", "epoch"),
-  int.as.num = TRUE,
-  factor.as.char = TRUE
+DT::datatable(
+  tibble(new_variable = new_vars.var),
+  colnames = c('New Variable' = 'new_variable'),
+  extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel')
+  ),
+  class = 'cell-border stripe'
 )
-
-e1.diff <- diffs(e1.comparison)
-
-write.csv(
-  x = e1.diff,
-  file = file.path(
-    merge.report.dir,
-    paste0("e1_diff.csv")
-  )
-)
-
-diffs(e1.comparison, by.var = TRUE) %>%
-  filter(n > 0 | NAs > 0)
-```
-
-## Epoch 2
-
-```{r diff-e2}
-current.e2.df <- merged.bh.df %>%
-  filter(
-    epoch %in% 2
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', current.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-prev.e2.df <- prev.bh.df %>%
-  filter(
-    epoch %in% 2
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', prev.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-e2.comparison <- comparedf(
-  current.e2.df, prev.e2.df, 
-  by = c("map.id", "epoch"),
-  int.as.num = TRUE,
-  factor.as.char = TRUE
-)
-
-e2.diff <- diffs(e2.comparison)
-
-write.csv(
-  x = e2.diff,
-  file = file.path(
-    merge.report.dir,
-    paste0("e2_diff.csv")
-  )
-)
-diffs(e2.comparison, by.var = TRUE) %>%
-  filter(n > 0 | NAs > 0)
-```
-
-## Epoch 3
-
-```{r diff-e3}
-current.e3.df <- merged.bh.df %>%
-  filter(
-    epoch %in% 3
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', current.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-prev.e3.df <- prev.bh.df %>%
-  filter(
-    epoch %in% 3
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', prev.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-e3.comparison <- comparedf(
-  current.e3.df, prev.e3.df, 
-  by = c("map.id", "epoch"),
-  int.as.num = TRUE,
-  factor.as.char = TRUE
-)
-
-e3.diff <- diffs(e3.comparison)
-
-write.csv(
-  x = e3.diff,
-  file = file.path(
-    merge.report.dir,
-    paste0("e3_diff.csv")
-  )
-)
-
-diffs(e3.comparison, by.var = TRUE) %>%
-  filter(n > 0 | NAs > 0)
-```
-
-## Epoch 4
-
-```{r diff-e4}
-current.e4.df <- merged.bh.df %>%
-  filter(
-    epoch %in% 4
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', current.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-prev.e4.df <- prev.bh.df %>%
-  filter(
-    epoch %in% 4
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', prev.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-e4.comparison <- comparedf(
-  current.e4.df, prev.e4.df, 
-  by = c("map.id", "epoch"),
-  int.as.num = TRUE,
-  factor.as.char = TRUE
-)
-
-e4.diff <- diffs(e4.comparison)
-
-write.csv(
-  x = e4.diff,
-  file = file.path(
-    merge.report.dir,
-    paste0("e4_diff.csv")
-  )
-)
-
-diffs(e4.comparison, by.var = TRUE) %>%
-  filter(n > 0 | NAs > 0)
-```
-
-## Epoch 5
-
-```{r diff-e5, eval = FALSE}
-current.e5.df <- merged.bh.df %>%
-  filter(
-    epoch %in% 5
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', current.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-prev.e5.df <- prev.bh.df %>%
-  filter(
-    epoch %in% 5
-  ) %>%
-  mutate(
-    epoch = as.integer(epoch)
-  ) %>%
-  select(
-    one_of(c('map.id', 'epoch', prev.all.var))
-  ) %>%
-  select_if(~ !all(is.na(.))) %>%
-  droplevels.data.frame()
-
-e5.comparison <- comparedf(
-  current.e5.df, prev.e5.df, 
-  by = c("map.id", "epoch"),
-  int.as.num = TRUE,
-  factor.as.char = TRUE
-)
-
-e5.diff <- diffs(e5.comparison)
-
-write.csv(
-  x = e5.diff,
-  file = file.path(
-    merge.report.dir,
-    paste0("e5_diff.csv")
-  )
-)
-
-diffs(e5.comparison, by.var = TRUE) %>%
-  filter(n > 0 | NAs > 0)
 ```
 
 # Session Info
 
-```{r}
-sessionInfo()
+```{r, echo=FALSE, include=FALSE}
+session_info.list <- devtools::session_info()
+platform.df <- tibble(
+  setting = names(session_info.list$platform),
+  value = unname(unlist(session_info.list$platform))
+)
+```
+
+## Platform
+
+```{r, echo=FALSE}
+platform.df
+```
+
+## Loaded Packages
+
+```{r, echo=FALSE}
+as_tibble(x = session_info.list$packages[session_info.list$packages$attached == TRUE, ]) %>%
+  select(Package = package, Version = loadedversion, Date = date, Source = source) %>%
+  print(n = Inf)
+```
+
+```{r, echo=FALSE, include=FALSE}
+beepr::beep(5)
 ```
