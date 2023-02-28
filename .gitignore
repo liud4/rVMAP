@@ -56,3 +56,5 @@ VMAC REDCap API Tokens.R
 R/data_freeze.R
 R/process_long_data.R
 R/scratch.R
+
+data_freeze_gitignore.R

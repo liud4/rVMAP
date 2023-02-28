@@ -28,23 +28,19 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
     ),
     vmap_edc = list(
       project = "VMAP Electronic Data Capture Epochs 1-6",
-      token = "E727B91E222517FC041A20C728B04A1C"
+      token = "REPLACE"
     ),
     questionnaires = list(
       project = "VMAP Questionnaires",
-      token = "EA09F0B49D7670C3D0F69887B89B9C8D"
+      token = "REPLACE"
     ),
     biomarkers = list(
       project = "VMAP CSF, Plasma, and Serum Biomarkers Epoch 1-6",
-      token = "7E1BFA5259BD5E59FECD095F0324B62A"
+      token = "REPLACE"
     ),
     apoe = list(
       project = "MAP APOE",
-      token = "87BC5364FCBBE6B6942410E415EDE1D2"
-    ),
-    scanner = list(
-      project = "MAP Neuroimaging Link",
-      token = "6C1EE1161B2BF40BA37159F3077FD99E"
+      token = "REPLACE"
     )
   )
 
@@ -54,7 +50,7 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
   for (redcap.i in setdiff(names(MAPfreeze.list), "general")) {
 
     message(paste0("Currently downloading: ", MAPfreeze.list[[redcap.i]][["project"]], "\n\n"))
-    
+
     # grab data
     MAPfreeze.list[[redcap.i]][["data"]] <- REDCapR::redcap_read(
       batch_size = 50L,
@@ -63,14 +59,14 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
       raw_or_label = "raw",
       verbose = TRUE
     )$data
-    
+
     MAPfreeze.list[[redcap.i]][["metadata"]] <- REDCapR::redcap_metadata_read(
       redcap_uri = redcap.api.uri,
       token = MAPfreeze.list[[redcap.i]][["token"]],
       verbose = TRUE
     )$data
   }
-  
+
   MAPfreeze.list$general$versions[["REDCap"]] <- as.character(
     REDCapR::redcap_version(
       redcap_uri = redcap.api.uri,
@@ -78,24 +74,30 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
       verbose = FALSE
     )
   )
-  
+
   ###
 
-  med.file.date <- 20150817 # date for main medication files
-  antihypSubtype.file.date <- 20160928 # date for antihyp subtype files
-  surg.file.date <- 20150817 # date for afibsurgery
+  med.file.date <- 20230227 # date for main medication files
+  antihypSubtype.file.date <- 20230227 # date for antihyp subtype files
+  surg.file.date <- 20230227 # date for afibsurgery
+
+  # Biospecimen Availability
+  biospecimen_availability.file <- file.path(
+    data.raw.dir,
+    "VMAP_biospecimens_collected_20210719.xlsx"
+  )
+
+  # Physlog data
+  physlog.file <- file.path(
+    data.raw.dir,
+    "20220916 - vmap_physlog_data.csv"
+  )
 
   # ABP consent info
   track.file <- file.path(
     data.dir, "rawData",
     "MAPParticipantTracki_DATA_2015-08-26_1412.csv"
   )
-
-  # # The APOE data
-  # apoe.file <- file.path(
-  #   data.dir, "rawData",
-  #   "MAPAPOE_DATA_2015-08-26_1415.csv"
-  # )
 
   # Selected data from eligibility.
   elig.file <- file.path(
@@ -113,10 +115,10 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
     paste0("AFibMedNumbers_", med.file.date, ".csv")
   )
 
-  antihyp.file <- file.path(
-    med.dir, "old (save for reference)",
-    paste0("AntihypertensiveMedNumbers_", med.file.date, ".csv")
-  )
+  # antihyp.file <- file.path(
+  #   med.dir, "old (save for reference)",
+  #   paste0("AntihypertensiveMedNumbers_", med.file.date, ".csv")
+  # )
 
   diab.file <- file.path(
     med.dir,
@@ -165,6 +167,11 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
     paste0("AFibSurgNumbers_", surg.file.date, ".csv")
   )
 
+  thyroidsurg.file <- file.path(
+    surg.dir,
+    paste0("ThyroidSurgNumbers_", surg.file.date, ".csv")
+  )
+
   # epoch_1
   abp.raw.derived.file <- file.path(
     data.dir,
@@ -177,19 +184,26 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
     "MAPSRTErrorAnalysisEpoch1_DATA_2017-09-01_0936.csv"
   )
 
-  np.memory.composite.file <- file.path(
+  np.composite.file <- file.path(
     data.raw.dir,
-    "Memory_Scores_20210324.rds"
-  )
-
-  np.executive.composite.file <- file.path(
-    data.raw.dir,
-    "EF_Scores_20210329.rds"
+    "np_composite_20220926.rds"
   )
 
   polygenetic.file <- file.path(
     data.raw.dir,
     "VMAP_PRS.rds"
+  )
+
+  map_163_invalidation.file <- file.path(
+    data.dir,
+    "Documentation",
+    "MAP163_variablesunusable_20220916.xlsx"
+  )
+
+  invalid_neuropsych.file <- file.path(
+    data.dir,
+    "Documentation", "InvalidNeuropsych",
+    "VMAP NP Invalids QC 8.29.22_DL.xlsx"
   )
 
   ###
@@ -199,11 +213,13 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
   static.list.0 = list(
     project = paste0(
       "MAP ",
-      c("ABP Consent",
+      c("Biospecimen Availability",
+        "Physlog Data",
+        "ABP Consent",
         "Selected Eligibility",
         "Cholesterol",
         "Atrial Fibrillation",
-        "Antihypertensive",
+        # "Antihypertensive",
         "Diabetes",
         "Antihypertensive - Beta Blockers",
         "Antihypertensive - Beta Blockers if not Drop",
@@ -213,18 +229,22 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
         "Antihypertensive - Potasium Sparing Diuretics",
         "Antihypertensive - Other",
         "Atrial Fibrillation Surgery",
-        "Neuropsych - Memory Composite",
-        "Neuropsych - EF Composite",
-        "Polygenetic Risk Scores"
+        "Thyroid Surgery",
+        "Neuropsych - Composite Scores",
+        "Polygenetic Risk Scores",
+        "MAP 163 Invalid Variables",
+        "Invalid Neuropsych Values"
       ),
       " (Static)"
     ),
     shortname = paste0(
-      c("tracking",
+      c("biospecimen_availability",
+        "physlog",
+        "tracking",
         "eligibility",
         "cholesterol",
         "afib",
-        "antihyp",
+        # "antihyp",
         "diabetes",
         "antihypBetaBlocker",
         "antihypBetaBlockerIfNotDrop",
@@ -234,19 +254,23 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
         "antihypKSD",
         "antihypOther",
         "afibsurg",
-        "np.memory.composite",
-        "np.executive.composite",
-        "polygenetic"
+        "thyroidsurg",
+        "np.composite",
+        "polygenetic",
+        "map_163_invalidation",
+        "invalid_neuropsych"
       ),
       ".static"
     ),
-    token = rep("static.file", 17),
+    token = rep("static.file", 20),
     data = list(
+      readxl::read_excel(biospecimen_availability.file),
+      readr::read_csv(physlog.file, show_col_types = FALSE),
       read.csv(track.file, stringsAsFactors = FALSE),
       read.csv(elig.file, stringsAsFactors = FALSE),
       read.csv(chol.file, stringsAsFactors = FALSE),
       read.csv(afib.file, stringsAsFactors = FALSE),
-      read.csv(antihyp.file, stringsAsFactors = FALSE),
+      # read.csv(antihyp.file, stringsAsFactors = FALSE),
       read.csv(diab.file, stringsAsFactors = FALSE),
       read.csv(antihypBetaBlocker.file, stringsAsFactors = FALSE),
       read.csv(antihypBetaBlockerIfNotDrop.file, stringsAsFactors = FALSE),
@@ -256,11 +280,13 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
       read.csv(antihypKSD.file, stringsAsFactors = FALSE),
       read.csv(antihypOther.file, stringsAsFactors = FALSE),
       read.csv(afibsurg.file, stringsAsFactors = FALSE),
-      readRDS(np.memory.composite.file),
-      readRDS(np.executive.composite.file),
-      readRDS(polygenetic.file)
+      read.csv(thyroidsurg.file, stringsAsFactors = FALSE),
+      readRDS(np.composite.file),
+      readRDS(polygenetic.file),
+      readxl::read_excel(map_163_invalidation.file),
+      readxl::read_excel(invalid_neuropsych.file)
     ),
-    metadata = rep("NA", 17)
+    metadata = rep("NA", 20)
   )
 
   names(static.list.0[["token"]]) <- static.list.0$shortname
@@ -327,3 +353,4 @@ data_freeze <- function(box.dir = file.path("~", "Box Sync"),
     return(MAPfreeze.list)
   }
 }
+

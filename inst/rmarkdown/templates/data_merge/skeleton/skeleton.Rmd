@@ -111,8 +111,6 @@ packages <- Hmisc::Cs(
 
 rVMAP::load_pkg(packages)
 
-# library(rVMAP)
-
 devtools::load_all("~/dev/rVMAP")
 
 # set timezone
@@ -394,12 +392,10 @@ pre_vmap_edc_scanner.df <- pre_vmap_edc_scanner.df %>%
 ```{r}
 form_names <- setdiff(unique(pre_vmap_edc_repeating.df$redcap_repeat_instrument), "brain_mri") # names of non-brain_mri forms
 
-# form_names <- c("freesurfer_2005_reconstats", "freesurfer_2009_reconstats", 
-# "freesurfer_lobes", "freesurfer_hippocampal_subfields", "freesurfer_brain_volume",
-# "multiatlas_stats", "lesion_segmentation_tool_stats", "vbm_qa_stats",
-# "fsl_first_stats", "hippodeep", "white_matter_stamper_stats",
-# "asl_multiatlas_stats", "dtiroi", "veasl_stats", "oxygen_extraction_fraction",
-# "neck", "circle_of_willis", "lacunar_infarcts", "perivascular_space",
+# form_names <- c("freesurfer", "multiatlas_stats", "lesion_segmentation_tool_stats", 
+# "asl_multiatlas_stats", "vbm_qa_stats", "fsl_first_stats", "hippodeep", 
+# "white_matter_stamper_stats", "veasl_stats", "dtiroi", "oxygen_extraction_fraction", 
+# "neck", "circle_of_willis", "lacunar_infarcts", "perivascular_space", 
 # "swi", "vessel_wall_imaging")
 
 get_form_variables <- function(db = "vmap_edc", form) {
@@ -445,6 +441,7 @@ lookup.df <- list(indicator.df, session_id.df, breath_hold.df) %>%
 
 ```{r version_two}
 create_individual_form_df <- function(form) {
+  
   session_indicator.var <- lookup.df[lookup.df$form == form, ] %>% pull(indicator)
   session_id.var <- lookup.df[lookup.df$form == form, ] %>% pull(session_id)
   form.var <- form_variables.df[form_variables.df$form == form, ] %>% pull(variable)
@@ -479,6 +476,8 @@ neuroimaging.list <- map(
 )
 
 names(neuroimaging.list) <- form_names
+
+# check each tibble in neuroimaging.list to make sure it has data. `hippodeep` is the only neuroimaging form where we exepct to not have data.
 ```
 
 ## Merge together all brain MRI data to create a master VMAP EDC data set
@@ -648,7 +647,7 @@ vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1) & vmap_edc_temp04.df$ma
 The following variables contain values of "--" instead of NA, causing them to be of character class. In this merge, they are manually coerced to numeric (hence the outputted warning messages): `asl_3t_bl_etco2e`, `asl_rest_trimmedmean2525_etco2`, `fmri_rest_trimmedmean2525_etco2`.
 
 ```{r}
-physlog.df <- read_csv("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/20220916 - vmap_physlog_data.csv", show_col_types = FALSE) %>%
+physlog.df <- MAPfreeze.list$static$data$physlog.static %>%
   select(
     -session_id
   ) %>%
@@ -687,7 +686,7 @@ cat(paste0("NOTE: `vmap_edc.df` has ", nrow(vmap_edc.df), " rows and ", ncol(vma
 ## Process Questionnaires
 
 ```{r}
-questionnaires_temp01.df <- MAPfreeze.list$questionnaires$data %>% 
+questionnaires_temp01.df <- MAPfreeze.list$questionnaires$data %>%
   mutate(
     epoch = case_when(
       redcap_event_name == "eligibility_arm_1" ~ 0L,
@@ -705,9 +704,17 @@ questionnaires_temp01.df <- MAPfreeze.list$questionnaires$data %>%
   relocate(
     epoch, .after = map_id
   ) %>%
+  group_by(
+    vmac_id
+  ) %>%
+  tidyr::fill(
+    map_id, .direction = "downup"
+  ) %>%
+  ungroup() %>%
   arrange(
     map_id, epoch
-  )
+  ) %>%
+  format_id()
 
 ###
 
@@ -738,22 +745,61 @@ questionnaires_temp03.df <- process_factor_variables(data = questionnaires_temp0
 
 ###
 
-questionnaires_temp04.df <- convert_dates(questionnaires_temp03.df) # will output warning -- see "Notes" section above
+questionnaires_temp04.df <- convert_dates(questionnaires_temp03.df) # will output warnings -- see "Notes" section above
 
 ###
 
-questionnaires_temp04.df[questionnaires_temp04.df$epoch %in% c(0, 1), ] <- questionnaires_temp04.df[questionnaires_temp04.df$epoch %in% c(0, 1), ] %>%
-  group_by(
-    map_id
+discard_medication.var <- grep("name$", grep("med\\d{2}", names(questionnaires_temp04.df), v = T), v = T, invert = T)
+
+questionnaires_temp05.df <- questionnaires_temp04.df %>%
+  select(
+    !all_of(discard_medication.var)
   ) %>%
-  tidyr::fill(
-    setdiff(names(questionnaires_temp04.df), c("vmac_id", "redcap_event_name", "map_id", "epoch")), .direction = "down"
+  tibble()
+
+###
+
+questionnaires_temp06a.df <- questionnaires_temp05.df %>% 
+  filter(!is.na(redcap_repeat_instrument)) %>% 
+  select(
+    map_id, vmac_id, epoch, matches("med\\d+_name$")
+  )
+
+questionnaires_temp06b.df <- questionnaires_temp06a.df %>%
+  group_by(vmac_id, epoch) %>%
+  mutate(
+    temp_suffix = row_number(),
+    .before = "map_id"
   ) %>%
-  ungroup()
+  tidyr::pivot_wider(
+    names_from = temp_suffix,
+    values_from = matches("med\\d+_name$"),
+    names_glue = "med{formatC(as.numeric(gsub('med|name|_', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}_name"
+  )
+
+questionnaires_temp06b.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp07.df <- questionnaires_temp05.df %>% 
+  filter(is.na(redcap_repeat_instrument)) %>% 
+  select(!matches("med\\d+_name$"))
+         
+questionnaires_temp07.df$redcap_repeat_instance <- NULL
+questionnaires_temp07.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp08.df <- left_join(questionnaires_temp07.df, questionnaires_temp06b.df, by = c("vmac_id", "map_id", "epoch")) %>%
+  arrange(
+    map_id, epoch
+  )
+
+# questionnaires_temp08.df %>% group_by(map_id) %>% filter(n() == 1) %>% select(map_id, epoch) %>% ungroup() # these participants only have eligibility data
 ```
 
 ```{r}
-questionnaires.df <- questionnaires_temp04.df
+questionnaires.df <- questionnaires_temp08.df %>% as.data.frame()
 cat(paste0("NOTE: `questionnaires.df` has ", nrow(questionnaires.df), " rows and ", ncol(questionnaires.df), " columns."))
 ```
 
@@ -885,7 +931,7 @@ merged.df <- left_join(
 
 merged.df <- merged.df %>%
   arrange(
-    map_id, epoch, redcap_repeat_instrument, redcap_repeat_instance
+    map_id, epoch, redcap_repeat_instrument#, redcap_repeat_instance
   )
 ```
 
@@ -1058,9 +1104,7 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 ### Neuropsychological variable invalidation
 
 ```{r}
-# merged.df %>% tibble() %>% filter(map_id == "007") %>% select(epoch, np_tower1)
-
-invalid_np.df <- readxl::read_excel("~/Box Sync/VMAC BIOSTAT/DATA/MAP/Documentation/InvalidNeuropsych/VMAP NP Invalids QC 8.29.22_DL.xlsx") %>%
+invalid_np.df <- MAPfreeze.list$static$data$invalid_neuropsych.static %>%
   format_id() %>%
   filter(
     epoch != 0
@@ -1085,8 +1129,6 @@ for (row.i in 1:nrow(invalid_np.df)) {
   invalidation.df <- invalid_np.df[row.i, ]
   merged.df[merged.df$map_id == invalidation.df$map_id & merged.df$epoch == invalidation.df$epoch, invalidation.df$test] <- NA
 }
-
-# merged.df %>% tibble() %>% filter(map_id == "007") %>% select(epoch, np_tower1)
 ```
 
 ```{r}
@@ -1339,8 +1381,6 @@ cmr.findings.rhythm.normal <- c(
   "sinus with frequent pvcs often in a trigeminy pattern"
 )
 
-# merged.df <- call_function("derive_medical_hx", merged.df)
-# merged.df <- derive_medical_hx(merged.df)
 merged.df <- derive_medical_hx(merged.df)
 ```
 
@@ -1847,7 +1887,8 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 **These scores were derived by Dandan Liu on September 12, 2022 in MPlus.**
 
 ```{r mem-ef-composite}
-composite.df <- readRDS("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/np_composite_20220912.rds")
+# composite.df <- readRDS("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/np_composite_20220912.rds")
+composite.df <- MAPfreeze.list$static$data$np.composite.static
 
 label(composite.df$map.id) <- label(merged.df$map.id)
 label(composite.df$epoch) <- label(merged.df$epoch)
@@ -1875,7 +1916,7 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 **Biospecimen availability was last updated on `20210719`.**
 
 ```{r biospecimen}
-biospecimen.df <- process_biospecimen_availability(path = "~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1L:5L)
+biospecimen.df <- process_biospecimen_availability(path = MAPfreeze.list$static$data$biospecimen_availability.static, epoch = 1L:5L)
 
 label(biospecimen.df$map.id) <- label(merged.df$map.id)
 label(biospecimen.df$epoch) <- label(merged.df$epoch)

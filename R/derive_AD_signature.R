@@ -6,7 +6,7 @@
 
 derive_AD_signature <- function(data) {
   # data <- merged.df
-  
+
   schwarz <- Hmisc::Cs(
     rh.entorhinal.thickness,
     rh.inferiortemporal.thickness,
@@ -59,13 +59,13 @@ derive_AD_signature <- function(data) {
     )
 
   mcevoy.all.temp <- NULL
-  
+
   derive_mcevoy.df <- data %>%
     dplyr::filter(epoch == 1) %>%
     dplyr::filter(!is.na(avg.hippocampus)) %>%
     dplyr::filter(diagnosis.factor.base == "Normal") %>%
     dplyr::select(
-      one_of(
+      all_of(
         Cs(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance,
            age, sex.factor, diagnosis.factor.base, intracranialvol, avg.hippocampus, avg.entorhinal.thickness,
            avg.middletemporal.thickness, avg.bankssts.thickness, avg.isthmuscingulate.thickness,
@@ -120,7 +120,7 @@ derive_AD_signature <- function(data) {
   mcevoy.temp <- data.frame(
     map.id = data_w_fit.df$map.id,
     epoch = data_w_fit.df$epoch,
-    redcap.repeat.instrument = data_w_fit.df$redcap.repeat.instrument, 
+    redcap.repeat.instrument = data_w_fit.df$redcap.repeat.instrument,
     redcap.repeat.instance = data_w_fit.df$redcap.repeat.instance,
     stringsAsFactors = FALSE
   )
