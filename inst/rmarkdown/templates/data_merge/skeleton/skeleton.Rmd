@@ -75,7 +75,7 @@ $("#TOC").toggle();
 ```{r setup, echo = TRUE, results = 'hide'}
 # define important directories
 ## base directories
-box.dir  <- file.path("~", "Box Sync")
+box.dir  <- file.path("C:", "Users", "zhanp15", "Box")
 vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
 ## data directories
 data.dir <- file.path(vmac.dir, "DATA", "MAP")
@@ -478,6 +478,21 @@ neuroimaging.list <- map(
 names(neuroimaging.list) <- form_names
 
 # check each tibble in neuroimaging.list to make sure it has data. `hippodeep` is the only neuroimaging form where we exepct to not have data.
+```
+
+### Check duplicated map_id and epoch
+
+```{r}
+check_duplicate_neuroimaging <- function(mydat, myname){
+  temp <- mydat %>% count(map_id, epoch) %>% filter(n > 1)
+  if (nrow(temp) > 0){
+    return(list("scanner (duplicates)" = myname, 
+              "duplicates" = temp)
+    )
+  } else {NULL}
+}
+lapply(seq_along(neuroimaging.list), function(i){check_duplicate_neuroimaging(neuroimaging.list[[i]],
+                                                                          names(neuroimaging.list)[i])})
 ```
 
 ## Merge together all brain MRI data to create a master VMAP EDC data set
