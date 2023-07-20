@@ -75,7 +75,7 @@ $("#TOC").toggle();
 ```{r setup, echo = TRUE, results = 'hide'}
 # define important directories
 ## base directories
-box.dir  <- file.path("C:", "Users", "zhanp15", "Box")
+box.dir  <- file.path("~", "OneDrive - VUMC")
 vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
 ## data directories
 data.dir <- file.path(vmac.dir, "DATA", "MAP")
@@ -92,6 +92,7 @@ last.data.download.date <- yyyymmdd # in {yyyymmdd} format
 last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
 
 map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variablesunusable.xlsx")
+composite.df <- readRDS(file.path(data.raw.dir, "np_composite_20230608.rds"))
 ####                                                    ####
 ##%######################################################%##
 
@@ -126,10 +127,10 @@ options(
 
 # define additional important directories
 ## data directories
-
 data.raw.dir <- file.path(data.dir, "rawData")
 data.merge.dir <- file.path(data.dir, 'mergedData')
 ```
+
 
 ```{r}
 if (download.data == TRUE) {
@@ -181,11 +182,11 @@ dir_create(merge.report.dir)
 
 data.merge.fm.file <- file.path(
   data.merge.dir, 
-  paste0("MAP_fm_d", data.freeze.date, "_m", data.merge.date)
+  paste0("MAP_fm_f", data.freeze.date, "_m", data.merge.date)
 )
 data.merge.bh.file <- file.path(
   data.merge.dir, 
-  paste0("MAP_bh_d", data.freeze.date, "_m", data.merge.date)
+  paste0("MAP_bh_f", data.freeze.date, "_m", data.merge.date)
 )
 
 if (!is.null(last.data.download.date) & is.null(last.data.merge.date)) {
@@ -197,7 +198,7 @@ if (!is.null(last.data.download.date) & is.null(last.data.merge.date)) {
   last.data.merge.suffix <- file.info(
     list.files(
       path = data.merge.dir,
-      pattern = "MAP\\_bh\\_d\\d{8}\\_m\\d{8}.rds",
+      pattern = "MAP\\_bh\\_f\\d{8}\\_m\\d{8}.rds",
       full.names = T
     )
   ) %>%
@@ -205,9 +206,9 @@ if (!is.null(last.data.download.date) & is.null(last.data.merge.date)) {
     arrange(desc(mtime)) %>%
     filter(row_number() == 1) %>%
     pull(1) %>%
-    stringr::str_extract("(?<=(MAP\\_bh\\_))d\\d{8}\\_m\\d{8}")
+    stringr::str_extract("(?<=(MAP\\_bh\\_))f\\d{8}\\_m\\d{8}")
 } else {
-  last.data.merge.suffix <- paste0("d", last.data.download.date, "_m", last.data.merge.date)
+  last.data.merge.suffix <- paste0("f", last.data.download.date, "_m", last.data.merge.date)
 }
 
 # define path to previous merged datasets
@@ -480,7 +481,7 @@ names(neuroimaging.list) <- form_names
 # check each tibble in neuroimaging.list to make sure it has data. `hippodeep` is the only neuroimaging form where we exepct to not have data.
 ```
 
-### Check duplicated map_id and epoch
+### Check for duplicated map_id and epoch in each neuroimaging form
 
 ```{r}
 check_duplicate_neuroimaging <- function(mydat, myname){
@@ -491,8 +492,19 @@ check_duplicate_neuroimaging <- function(mydat, myname){
     )
   } else {NULL}
 }
-lapply(seq_along(neuroimaging.list), function(i){check_duplicate_neuroimaging(neuroimaging.list[[i]],
-                                                                          names(neuroimaging.list)[i])})
+
+neuroimaging_duplicate.list <- lapply(
+  seq_along(neuroimaging.list), 
+  function(i) {
+    check_duplicate_neuroimaging(neuroimaging.list[[i]], names(neuroimaging.list)[i])
+  }
+)
+
+if (all(sapply(neuroimaging_duplicate.list, function(x) is.null(x)))) {
+  cat("No duplicates found.\n\n")
+} else {
+  cat("Check list for duplicates.\n\n")
+}
 ```
 
 ## Merge together all brain MRI data to create a master VMAP EDC data set
@@ -764,7 +776,9 @@ questionnaires_temp04.df <- convert_dates(questionnaires_temp03.df) # will outpu
 
 ###
 
-discard_medication.var <- grep("name$", grep("med\\d{2}", names(questionnaires_temp04.df), v = T), v = T, invert = T)
+discard_medication.var <- grep("name$|units$", grep("med\\d{2}", names(questionnaires_temp04.df), v = T), v = T, invert = T)
+
+#########
 
 questionnaires_temp05.df <- questionnaires_temp04.df %>%
   select(
@@ -774,14 +788,15 @@ questionnaires_temp05.df <- questionnaires_temp04.df %>%
 
 ###
 
-questionnaires_temp06a.df <- questionnaires_temp05.df %>% 
+questionnaires_temp06a_medname.df <- questionnaires_temp05.df %>% 
   filter(!is.na(redcap_repeat_instrument)) %>% 
   select(
     map_id, vmac_id, epoch, matches("med\\d+_name$")
   )
 
-questionnaires_temp06b.df <- questionnaires_temp06a.df %>%
+questionnaires_temp06b_medname.df <- questionnaires_temp06a_medname.df %>%
   group_by(vmac_id, epoch) %>%
+  # arrange(pick(starts_with("med")), .by_group = TRUE) %>%
   mutate(
     temp_suffix = row_number(),
     .before = "map_id"
@@ -790,27 +805,207 @@ questionnaires_temp06b.df <- questionnaires_temp06a.df %>%
     names_from = temp_suffix,
     values_from = matches("med\\d+_name$"),
     names_glue = "med{formatC(as.numeric(gsub('med|name|_', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}_name"
+  ) %>%
+  select(
+    order(colnames(.))
+  ) %>%
+  ungroup()
+
+questionnaires_temp06b_medname.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp06a_medunits.df <- questionnaires_temp05.df %>% 
+  filter(!is.na(redcap_repeat_instrument)) %>% 
+  select(
+    map_id, vmac_id, epoch, matches("med\\d+_units$")
   )
 
-questionnaires_temp06b.df$redcap_repeat_instrument <- NULL
+questionnaires_temp06b_medunits.df <- questionnaires_temp06a_medunits.df %>%
+  group_by(vmac_id, epoch) %>%
+  # arrange(pick(starts_with("med")), .by_group = TRUE) %>%
+  mutate(
+    temp_suffix = row_number(),
+    .before = "map_id"
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = temp_suffix,
+    values_from = matches("med\\d+_units$"),
+    names_glue = "med{formatC(as.numeric(gsub('med|units|_', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}_units"
+  ) %>%
+  select(
+    order(colnames(.))
+  ) %>%
+  ungroup()
+
+questionnaires_temp06b_medunits.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp06a_surgnum.df <- questionnaires_temp05.df %>% 
+  filter(!is.na(redcap_repeat_instrument)) %>% 
+  select(
+    map_id, vmac_id, epoch, matches("surg\\d+$")
+  ) %>%
+  select(
+    -surg16
+  )
+
+questionnaires_temp06b_surgnum.df <- questionnaires_temp06a_surgnum.df %>%
+  group_by(vmac_id, epoch) %>%
+  arrange(pick(starts_with("surg")), .by_group = TRUE) %>%
+  mutate(
+    temp_suffix = row_number(),
+    .before = "map_id"
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = temp_suffix,
+    values_from = matches("surg\\d+$"),
+    names_glue = "surg{formatC(as.numeric(gsub('surg', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}"
+  ) %>%
+  select(
+    order(colnames(.))
+  ) %>%
+  ungroup()
+
+questionnaires_temp06b_surgnum.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp06a_surgname.df <- questionnaires_temp05.df %>% 
+  filter(!is.na(redcap_repeat_instrument)) %>% 
+  select(
+    map_id, vmac_id, epoch, matches("surg\\d+_name$")
+  )
+
+questionnaires_temp06b_surgname.df <- questionnaires_temp06a_surgname.df %>%
+  group_by(vmac_id, epoch) %>%
+  arrange(pick(starts_with("surg")), .by_group = TRUE) %>%
+  mutate(
+    temp_suffix = row_number(),
+    .before = "map_id"
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = temp_suffix,
+    values_from = matches("surg\\d+_name$"),
+    names_glue = "surg{formatC(as.numeric(gsub('surg|name|_', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}_name"
+  ) %>%
+  select(
+    order(colnames(.))
+  ) %>%
+  ungroup()
+
+questionnaires_temp06b_surgname.df$redcap_repeat_instrument <- NULL
+
+###
+
+questionnaires_temp06a_surgyear.df <- questionnaires_temp05.df %>% 
+  filter(!is.na(redcap_repeat_instrument)) %>% 
+  select(
+    map_id, vmac_id, epoch, matches("surg\\d+_year$")
+  )
+
+questionnaires_temp06b_surgyear.df <- questionnaires_temp06a_surgyear.df %>%
+  group_by(vmac_id, epoch) %>%
+  arrange(pick(starts_with("surg")), .by_group = TRUE) %>%
+  mutate(
+    temp_suffix = row_number(),
+    .before = "map_id"
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = temp_suffix,
+    values_from = matches("surg\\d+_year$"),
+    names_glue = "surg{formatC(as.numeric(gsub('surg|year|_', '', .value)) + (15 * (as.numeric(temp_suffix) - 1)), width = 2, flag = '0')}_year"
+  ) %>%
+  select(
+    order(colnames(.))
+  ) %>%
+  ungroup()
+
+questionnaires_temp06b_surgyear.df$redcap_repeat_instrument <- NULL
 
 ###
 
 questionnaires_temp07.df <- questionnaires_temp05.df %>% 
   filter(is.na(redcap_repeat_instrument)) %>% 
-  select(!matches("med\\d+_name$"))
+  select(!matches("med\\d+_name$")) %>%
+  select(!matches("med\\d+_units$")) %>%
+  select(!matches("surg\\d+$")) %>%
+  select(!matches("surg\\d+_name$")) %>%
+  select(!matches("surg\\d+_year$"))
          
 questionnaires_temp07.df$redcap_repeat_instance <- NULL
 questionnaires_temp07.df$redcap_repeat_instrument <- NULL
 
 ###
 
-questionnaires_temp08.df <- left_join(questionnaires_temp07.df, questionnaires_temp06b.df, by = c("vmac_id", "map_id", "epoch")) %>%
+questionnaires_temp07.df <- left_join(questionnaires_temp07.df, questionnaires_temp06b_medname.df, by = c("vmac_id", "map_id", "epoch")) %>%
+  left_join(., questionnaires_temp06b_medunits.df, by = c("vmac_id", "map_id", "epoch")) %>%
+  left_join(., questionnaires_temp06b_surgnum.df, by = c("vmac_id", "map_id", "epoch")) %>%
+  left_join(., questionnaires_temp06b_surgname.df, by = c("vmac_id", "map_id", "epoch")) %>%
+  left_join(., questionnaires_temp06b_surgyear.df, by = c("vmac_id", "map_id", "epoch")) %>%
   arrange(
     map_id, epoch
   )
 
-# questionnaires_temp08.df %>% group_by(map_id) %>% filter(n() == 1) %>% select(map_id, epoch) %>% ungroup() # these participants only have eligibility data
+# questionnaires_temp07.df %>% group_by(map_id) %>% filter(n() == 1) %>% select(map_id, epoch) %>% ungroup() # these participants only have eligibility data
+# questionnaires_temp07.df %>% count(map_id, epoch) %>% filter(n > 1) # check to see that there is only one row per participant per epoch
+```
+
+Variables in the following REDCap forms are copied from eligibility to enrollment for the VMAP 2.0 cohort only (MAP ID > 336): `r print_tt(extra_forms_to_pull_down_from_eligibility.var)`. For VMAP 1.0, the data was already collected at enrollment.
+
+```{r}
+extra_forms_to_pull_down_from_eligibility.var <- c("gds", "qids")
+
+extra_vars_to_pull_down_from_eligibility.var <- MAPfreeze.list$questionnaires$metadata %>%
+  filter(
+    form_name %in% extra_forms_to_pull_down_from_eligibility.var
+  ) %>%
+  pull(
+    field_name
+  )
+
+extra_vars_to_pull_down_from_eligibility.var <- c(extra_vars_to_pull_down_from_eligibility.var, paste0(extra_vars_to_pull_down_from_eligibility.var, "_factor"))
+
+extra_vars_to_pull_down_from_eligibility.var <- extra_vars_to_pull_down_from_eligibility.var[extra_vars_to_pull_down_from_eligibility.var %in% names(questionnaires_temp07.df)]
+
+questionnaires_temp07.df[questionnaires_temp07.df$epoch %in% c(0, 1) & questionnaires_temp07.df$map_id >= 337, c("map_id", "epoch", extra_vars_to_pull_down_from_eligibility.var)] <- questionnaires_temp07.df[questionnaires_temp07.df$epoch %in% c(0, 1) & questionnaires_temp07.df$map_id >= 337, c("map_id", "epoch", extra_vars_to_pull_down_from_eligibility.var)] %>%
+  group_by(
+    map_id
+  ) %>%
+  tidyr::fill(
+    all_of(extra_vars_to_pull_down_from_eligibility.var), .direction = "down"
+  ) %>%
+  ungroup()
+```
+
+```{r}
+questionnaires_temp08.df <- questionnaires_temp07.df
+
+forms_to_exclude.var <- c("consent_participant", "medications_review_form", "consent_study_partner", "surgical_review", "medications", "health_history", "surgical_history")
+
+exclude_vars_from_forms.var <- MAPfreeze.list$questionnaires$metadata %>%
+  filter(
+    form_name %in% forms_to_exclude.var
+  ) %>%
+  pull(
+    field_name
+  )
+
+exclude_vars_from_forms.var <- c(exclude_vars_from_forms.var, paste0(exclude_vars_from_forms.var, "_factor"))
+
+exclude_vars_from_forms.var <- exclude_vars_from_forms.var[exclude_vars_from_forms.var %in% names(questionnaires_temp08.df)]
+
+vars_not_to_pull_down.var <- unique(c("vmac_id", "redcap_event_name", "map_id", "epoch", exclude_vars_from_forms.var, extra_vars_to_pull_down_from_eligibility.var))
+
+questionnaires_temp08.df[questionnaires_temp08.df$epoch %in% c(0, 1), ] <- questionnaires_temp08.df[questionnaires_temp08.df$epoch %in% c(0, 1), ] %>%
+  group_by(
+    map_id
+  ) %>%
+  tidyr::fill(
+    setdiff(names(questionnaires_temp08.df), vars_not_to_pull_down.var), .direction = "down"
+  ) %>%
+  ungroup()
 ```
 
 ```{r}
@@ -953,7 +1148,7 @@ merged.df <- merged.df %>%
 ```{r}
 merged.orig <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup <- merged.orig
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` begins with ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -976,7 +1171,7 @@ merged.df %<>% left_join(
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1016,11 +1211,11 @@ merged.df %<>% left_join(
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
-### Add polygenetic risk score data
+### Add polygenic risk score data
 
 ```{r}
 polygenetic.df <- MAPfreeze.list$static$data$polygenetic.static
@@ -1036,7 +1231,7 @@ merged.df %<>% left_join(
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1070,7 +1265,7 @@ merged.df[merged.df$map_id == "163", intersect(names(merged.df), map_163_invalid
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1112,7 +1307,7 @@ merged.df <- invalidate_color_blind(merged.df)
 ```{r}
 merged.df.pre_np_invalid <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1149,7 +1344,7 @@ for (row.i in 1:nrow(invalid_np.df)) {
 ```{r}
 merged.df.post_np_invalid <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1162,7 +1357,7 @@ is.na(merged.df) <- sapply(merged.df, is.infinite)
 ```{r}
 merged.df.pre_format_names <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1280,7 +1475,7 @@ for (var.i in units.df$field_name) {
 ```{r}
 merged.df.pre_deriv <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup <- merged.df.pre_deriv
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1297,7 +1492,7 @@ merged.df <- derive_dates(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1312,7 +1507,7 @@ merged.df <- derive_demographics(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1327,7 +1522,7 @@ merged.df <- call_function("derive_apoe", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1354,7 +1549,7 @@ merged.df <- call_function("derive_medication_surgery", merged.df,
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1369,7 +1564,7 @@ merged.df <- call_function("derive_blood", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1402,7 +1597,7 @@ merged.df <- derive_medical_hx(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1417,7 +1612,7 @@ merged.df <- call_function("derive_cardiac_mri", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1432,7 +1627,7 @@ merged.df <- call_function("derive_thigh", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1447,7 +1642,7 @@ merged.df <- call_function("derive_cardiac_structure", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1462,7 +1657,7 @@ merged.df <- call_function("derive_abp_qc", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1477,7 +1672,7 @@ merged.df <- call_function("derive_fsrp", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1492,7 +1687,7 @@ merged.df <- call_function("derive_cognitive_complaint", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1507,7 +1702,7 @@ merged.df <- call_function("derive_neuropsych", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1530,7 +1725,7 @@ merged.df <- call_function("derive_mlta_champs", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1545,7 +1740,7 @@ merged.df <- call_function("derive_depression", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1561,7 +1756,7 @@ merged.df <- derive_biomarkers(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1576,7 +1771,7 @@ merged.df <- call_function("derive_informant_info", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1591,7 +1786,7 @@ merged.df <- call_function("derive_diagnosis_staging", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1607,7 +1802,7 @@ merged.df <- derive_psqi(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1622,7 +1817,7 @@ merged.df <- call_function("derive_frailty", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1637,7 +1832,7 @@ merged.df <- call_function("derive_food_scan", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1673,7 +1868,7 @@ merged.df <- derive_pvlt(merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1689,7 +1884,7 @@ class(merged.df) <- "data.frame"
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1703,7 +1898,7 @@ class(merged.df) <- "data.frame"
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1716,7 +1911,7 @@ merged.df <- call_function("derive_cvdafib_ever", merged.df)
 ```{r}
 merged.df.post_derivation_pre_invalidation <- merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1733,7 +1928,7 @@ merged.df <- call_function("invalidate_derived_neuropsych_items", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1796,7 +1991,7 @@ print(tibble(`New Variables` = setdiff(names(to_repeat.df), "map.id")))
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1815,7 +2010,7 @@ merged.df <- merged.df %>%
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1839,7 +2034,7 @@ for (var.i in contains_no.var) {
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1862,7 +2057,7 @@ merged.df <- call_function("derive_automated_3T", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1877,7 +2072,7 @@ merged.df <- call_function("derive_manual_3T", merged.df)
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1893,17 +2088,16 @@ class(merged.df) <- "data.frame"
 ```{r}
 merged.df.bkup.final <- merged.df
 merged.df <- merged.df.bkup.final
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
 # Adding Memory and Executive Function Composite Scores
 
-**These scores were derived by Dandan Liu on September 12, 2022 in MPlus.**
+**These scores were derived by Dandan Liu on June 08, 2023 in MPlus.**
 
 ```{r mem-ef-composite}
-# composite.df <- readRDS("~/Box Sync/VMAC BIOSTAT/DATA/MAP/rawData/np_composite_20220912.rds")
-composite.df <- MAPfreeze.list$static$data$np.composite.static
+# composite.df <- MAPfreeze.list$static$data$np.composite.static
 
 label(composite.df$map.id) <- label(merged.df$map.id)
 label(composite.df$epoch) <- label(merged.df$epoch)
@@ -1922,7 +2116,7 @@ label(merged.df$diagnosis.factor.base) <- paste0(label(merged.df$diagnosis.facto
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1931,7 +2125,7 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 **Biospecimen availability was last updated on `20210719`.**
 
 ```{r biospecimen}
-biospecimen.df <- process_biospecimen_availability(path = MAPfreeze.list$static$data$biospecimen_availability.static, epoch = 1L:5L)
+biospecimen.df <- process_biospecimen_availability(path = file.path(data.raw.dir, "old", "VMAP_biospecimens_collected_20210719.xlsx"), epoch = 1L:5L)
 
 label(biospecimen.df$map.id) <- label(merged.df$map.id)
 label(biospecimen.df$epoch) <- label(merged.df$epoch)
@@ -1942,7 +2136,7 @@ merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))
 ```{r}
 merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
-# dim(merged.df)
+
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
 
@@ -1953,8 +2147,8 @@ We will save the final data set to the `VMAC BIOSTAT/DATA/MAP/mergedData` direct
 ```{r save-data}
 output_file_name <- paste0("f", data.freeze.date, "_m", format(Sys.time(), '%Y%m%d'))
 
-saveRDS(merged.df, file = paste0("~/Box Sync/VMAC BIOSTAT/DATA/MAP/mergedData/MAP_fm_", output_file_name, ".rds"))
-write.csv(merged.df, file = paste0("~/Box Sync/VMAC BIOSTAT/DATA/MAP/mergedData/MAP_fm_", output_file_name, ".csv"), row.names = FALSE)
+saveRDS(merged.df, file = paste0(data.merge.dir, "/MAP_fm_", output_file_name, ".rds"))
+write.csv(merged.df, file = paste0(data.merge.dir, "/MAP_fm_", output_file_name, ".csv"), row.names = FALSE)
 ```
 
 # Current vs Previous Data Comparison

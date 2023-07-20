@@ -14,6 +14,7 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
                                       AH_ccb.file,
                                       AH_ksd.file,
                                       AH_other.file) {
+
   diabetes.redcap.num <- diabetes.file[, 1]
   cholesterol.redcap.num <- cholesterol.file[, 1]
   afib.redcap.num <- afib.file[, 1]
@@ -30,6 +31,9 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
 
   # dset consisting of all the medication columns
   medFrame <- data[, grepl("med[0-9][0-9]\\.name$", names(data))]
+
+  # new code 20230612
+  takingMeds <- apply(medFrame, 1, function(x) as.numeric(any(!is.na(x))))
 
   diabetesrxPrep <- as.numeric(
     apply(medFrame, 1, function(x) any(x %in% diabetes.redcap.num))
@@ -109,6 +113,7 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
   )
 
   data <- within(data, {
+    meds <- takingMeds
     diabetesrx <- ifelse(is.na(meds), NA, diabetesrxPrep)
     label(diabetesrx) <- 'Taking at least 1 diabetes med'
 
