@@ -1,11 +1,11 @@
-data_freeze <- function(box.dir = file.path("~", "Box Sync"),
+data_freeze <- function(onedrive.dir = file.path("~", "OneDrive - VUMC"),
                         output.dir = NULL,
                         redcap.api.uri = "https://redcap.vanderbilt.edu/api/",
                         save = TRUE,
                         return = TRUE) {
 
   # define important directories
-  vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
+  vmac.dir <- file.path(onedrive.dir, "VMAC BIOSTAT")
   data.dir <- file.path(vmac.dir, "DATA", "MAP")
   med.dir <- file.path(data.dir, "Medication")
   surg.dir <- file.path(data.dir, "Surgeries")
