@@ -32,16 +32,22 @@ derive_demographics <- function(data) {
     
     age.redcap <- age
     
-    if ((!is.na(vf.arrival.date.time)) &
-        (!(is.numeric(map.id) <= 336 & epoch == 1))) {
-      age <-
-        floor(as.numeric(difftime(vf.arrival.date.time, dob, units = "days")) / days_in_one_year)
-    } else {
-      age <-
-        floor(as.numeric(difftime(medhx.date, dob, units = "days")) / days_in_one_year)
-    }
+    age <-
+      ifelse((!is.na(vf.arrival.date.time)) &
+               (!((
+                 is.numeric(map.id) <= 336
+               ) &
+                 (epoch == 1))),
+             floor(as.numeric(
+               difftime(vf.arrival.date.time, dob, units = "days")
+             ) / days_in_one_year),
+             floor(as.numeric(
+               difftime(medhx.date, dob, units = "days")
+             ) / days_in_one_year)
+      )
     
-    label(age) <- "Age at medhx.date, recalculated"
+    label(age) <-
+      "Age at medhx.date/vf.arrival.date.time, recalculated"
   })
   
   return(data)
