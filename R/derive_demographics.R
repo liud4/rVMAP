@@ -32,7 +32,7 @@ derive_demographics <- function(data) {
     
     age.redcap <- age
     
-    if ((!is.na(vf_arrival_date_time)) &
+    if ((!is.na(vf.arrival.date.time)) &
         (!(is.numeric(map.id) <= 336 & epoch == 1))) {
       age <-
         floor(as.numeric(difftime(vf.arrival.date.time, dob, units = "days")) / days_in_one_year)
