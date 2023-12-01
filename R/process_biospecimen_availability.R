@@ -1,33 +1,34 @@
-process_biospecimen_availability <- function(path = "~/box/VMAC BIOSTAT/DATA/MAP/rawData/VMAP_biospecimens_collected_20210719.xlsx", epoch = 1:5) {
-  biospecimen.list <- NULL
+#' Derive, label, and add demographic variables to the merged data set.
+#'
+#' @param data A data frame containing VMAC variables.
+#' @return \code{data} with added demographic variables.
+#' @export
 
-  for (epoch.i in epoch) {
-    biospecimen.list[[epoch.i]] <- readxl::read_xlsx(path, sheet = epoch.i)
-    biospecimen.list[[epoch.i]]$epoch <- epoch.i
-  }
 
-  biospecimen.df <- dplyr::bind_rows(biospecimen.list) %>%
-    format_id()
-
-  biospecimen.df$plasma <- ifelse(biospecimen.df$plasma == "y", "Yes", "No")
-  biospecimen.df$serum <- ifelse(biospecimen.df$serum == "y", "Yes", "No")
-  biospecimen.df$DNA <- ifelse(biospecimen.df$DNA == "y", "Yes", "No")
-  biospecimen.df$PAXGene <- ifelse(biospecimen.df$PAXGene == "y", "Yes", "No")
-  biospecimen.df$csf <- ifelse(biospecimen.df$csf == "y", "Yes", "No")
-
-  names(biospecimen.df) <- c("map.id", "plasma.availability", "serum.availability",
-                             "dna.availability", "paxgene.availability", "csf.availability",
-                             "epoch")
-
-  biospecimen.df <- biospecimen.df %>%
-    mutate(
-      plasma.availability = factor(plasma.availability, levels = c("No", "Yes")),
-      serum.availability = factor(serum.availability, levels = c("No", "Yes")),
-      dna.availability = factor(dna.availability, levels = c("No", "Yes")),
-      paxgene.availability = factor(paxgene.availability, levels = c("No", "Yes")),
-      csf.availability = factor(csf.availability, levels = c("No", "Yes")),
-    ) %>%
-    as.data.frame()
-
-  return(biospecimen.df)
+process_biospecimen_availability <- function(data) {
+  data <- within(data, {
+    plasma.availability <-
+      serum.availability <-
+      dna.availability <-
+      paxgene.availability <- ifelse(is.na(blood.complete),
+                                     NA,
+                                     ifelse(blood.complete == 1, "Yes", "No"))
+    
+    label(plasma.availability) <- "Plasma Availability"
+    
+    label(serum.availability) <- "Serum Availability"
+    
+    label(dna.availability) <- "DNA Availability"
+    
+    label(paxgene.availability) <- "PAXGene Availability"
+    
+    csf.availability <- ifelse(is.na(csf.fluid),
+                               NA,
+                               ifelse(csf.fluid == 1, "Yes", "No"))
+    
+    label(csf.availability) <- "CSF availability"
+    
+  })
+  
+  return(data)
 }
