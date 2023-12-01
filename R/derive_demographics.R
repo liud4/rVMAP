@@ -14,7 +14,8 @@ derive_demographics <- function(data) {
                                    1,
                                    ifelse(
                                      (race %in% c(0, 2, 3, 4) &
-                                        ethnicity %in% c(0, 1)) | (race == 1 & ethnicity == 1),
+                                        ethnicity %in% c(0, 1)) |
+                                       (race == 1 & ethnicity == 1),
                                      2,
                                      NA
                                    )))
@@ -34,14 +35,14 @@ derive_demographics <- function(data) {
     if ((!is.na(vf_arrival_date_time)) &
         (!(is.numeric(map.id) <= 336 & epoch == 1))) {
       age <-
-        floor(
-          as.numeric(difftime(vf_arrival_date_time, dob, units = "days")) / days_in_one_year
+        floor(as.numeric(difftime(vf_arrival_date_time, dob, units = "days")) / days_in_one_year)
     } else {
-      age <- floor(as.numeric(difftime(medhx.date, dob, units = "days")) / days_in_one_year)
+      age <-
+        floor(as.numeric(difftime(medhx.date, dob, units = "days")) / days_in_one_year)
     }
     
     label(age) <- "Age at medhx.date, recalculated"
   })
-      
-      return(data)
+  
+  return(data)
 }
