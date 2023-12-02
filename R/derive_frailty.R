@@ -8,7 +8,7 @@ derive_frailty <- function(data) {
   data <- within(data, {
     frail.grip.average <- (frail.grip01 + frail.grip02 + frail.grip03) / 3
     gripstrength.index <- frail.gripbest / bmi
-    gait.speed <- 4.572 / frail.gait
+    gait.speed <- 4.572 / as.numeric(frail.gait)
     gait.speed.index <- (gait.speed) / (height / 100)
     frail.exhaustion.cont <- frailt.effort + frail.going
     frail.exhaustion <- ifelse(frailt.effort == -9999 | frail.going == -9999, NA,
