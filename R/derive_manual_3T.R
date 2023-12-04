@@ -8,25 +8,25 @@ derive_manual_3T <- function(data) {
 
   data <- within(data, {
 
-    pvs.edited.pat.basal.ganglia.factor <- ifelse(is.na(pvs.edited.pat.basal.ganglia), NA, ifelse(pvs.edited.pat.basal.ganglia <= 2, 0, 1))
-    pvs.edited.pat.basal.ganglia.factor <- factor(pvs.edited.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.edited.pat.basal.ganglia.factor) <- paste0(label(pvs.edited.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
+    pvs.pat.basal.ganglia.factor <- ifelse(is.na(pvs.pat.basal.ganglia), NA, ifelse(pvs.pat.basal.ganglia <= 2, 0, 1))
+    pvs.pat.basal.ganglia.factor <- factor(pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.pat.basal.ganglia.factor) <- paste0(label(pvs.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
 
-    pvs.edited.pat.centrum.factor <- ifelse(is.na(pvs.edited.pat.centrum), NA, ifelse(pvs.edited.pat.centrum <= 1, 0, 1))
-    pvs.edited.pat.centrum.factor <- factor(pvs.edited.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.edited.pat.centrum.factor) <- paste0(label(pvs.edited.pat.centrum), ", dichotomized [0-1]vs.[2+]")
+    pvs.pat.centrum.factor <- ifelse(is.na(pvs.pat.centrum), NA, ifelse(pvs.pat.centrum <= 1, 0, 1))
+    pvs.pat.centrum.factor <- factor(pvs.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.pat.centrum.factor) <- paste0(label(pvs.pat.centrum), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.edited.han.basal.ganglia.factor <- ifelse(is.na(pvs.edited.han.basal.ganglia), NA, ifelse(pvs.edited.han.basal.ganglia <= 1, 0, 1))
-    pvs.edited.han.basal.ganglia.factor <- factor(pvs.edited.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.edited.han.basal.ganglia.factor) <- paste0(label(pvs.edited.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
+    pvs.han.basal.ganglia.factor <- ifelse(is.na(pvs.han.basal.ganglia), NA, ifelse(pvs.han.basal.ganglia <= 1, 0, 1))
+    pvs.han.basal.ganglia.factor <- factor(pvs.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.han.basal.ganglia.factor) <- paste0(label(pvs.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.edited.han.centrum.factor <- ifelse(is.na(pvs.edited.han.centrum <= 1), NA, ifelse(pvs.edited.han.centrum <= 1, 0, 1))
-    pvs.edited.han.centrum.factor <- factor(pvs.edited.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.edited.han.centrum.factor) <- paste0(label(pvs.edited.han.centrum), ", dichotomized [0-1]vs.[2+]")
+    pvs.han.centrum.factor <- ifelse(is.na(pvs.han.centrum <= 1), NA, ifelse(pvs.han.centrum <= 1, 0, 1))
+    pvs.han.centrum.factor <- factor(pvs.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.han.centrum.factor) <- paste0(label(pvs.han.centrum), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.edited.han.total.factor <- ifelse(is.na(pvs.edited.han.total), NA, ifelse(pvs.edited.han.total <= 3, 0, 1))
-    pvs.edited.han.total.factor <- factor(pvs.edited.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.edited.han.total.factor) <- paste0(label(pvs.edited.han.total), ", dichotomized [0-3]vs.[4+]")
+    pvs.han.total.factor <- ifelse(is.na(pvs.han.total), NA, ifelse(pvs.han.total <= 3, 0, 1))
+    pvs.han.total.factor <- factor(pvs.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.han.total.factor) <- paste0(label(pvs.han.total), ", dichotomized [0-3]vs.[4+]")
 
     swi.microbleeds.number.orig <- swi.microbleeds.number
     swi.microbleeds.number <- as.character(swi.microbleeds.number)
