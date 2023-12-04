@@ -8,25 +8,25 @@ derive_manual_3T <- function(data) {
 
   data <- within(data, {
 
-    pvs.pat.basal.ganglia.factor <- ifelse(is.na(pvs.pat.basal.ganglia), NA, ifelse(pvs.pat.basal.ganglia <= 2, 0, 1))
-    pvs.pat.basal.ganglia.factor <- factor(pvs.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.pat.basal.ganglia.factor) <- paste0(label(pvs.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
+    pvs.edit.pat.basal.ganglia.factor <- ifelse(is.na(pvs.edit.pat.basal.ganglia), NA, ifelse(pvs.edit.pat.basal.ganglia <= 2, 0, 1))
+    pvs.edit.pat.basal.ganglia.factor <- factor(pvs.edit.pat.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.edit.pat.basal.ganglia.factor) <- paste0(label(pvs.edit.pat.basal.ganglia), ", dichotomized [0-2]vs.[3-5]")
 
-    pvs.pat.centrum.factor <- ifelse(is.na(pvs.pat.centrum), NA, ifelse(pvs.pat.centrum <= 1, 0, 1))
-    pvs.pat.centrum.factor <- factor(pvs.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.pat.centrum.factor) <- paste0(label(pvs.pat.centrum), ", dichotomized [0-1]vs.[2+]")
+    pvs.edit.pat.centrum.factor <- ifelse(is.na(pvs.edit.pat.centrum), NA, ifelse(pvs.edit.pat.centrum <= 1, 0, 1))
+    pvs.edit.pat.centrum.factor <- factor(pvs.edit.pat.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.edit.pat.centrum.factor) <- paste0(label(pvs.edit.pat.centrum), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.han.basal.ganglia.factor <- ifelse(is.na(pvs.han.basal.ganglia), NA, ifelse(pvs.han.basal.ganglia <= 1, 0, 1))
-    pvs.han.basal.ganglia.factor <- factor(pvs.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.han.basal.ganglia.factor) <- paste0(label(pvs.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
+    pvs.edit.han.basal.ganglia.factor <- ifelse(is.na(pvs.edit.han.basal.ganglia), NA, ifelse(pvs.edit.han.basal.ganglia <= 1, 0, 1))
+    pvs.edit.han.basal.ganglia.factor <- factor(pvs.edit.han.basal.ganglia.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.edit.han.basal.ganglia.factor) <- paste0(label(pvs.edit.han.basal.ganglia), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.han.centrum.factor <- ifelse(is.na(pvs.han.centrum <= 1), NA, ifelse(pvs.han.centrum <= 1, 0, 1))
-    pvs.han.centrum.factor <- factor(pvs.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.han.centrum.factor) <- paste0(label(pvs.han.centrum), ", dichotomized [0-1]vs.[2+]")
+    pvs.edit.han.centrum.factor <- ifelse(is.na(pvs.edit.han.centrum <= 1), NA, ifelse(pvs.edit.han.centrum <= 1, 0, 1))
+    pvs.edit.han.centrum.factor <- factor(pvs.edit.han.centrum.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.edit.han.centrum.factor) <- paste0(label(pvs.edit.han.centrum), ", dichotomized [0-1]vs.[2+]")
 
-    pvs.han.total.factor <- ifelse(is.na(pvs.han.total), NA, ifelse(pvs.han.total <= 3, 0, 1))
-    pvs.han.total.factor <- factor(pvs.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
-    label(pvs.han.total.factor) <- paste0(label(pvs.han.total), ", dichotomized [0-3]vs.[4+]")
+    pvs.edit.han.total.factor <- ifelse(is.na(pvs.edit.han.total), NA, ifelse(pvs.edit.han.total <= 3, 0, 1))
+    pvs.edit.han.total.factor <- factor(pvs.edit.han.total.factor, levels = c(0, 1), labels = c("Low", "High"))
+    label(pvs.edit.han.total.factor) <- paste0(label(pvs.edit.han.total), ", dichotomized [0-3]vs.[4+]")
 
     swi.microbleeds.number.orig <- swi.microbleeds.number
     swi.microbleeds.number <- as.character(swi.microbleeds.number)
@@ -108,31 +108,31 @@ derive_manual_3T <- function(data) {
     label(vb.wall.ratio)        <- 'VB wall ratio'
 
     # New PVS variable derivation
-    pvs.count.basal.ganglia.plus.1.log <- log1p(pvs.count.basal.ganglia)
-    pvs.volume.basal.ganglia.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.standardized)
-    pvs.count.caudate.plus.1.log <- log1p(pvs.count.caudate)
-    pvs.volume.caudate.standardized.plus.1.log <- log1p(pvs.volume.caudate.standardized)
-    pvs.count.putamen.plus.1.log <- log1p(pvs.count.putamen)
-    pvs.volume.putamen.standardized.plus.1.log <- log1p(pvs.volume.putamen.standardized)
-    pvs.count.pallidum.plus.1.log <- log1p(pvs.count.pallidum)
-    pvs.volume.pallidum.standardized.plus.1.log <- log1p(pvs.volume.pallidum.standardized)
-    pvs.count.basal.ganglia.upper.plus.1.log <- log1p(pvs.count.basal.ganglia.upper)
-    pvs.volume.basal.ganglia.upper.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.upper.standardized)
-    pvs.count.basal.ganglia.lower.plus.1.log <- log1p(pvs.count.basal.ganglia.lower)
-    pvs.volume.basal.ganglia.lower.standardized.plus.1.log <- log1p(pvs.volume.basal.ganglia.lower.standardized)
+    pvs.edit.count.basal.ganglia.plus.1.log <- log1p(pvs.edit.count.basal.ganglia)
+    pvs.edit.volume.basal.ganglia.standardized.plus.1.log <- log1p(pvs.edit.volume.basal.ganglia.standardized)
+    pvs.edit.count.caudate.plus.1.log <- log1p(pvs.edit.count.caudate)
+    pvs.edit.volume.caudate.standardized.plus.1.log <- log1p(pvs.edit.volume.caudate.standardized)
+    pvs.edit.count.putamen.plus.1.log <- log1p(pvs.edit.count.putamen)
+    pvs.edit.volume.putamen.standardized.plus.1.log <- log1p(pvs.edit.volume.putamen.standardized)
+    pvs.edit.count.pallidum.plus.1.log <- log1p(pvs.edit.count.pallidum)
+    pvs.edit.volume.pallidum.standardized.plus.1.log <- log1p(pvs.edit.volume.pallidum.standardized)
+    pvs.edit.count.basal.ganglia.upper.plus.1.log <- log1p(pvs.edit.count.basal.ganglia.upper)
+    pvs.edit.volume.basal.ganglia.upper.standardized.plus.1.log <- log1p(pvs.edit.volume.basal.ganglia.upper.standardized)
+    pvs.edit.count.basal.ganglia.lower.plus.1.log <- log1p(pvs.edit.count.basal.ganglia.lower)
+    pvs.edit.volume.basal.ganglia.lower.standardized.plus.1.log <- log1p(pvs.edit.volume.basal.ganglia.lower.standardized)
 
-    label(pvs.count.basal.ganglia.plus.1.log) <- "Log of pvs.count.basal.ganglia + 1"
-    label(pvs.volume.basal.ganglia.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.standardized + 1"
-    label(pvs.count.caudate.plus.1.log) <- "Log of pvs.count.caudate + 1"
-    label(pvs.volume.caudate.standardized.plus.1.log) <- "Log of pvs.volume.caudate.standardized + 1"
-    label(pvs.count.putamen.plus.1.log) <- "Log of pvs.count.putamen + 1"
-    label(pvs.volume.putamen.standardized.plus.1.log) <- "Log of pvs.volume.putamen.standardized + 1"
-    label(pvs.count.pallidum.plus.1.log) <- "Log of pvs.count.pallidum + 1"
-    label(pvs.volume.pallidum.standardized.plus.1.log) <- "Log of pvs.volume.pallidum.standardized + 1"
-    label(pvs.count.basal.ganglia.upper.plus.1.log) <- "Log of pvs.count.basal.ganglia.upper + 1"
-    label(pvs.volume.basal.ganglia.upper.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.upper.standardized + 1"
-    label(pvs.count.basal.ganglia.lower.plus.1.log) <- "Log of pvs.count.basal.ganglia.lower + 1"
-    label(pvs.volume.basal.ganglia.lower.standardized.plus.1.log) <- "Log of pvs.volume.basal.ganglia.lower.standardized + 1"
+    label(pvs.edit.count.basal.ganglia.plus.1.log) <- "Log of pvs.edit.count.basal.ganglia + 1"
+    label(pvs.edit.volume.basal.ganglia.standardized.plus.1.log) <- "Log of pvs.edit.volume.basal.ganglia.standardized + 1"
+    label(pvs.edit.count.caudate.plus.1.log) <- "Log of pvs.edit.count.caudate + 1"
+    label(pvs.edit.volume.caudate.standardized.plus.1.log) <- "Log of pvs.edit.volume.caudate.standardized + 1"
+    label(pvs.edit.count.putamen.plus.1.log) <- "Log of pvs.edit.count.putamen + 1"
+    label(pvs.edit.volume.putamen.standardized.plus.1.log) <- "Log of pvs.edit.volume.putamen.standardized + 1"
+    label(pvs.edit.count.pallidum.plus.1.log) <- "Log of pvs.edit.count.pallidum + 1"
+    label(pvs.edit.volume.pallidum.standardized.plus.1.log) <- "Log of pvs.edit.volume.pallidum.standardized + 1"
+    label(pvs.edit.count.basal.ganglia.upper.plus.1.log) <- "Log of pvs.edit.count.basal.ganglia.upper + 1"
+    label(pvs.edit.volume.basal.ganglia.upper.standardized.plus.1.log) <- "Log of pvs.edit.volume.basal.ganglia.upper.standardized + 1"
+    label(pvs.edit.count.basal.ganglia.lower.plus.1.log) <- "Log of pvs.edit.count.basal.ganglia.lower + 1"
+    label(pvs.edit.volume.basal.ganglia.lower.standardized.plus.1.log) <- "Log of pvs.edit.volume.basal.ganglia.lower.standardized + 1"
   })
 
   return(data)
