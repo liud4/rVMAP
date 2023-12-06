@@ -41,7 +41,7 @@ derive_automated_3T <- function(data) {
 
   data$icv <- rowSums(data[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
   label(data$icv) <- "ICV (calculated)"
-
+  
   data <- within(data, {
     wml.volume.plus.1.log <- log(wml.volume + 1)
     label(wml.volume.plus.1.log) <- "Log of wml.volume + 1"
@@ -58,10 +58,10 @@ derive_automated_3T <- function(data) {
     wml.volume.parietal.lobe.plus.1.log <- log(wml.volume.parietal.lobe + 1)
     label(wml.volume.parietal.lobe.plus.1.log) <- "Log of wml.volume.parietal.lobe + 1"
 
-    asl.3t.rest.etco2 <- coalesce(rowMeans(asl.3t.bl.var, na.rm = TRUE), as.numeric(asl.rest.mean.etco2))
+    asl.3t.rest.etco2 <- coalesce(rowMeans(data[, asl.3t.bl.var], na.rm = TRUE), as.numeric(asl.rest.mean.etco2))
     label(asl.3t.rest.etco2) <- "Resting EtCO2"
 
-    asl.3t.chall.etco2 <- coalesce(rowMeans(asl.3t.hyper.var, na.rm = TRUE), as.numeric(asl.chall.mean.etco2))
+    asl.3t.chall.etco2 <- coalesce(rowMeans(data[, asl.3t.hyper.var], na.rm = TRUE), as.numeric(asl.chall.mean.etco2))
     label(asl.3t.chall.etco2) <- "Challenge EtCO2"
     
     asl.3t.change.etco2 <- asl.3t.chall.etco2 - asl.3t.rest.etco2
@@ -367,7 +367,7 @@ derive_automated_3T <- function(data) {
 
   # CMRO2 and OEF  (OAK 20191203)
 
-  data$oef.ya <- coalesce(rowMeans(data[, asl.3t.trust.var], na.rm = TRUE), as.numeric(trust.mean.spo2))
+  data$oef.ya <- coalesce(rowMeans(data[, asl.3t.trust.var], na.rm = TRUE), as.numeric(data$trust.mean.spo2))
   data$oef.ya[is.nan(data$oef.ya)] <- NA
   label(data$oef.ya) <- "Arterial Oxygenation (%)"
 
