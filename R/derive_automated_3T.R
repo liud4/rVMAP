@@ -370,7 +370,7 @@ derive_automated_3T <- function(data) {
 
   # CMRO2 and OEF  (OAK 20191203)
 
-  data$oef.ya <- coalesce(rowMeans(data[, asl.3t.trust.var], na.rm = TRUE), trust.mean.spo2)
+  data$oef.ya <- coalesce(rowMeans(data[, asl.3t.trust.var], na.rm = TRUE), as.numeric(trust.mean.spo2))
   data$oef.ya[is.nan(data$oef.ya)] <- NA
   label(data$oef.ya) <- "Arterial Oxygenation (%)"
 
