@@ -5,6 +5,37 @@
 #' @export
 
 derive_automated_3T <- function(data) {
+  
+  asl.3t.bl.var <-
+    c(
+      "asl.3t.bl.etco2a",
+      "asl.3t.bl.etco2b",
+      "asl.3t.bl.etco2.1",
+      "asl.3t.bl.etco2c",
+      "asl.3t.bl.etco2d",
+      "asl.3t.bl.etco2.2",
+      "asl.3t.bl.etco2e",
+      "asl.3t.bl.etco2.3",
+      "asl.3t.bl.etco2f",
+      "asl.3t.bl.etco2g"
+    )
+  
+  asl.3t.hyper.var <-
+    c(
+      "asl.3t.hyper.etco2a",
+      "asl.3t.hyper.etco2b",
+      "asl.3t.hyper.etco2.1",
+      "asl.3t.hyper.etco2c",
+      "asl.3t.hyper.etco2d",
+      "asl.3t.hyper.etco2.2",
+      "asl.3t.hyper.etco2e",
+      "asl.3t.hyper.etco2.3",
+      "asl.3t.hyper.etco2f",
+      "asl.3t.hyper.etco2g"
+    )
+  
+  physLog_bl <- c("asl.rest.mean.etco2")
+  physLog_hyper <- c("asl.chall.mean.etco2")
 
   data$icv <- rowSums(data[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
   label(data$icv) <- "ICV (calculated)"
@@ -25,18 +56,18 @@ derive_automated_3T <- function(data) {
     wml.volume.parietal.lobe.plus.1.log <- log(wml.volume.parietal.lobe + 1)
     label(wml.volume.parietal.lobe.plus.1.log) <- "Log of wml.volume.parietal.lobe + 1"
 
-    asl.3t.rest.etco2 <- (asl.3t.bl.etco2.1 + asl.3t.bl.etco2.2 + asl.3t.bl.etco2.3) / 3
+    asl.3t.rest.etco2 <- coalesce(rowMeans(asl.3t.bl.var, na.rm = TRUE), as.numeric(asl.rest.mean.etco2))
     label(asl.3t.rest.etco2) <- "Resting EtCO2"
 
-    asl.3t.chall.etco2 <- (asl.3t.hyper.etco2.1 + asl.3t.hyper.etco2.2 + asl.3t.hyper.etco2.3) / 3
+    asl.3t.chall.etco2 <- coalesce(rowMeans(asl.3t.hyper.var, na.rm = TRUE), as.numeric(asl.chall.mean.etco2))
     label(asl.3t.chall.etco2) <- "Challenge EtCO2"
-
+    
     asl.3t.change.etco2 <- asl.3t.chall.etco2 - asl.3t.rest.etco2
     label(asl.3t.change.etco2) <- "Change in EtCO2"
 
     # Derive ASL reactivity variables (OAK 20181217)
 
-      asl.reac.grey.matter.hct <- 100 * (asl.chall.grey.matter.hct - asl.rest.grey.matter.hct) / asl.rest.grey.matter.hct / asl.3t.change.etco2
+    asl.reac.grey.matter.hct <- 100 * (asl.chall.grey.matter.hct - asl.rest.grey.matter.hct) / asl.rest.grey.matter.hct / asl.3t.change.etco2
     asl.reac.left.hemisphere.hct <- 100 * (asl.chall.left.hemisphere.hct - asl.rest.left.hemisphere.hct) / asl.rest.left.hemisphere.hct / asl.3t.change.etco2
     asl.reac.right.hemisphere.hct <- 100 * (asl.chall.right.hemisphere.hct - asl.rest.right.hemisphere.hct) / asl.rest.right.hemisphere.hct / asl.3t.change.etco2
     asl.reac.right.frontal.lobe.hct <- 100 * (asl.chall.right.frontal.lobe.hct - asl.rest.right.frontal.lobe.hct) / asl.rest.right.frontal.lobe.hct / asl.3t.change.etco2
