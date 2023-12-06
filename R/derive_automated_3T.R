@@ -38,9 +38,6 @@ derive_automated_3T <- function(data) {
     c("asl.3t.trust.spo2",
       "asl.3t.trust.spo2.1",
       "asl.3t.trust.spo2.2")
-  
-  physLog_bl <- c("asl.rest.mean.etco2")
-  physLog_hyper <- c("asl.chall.mean.etco2")
 
   data$icv <- rowSums(data[, Cs(vbmqa.gm.vol, vbmqa.wm.vol, vbmqa.csf.vol)])
   label(data$icv) <- "ICV (calculated)"
