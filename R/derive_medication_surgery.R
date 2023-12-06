@@ -74,10 +74,10 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
     possibleEyedropCols <- which(medFrame[i, ] %in% AH_beta_blocker_if_not_drop.redcap.num)
     if (length(possibleEyedropCols) >= 1) {
       mednames <- names(medFrame)[possibleEyedropCols]
-      unitnames <- gsub("name", "units.factor", mednames, fixed = TRUE)
+      unitnames <- gsub("name", "units", mednames, fixed = TRUE)
       vec <- data[i, unitnames]
       # Note that it's important to use != rather than !%in% here
-      notDrops <- vec != "drop(s)"
+      notDrops <- vec != 8
       if (any(notDrops)) {
         ahBetaBlockerIfNotDropPrep[i] <- 1
       } else if (anyNA(notDrops)) {
