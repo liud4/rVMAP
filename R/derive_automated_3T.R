@@ -34,6 +34,11 @@ derive_automated_3T <- function(data) {
       "asl.3t.hyper.etco2g"
     )
   
+  asl.3t.trust.var <-
+    c("asl.3t.trust.spo2",
+      "asl.3t.trust.spo2.1",
+      "asl.3t.trust.spo2.2")
+  
   physLog_bl <- c("asl.rest.mean.etco2")
   physLog_hyper <- c("asl.chall.mean.etco2")
 
@@ -365,7 +370,7 @@ derive_automated_3T <- function(data) {
 
   # CMRO2 and OEF  (OAK 20191203)
 
-  data$oef.ya <- rowMeans(data[, c("asl.3t.trust.spo2", "asl.3t.trust.spo2.1", "asl.3t.trust.spo2.2")], na.rm = TRUE)
+  data$oef.ya <- coalesce(rowMeans(data[, asl.3t.trust.var], na.rm = TRUE), trust.mean.spo2)
   data$oef.ya[is.nan(data$oef.ya)] <- NA
   label(data$oef.ya) <- "Arterial Oxygenation (%)"
 
