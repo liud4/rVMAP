@@ -1,7 +1,7 @@
 ---
 title: "VMAP Data Merge"
 subtitle: "Face Mask Data"
-author: '[Omair A. Khan, MAS, PStat](mailto:omair.a.khan@vumc.org)'
+author: '[Panpan Zhang, Ph.D.](mailto:panpan.zhang@vumc.org)'
 date: "Data Freeze Date: `r full.freeze.date` | Data Merge Date: `r full.modified.date`"
 output:
   html_notebook:
@@ -75,10 +75,15 @@ $("#TOC").toggle();
 ```{r setup, echo = TRUE, results = 'hide'}
 # define important directories
 ## base directories
-box.dir  <- file.path("~", "OneDrive - VUMC")
-vmac.dir <- file.path(box.dir, "VMAC BIOSTAT")
+onedrive.dir  <- file.path("..", "OneDrive - VUMC")
+vmac.dir <- file.path(onedrive.dir, "VMAC BIOSTAT")
 ## data directories
 data.dir <- file.path(vmac.dir, "DATA", "MAP")
+
+# define additional important directories
+## data directories
+data.raw.dir <- file.path(data.dir, "rawData")
+data.merge.dir <- file.path(data.dir, 'mergedData')
 
 ##%######################################################%##
 ####                modifiable settings                 ####
@@ -86,13 +91,13 @@ data.dir <- file.path(vmac.dir, "DATA", "MAP")
 quarterly.download <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to use for merging
 download.data <- FALSE
-data.freeze.date <- yyyymmdd # in {yyyymmdd} format
+data.freeze.date <- 20231205# in {yyyymmdd} format
 # modify both of these variables to specify a specific data merge file to compare the new one with
-last.data.download.date <- yyyymmdd # in {yyyymmdd} format
-last.data.merge.date <- yyyymmdd # in {yyyymmdd} format
+last.data.download.date <- 20230906 # in {yyyymmdd} format
+last.data.merge.date <- 20230906 # in {yyyymmdd} format
 
 map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variablesunusable.xlsx")
-composite.df <- readRDS(file.path(data.raw.dir, "np_composite_20230608.rds"))
+composite.df <- readRDS(file.path(data.raw.dir, "np_composite_20230905.rds"))
 ####                                                    ####
 ##%######################################################%##
 
@@ -107,12 +112,11 @@ packages <- Hmisc::Cs(
   REDCapR,
   arsenal,
   fs,
-  beepr
+  beepr,
+  rVMAP
 )
 
 rVMAP::load_pkg(packages)
-
-devtools::load_all("~/dev/rVMAP")
 
 # set timezone
 Sys.setenv(TZ = 'US/Central')
@@ -124,11 +128,6 @@ options(
   digits = 6,
   contrasts = c("contr.treatment", "contr.treatment")
 )
-
-# define additional important directories
-## data directories
-data.raw.dir <- file.path(data.dir, "rawData")
-data.merge.dir <- file.path(data.dir, 'mergedData')
 ```
 
 
@@ -300,7 +299,8 @@ pre_vmap_edc_repeating.df <- pre_vmap_edc_temp.df %>% # data frame with repeatin
     !is.na(redcap_repeat_instrument)
   )
 
-brain_mri.variables <- c("map_id", "epoch", "session_id", "scanner", "scanner_software", "head_coil", grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T))
+# variables used for merging with other neuroimaging lists
+brain_mri.variables <- c("map_id", "epoch", "session_id", "scanner", "scanner_software", "head_coil", "scan_date_time", grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T))
 
 pre_vmap_edc_brain_mri.df <- pre_vmap_edc_repeating.df %>% # data frame with repeating instruments limited to brain MRI variables only
   filter(
@@ -340,18 +340,20 @@ pre_vmap_edc_brain_mri_scan_acquired.df <- pre_vmap_edc_brain_mri.df %>%
 ```{r}
 brain_mri.metadata <- MAPfreeze.list$vmap_edc$metadata %>% 
   filter(
-    field_name %in% c("session_id", "scanner", "scanner_software", "head_coil")
+    field_name %in% c("session_id", "scanner", "scanner_software", "head_coil", "scan_date_time")
   )
+# including ``scan_date_time`` for variable creation, too
 
 pre_vmap_edc_scanner.df <- pre_vmap_edc_brain_mri.df %>% # data frame with repeating instruments limited to select scanner variables only
   select(
-    c("session_id", "scanner", "scanner_software", "head_coil")
+    c("session_id", "scanner", "scanner_software", "head_coil", "scan_date_time")
   ) %>% filter(
     !is.na(session_id)
   ) %>%
+  mutate(scan_date = as.Date(scan_date_time)) %>%
   process_factor_variables(data = ., metadata = brain_mri.metadata) %>%
   select(
-    session_id, scanner_factor, head_coil_factor, scanner_software_factor
+    session_id, scanner_factor, head_coil_factor, scanner_software_factor, scan_date
   ) %>%
   mutate(
     scanner_factor = forcats::fct_recode(
@@ -393,10 +395,12 @@ pre_vmap_edc_scanner.df <- pre_vmap_edc_scanner.df %>%
 ```{r}
 form_names <- setdiff(unique(pre_vmap_edc_repeating.df$redcap_repeat_instrument), "brain_mri") # names of non-brain_mri forms
 
-# form_names <- c("freesurfer", "multiatlas_stats", "lesion_segmentation_tool_stats", 
-# "asl_multiatlas_stats", "vbm_qa_stats", "fsl_first_stats", "hippodeep", 
-# "white_matter_stamper_stats", "veasl_stats", "dtiroi", "oxygen_extraction_fraction", 
-# "neck", "circle_of_willis", "lacunar_infarcts", "perivascular_space", 
+form_names <- form_names[-grep("pet", form_names)] # ignore pet for temporarily
+
+# form_names <- c("freesurfer", "multiatlas_stats", "lesion_segmentation_tool_stats",
+# "asl_multiatlas_stats", "vbm_qa_stats", "fsl_first_stats", "hippodeep",
+# "white_matter_stamper_stats", "veasl_stats", "dtiroi", "oxygen_extraction_fraction",
+# "neck", "circle_of_willis", "lacunar_infarcts", "perivascular_space",
 # "swi", "vessel_wall_imaging")
 
 get_form_variables <- function(db = "vmap_edc", form) {
@@ -448,6 +452,8 @@ create_individual_form_df <- function(form) {
   form.var <- form_variables.df[form_variables.df$form == form, ] %>% pull(variable)
   
   form.var <- form.var[form.var %in% names(pre_vmap_edc_repeating.df)]
+  form.var <- form.var[-grep("_scan_date", form.var)]
+  ## not grab the ``_scan_date`` variables from the RedCap database
   
   prefix <- gsub("_session_id", "", session_id.var)
   
@@ -507,7 +513,7 @@ if (all(sapply(neuroimaging_duplicate.list, function(x) is.null(x)))) {
 }
 ```
 
-## Merge together all brain MRI data to create a master VMAP EDC data set
+## Merge together selected brain MRI data to create a master VMAP EDC data set
 
 ```{r}
 variables_to_remove_from_non_repeating <- form_variables.df %>% 
@@ -525,12 +531,149 @@ vmap_edc_temp01.df <- c(list(pre_vmap_edc_non_repeating_v2.df), list(pre_vmap_ed
 ## grep("\\.x$", names(vmap_edc_temp01.df), v = T) # should be character(0)
 ```
 
+## Merge together other brain MRI data to complete a master VMAP EDC data set
+
+```{r}
+# variables used for merging with other neuroimaging lists
+add_brain_mri.variables <-
+  unique(
+    c(
+      "map_id",
+      "epoch",
+      "session_id",
+      grep("tone_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("flair_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("trust_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("dti_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("bo_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("vwi_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("neck_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("swi_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("pca_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("mo_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("asl_", names(pre_vmap_edc_repeating.df), v = T),
+      grep("fmri_", names(pre_vmap_edc_repeating.df), v = T)
+    )
+  )
+
+add_brain_mri.variables <-
+  add_brain_mri.variables[add_brain_mri.variables %nin% grep("_scan_acquired", names(pre_vmap_edc_repeating.df), v = T)]
+
+add_brain_mri.variables <-
+  add_brain_mri.variables[add_brain_mri.variables %nin% grep("_session_id", names(pre_vmap_edc_repeating.df), v = T)]
+
+
+add_vmap_edc_brain_mri.df <- pre_vmap_edc_repeating.df %>%
+  filter(redcap_repeat_instrument == "brain_mri") %>%
+  select(all_of(add_brain_mri.variables))
+
+tempfun <- function(add.var.list, pref.session) {
+  current.session.id <-
+    as_vector(vmap_edc_temp01.df %>% select(all_of(pref.session)))
+  temp.df <-
+    add_vmap_edc_brain_mri.df %>% filter(session_id %in% current.session.id) %>% select("map_id", "epoch", "session_id", all_of(add.var.list)) %>% as.data.frame()
+  colnames(temp.df)[3] <- pref.session
+  return(left_join(
+    vmap_edc_temp01.df %>% select(!all_of(add.var.list)),
+    temp.df,
+    by = c("map_id", "epoch", pref.session)
+  ))
+}
+
+# T1
+T1.brain.mri.var <-
+  grep("tone_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(T1.brain.mri.var, "ma_session_id")
+
+# white matter
+wml.brain.mri.var <-
+  grep("flair_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(wml.brain.mri.var, "wml_session_id")
+
+# trust
+trust.brain.mri.var <-
+  grep("trust_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(trust.brain.mri.var, "oef_session_id")
+
+# DTI
+dti.brain.mri.var <-
+  grep(("dti_"), names(add_vmap_edc_brain_mri.df), v = T)
+bo.brain.mri.var <-
+  grep(("bo_"), names(add_vmap_edc_brain_mri.df), v = T)
+dti.brain.mri.var <- c(dti.brain.mri.var, bo.brain.mri.var)
+vmap_edc_temp01.df <- tempfun(dti.brain.mri.var, "dti_session_id")
+
+# VWI
+vwi.brain.mri.var <-
+  grep("vwi_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(vwi.brain.mri.var, "vwi_session_id")
+
+# neck
+neck.brain.mri.var <-
+  grep("neck_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(neck.brain.mri.var, "neck_session_id")
+
+# SWI
+swi.brain.mri.var <-
+  grep("swi_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(swi.brain.mri.var, "swi_session_id")
+
+# PCA
+pca.brain.mri.var <-
+  grep("pca_", names(add_vmap_edc_brain_mri.df), v = T)
+vmap_edc_temp01.df <- tempfun(pca.brain.mri.var, "cow_session_id")
+
+# ASL
+mo.brain.mri.var <-
+  grep("mo_", names(add_vmap_edc_brain_mri.df), v = T)
+asl.brain.mri.var <-
+  grep("asl_", names(add_vmap_edc_brain_mri.df), v = T)
+asl.brain.mri.var <-
+  asl.brain.mri.var[asl.brain.mri.var %nin% grep("_trust_", asl.brain.mri.var, v = T)]
+asl.brain.mri.var <-
+  asl.brain.mri.var[asl.brain.mri.var %nin% grep("_bold_", asl.brain.mri.var, v = T)]
+asl.brain.mri.var <- c(asl.brain.mri.var, mo.brain.mri.var)
+vmap_edc_temp01.df <- tempfun(asl.brain.mri.var, "asl_session_id")
+
+# fMRI
+fmri.brain.mri.var <-
+  grep("fmri_", names(add_vmap_edc_brain_mri.df), v = T)
+asl.bold.brain.mri.var <-
+  grep("asl_", names(add_vmap_edc_brain_mri.df), v = T)
+asl.bold.brain.mri.var <-
+  asl.bold.brain.mri.var[asl.bold.brain.mri.var %in% grep("_bold_", asl.bold.brain.mri.var, v = T)]
+fmri.brain.mri.var <- c(fmri.brain.mri.var, asl.bold.brain.mri.var)
+
+add_vmap_edc_brain_mri_fmri.df <- pre_vmap_edc_repeating.df %>%
+  filter(redcap_repeat_instrument == "brain_mri") %>%
+  select(c(
+    "map_id",
+    "epoch",
+    "fmri_scan_acquired",
+    all_of(fmri.brain.mri.var)
+  )) %>%
+  filter(fmri_scan_acquired == 1 &
+           fmri_challenge_complete == 1 & fmri_scan_usable != 0) %>%
+  as.data.frame()
+
+vmap_edc_temp01.df <-
+  left_join(
+    vmap_edc_temp01.df %>% select(!c(
+      "fmri_scan_acquired", all_of(fmri.brain.mri.var)
+    )),
+    add_vmap_edc_brain_mri_fmri.df,
+    by = c("map_id", "epoch")
+  )
+
+# vmap_edc_temp01.df %>% count(map_id, epoch) %>% filter(n > 1)
+```
+
 # Data Processing
 
 ## Process VMAP EDC
 
 ```{r}
-process_scanner_factor_variables <- function(data, metadata) {
+process_nonscanner_factor_variables <- function(data, metadata) {
   metadata.df <- metadata %>%
     filter(
       field_type == "radio"
@@ -545,7 +688,16 @@ process_scanner_factor_variables <- function(data, metadata) {
   
   if (!is.null(metadata.df)) {
     for (factor_var.i in metadata.df$field_name) {
-      levels.list <- as.list(REDCapR::checkbox_choices(pull(metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"])))
+      
+      factor_var.i_levels_temp01 <- metadata.df[metadata.df$field_name == factor_var.i, "select_choices_or_calculations"]
+      
+      factor_var.i_levels_temp02 <- y <- gsub(factor_var.i_levels_temp01, pattern = "\\|", replacement = "| ") 
+      
+      factor_var.i_levels_temp03 <- y <- gsub(factor_var.i_levels_temp02, pattern = "\\|  ", replacement = "| ")
+      
+      factor_var.i_levels <- as.data.frame(factor_var.i_levels_temp03)
+      
+      levels.list <- as.list(REDCapR::checkbox_choices(pull(factor_var.i_levels)))
       
       data[[paste0(factor_var.i, "_factor")]] <- factor(data[[factor_var.i]], levels = levels.list$id, labels = levels.list$label)
     }
@@ -556,15 +708,22 @@ process_scanner_factor_variables <- function(data, metadata) {
 ```
 
 ```{r}
-vmap_edc_temp02.df <- vmap_edc_temp01.df %>%
+
+###
+
+vmap_edc_temp02.df <- process_nonscanner_factor_variables(data = vmap_edc_temp01.df, metadata = MAPfreeze.list$vmap_edc$metadata)
+
+###
+
+vmap_edc_temp03.df <- vmap_edc_temp02.df %>%
   mutate(
     across(
       .cols = where(is.numeric),
-      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9)), NA)
     ),
     across(
       .cols = where(is.character),
-      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "1111-11-11", "11/11/1111"), NA)
     ),
     across(
       .cols = where(lubridate::is.Date),
@@ -579,7 +738,7 @@ vars_w_comparison_operators.var <- grep(
   "bld|np|csf|biomarkers",
   grep(
     "notes|flow|occup",
-    names(vmap_edc_temp02.df)[grepl("(>|<)([[:space:]]*)(\\d+)", vmap_edc_temp02.df)],
+    names(vmap_edc_temp03.df)[grepl("(>|<)([[:space:]]*)(\\d+)", vmap_edc_temp03.df)],
     invert = T,
     v = T),
   v = T)
@@ -588,29 +747,27 @@ vars_w_comparison_operators.var <- setdiff(vars_w_comparison_operators.var, "bld
 
 if (length(vars_w_comparison_operators.var) > 0) {
   for (var in vars_w_comparison_operators.var) {
-    vmap_edc_temp02.df[, var] <- suppressWarnings(sapply(vmap_edc_temp02.df[, var], process_comparison_operators, USE.NAMES = FALSE))
+    vmap_edc_temp03.df[, var] <- suppressWarnings(sapply(vmap_edc_temp03.df[, var], process_comparison_operators, USE.NAMES = FALSE))
   }
 }
 
 ###
 
-vmap_edc_temp03.df <- process_scanner_factor_variables(data = vmap_edc_temp02.df, metadata = MAPfreeze.list$vmap_edc$metadata)
-
-###
-
-# improperly_formatted_dttm.var <- grep("date_time$", names(vmap_edc_temp03.df), v = T)[sapply(vmap_edc_temp03.df[, grep("date_time$", names(vmap_edc_temp03.df), v = T)], is.character)]
-
-# vmap_edc_temp04.df <- vmap_edc_temp03.df %>% 
-#   mutate(
-#     across(
-#       .cols = all_of(improperly_formatted_dttm.var),
-#       .fns = ~ mdy_hm(.x, truncated = 5)
-#     )
-#   )
+# improperly_formatted_dttm.var <-
+#   grep("date_time$", names(vmap_edc_temp03.df), v = T)[sapply(vmap_edc_temp03.df[, grep("date_time$", names(vmap_edc_temp03.df), v = T)], is.character)]
+# 
+# vmap_edc_temp04.df <- vmap_edc_temp03.df %>%
+#   mutate(across(
+#     .cols = all_of(improperly_formatted_dttm.var),
+#     .fns = ~ mdy_hm(.x, truncated = 5)
+#   ))
 
 ###
 
 vmap_edc_temp04.df <- convert_dates(vmap_edc_temp03.df)
+
+vmap_edc_temp04.df <-
+  vmap_edc_temp04.df %>% mutate(pet_consent_date = lubridate::as_date(pet_consent_date)) %>% as.data.frame() # pet_consent_date in fact is a "date + time" variable.
 ```
 
 ### Copying data from Eligibility
@@ -749,11 +906,11 @@ questionnaires_temp02.df <- questionnaires_temp01.df %>%
   mutate(
     across(
       .cols = where(is.numeric),
-      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9)), NA)
     ),
     across(
       .cols = where(is.character),
-      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "1111-11-11", "11/11/1111"), NA)
     ),
     across(
       .cols = where(lubridate::is.Date),
@@ -977,6 +1134,17 @@ questionnaires_temp07.df[questionnaires_temp07.df$epoch %in% c(0, 1) & questionn
     all_of(extra_vars_to_pull_down_from_eligibility.var), .direction = "down"
   ) %>%
   ungroup()
+
+## Temporary codes: carrying over epoch 0 "gds" and "qids" scores to epoch 1
+for (var.i in extra_vars_to_pull_down_from_eligibility.var) {
+  map_id_selected <-
+    unlist(questionnaires_temp07.df[questionnaires_temp07.df$map_id >= 337 &
+                                      questionnaires_temp07.df$epoch == 1, "map_id"]) %>% as.numeric()
+  questionnaires_temp07.df[questionnaires_temp07.df$epoch == 1 &
+                             questionnaires_temp07.df$map_id  %in% map_id_selected, var.i] <-
+    questionnaires_temp07.df[questionnaires_temp07.df$epoch == 0 &
+                               questionnaires_temp07.df$map_id %in% map_id_selected, var.i]
+} 
 ```
 
 ```{r}
@@ -1044,11 +1212,11 @@ biomarkers_temp02.df <- biomarkers_temp01.df %>%
   mutate(
     across(
       .cols = where(is.numeric),
-      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9)), NA)
     ),
     across(
       .cols = where(is.character),
-      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "1111-11-11", "11/11/1111"), NA)
     ),
     across(
       .cols = where(lubridate::is.Date),
@@ -1099,11 +1267,11 @@ abp.df <- abp.df %>%
   mutate(
     across(
       .cols = where(is.numeric),
-      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9)), NA)
     ),
     across(
       .cols = where(is.character),
-      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "1111-11-11", "11/11/1111"), NA)
     ),
     across(
       .cols = where(lubridate::is.Date),
@@ -1186,11 +1354,11 @@ tracking.static.df <- MAPfreeze.list$static$data$tracking.static %>%
   mutate(
     across(
       .cols = where(is.numeric),
-      .fns = ~ replace(.x, .x %in% c(-1111*(6:9), 9999), NA)
+      .fns = ~ replace(.x, .x %in% c(-1111*(6:9)), NA)
     ),
     across(
       .cols = where(is.character),
-      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "9999", "1111-11-11", "11/11/1111"), NA)
+      .fns = ~ replace(.x, .x %in% c("-6666", "-7777", "-8888", "-9999", "1111-11-11", "11/11/1111"), NA)
     ),
     across(
       .cols = where(lubridate::is.Date),
@@ -1495,7 +1663,6 @@ merged.df <- merged.df.bkup
 
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
 ```
-
 ## Demographics
 
 Derive, label, and add demographic variables to the merged data set.
@@ -2125,12 +2292,8 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 **Biospecimen availability was last updated on `20210719`.**
 
 ```{r biospecimen}
-biospecimen.df <- process_biospecimen_availability(path = file.path(data.raw.dir, "old", "VMAP_biospecimens_collected_20210719.xlsx"), epoch = 1L:5L)
-
-label(biospecimen.df$map.id) <- label(merged.df$map.id)
-label(biospecimen.df$epoch) <- label(merged.df$epoch)
-
-merged.df <- left_join(merged.df, biospecimen.df, by = c("map.id", "epoch"))
+merged.df.bkup <- merged.df
+merged.df <- process_biospecimen_availability(merged.df)
 ```
 
 ```{r}
