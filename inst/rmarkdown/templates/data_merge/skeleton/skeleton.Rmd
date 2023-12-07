@@ -583,16 +583,19 @@ tempfun <- function(add.var.list, pref.session) {
 # T1
 T1.brain.mri.var <-
   grep("tone_", names(add_vmap_edc_brain_mri.df), v = T)
+T1.brain.mri.var <- T1.brain.mri.var[T1.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(T1.brain.mri.var, "ma_session_id")
 
 # white matter
 wml.brain.mri.var <-
   grep("flair_", names(add_vmap_edc_brain_mri.df), v = T)
+wml.brain.mri.var <- wml.brain.mri.var[wml.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(wml.brain.mri.var, "wml_session_id")
 
 # trust
 trust.brain.mri.var <-
   grep("trust_", names(add_vmap_edc_brain_mri.df), v = T)
+trust.brain.mri.var <- trust.brain.mri.var[trust.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(trust.brain.mri.var, "oef_session_id")
 
 # DTI
@@ -601,26 +604,31 @@ dti.brain.mri.var <-
 bo.brain.mri.var <-
   grep(("bo_"), names(add_vmap_edc_brain_mri.df), v = T)
 dti.brain.mri.var <- c(dti.brain.mri.var, bo.brain.mri.var)
+dti.brain.mri.var <- dti.brain.mri.var[dti.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(dti.brain.mri.var, "dti_session_id")
 
 # VWI
 vwi.brain.mri.var <-
   grep("vwi_", names(add_vmap_edc_brain_mri.df), v = T)
+vwi.brain.mri.var <- vwi.brain.mri.var[vwi.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(vwi.brain.mri.var, "vwi_session_id")
 
 # neck
 neck.brain.mri.var <-
   grep("neck_", names(add_vmap_edc_brain_mri.df), v = T)
+neck.brain.mri.var <- neck.brain.mri.var[neck.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(neck.brain.mri.var, "neck_session_id")
 
 # SWI
 swi.brain.mri.var <-
   grep("swi_", names(add_vmap_edc_brain_mri.df), v = T)
+swi.brain.mri.var <- swi.brain.mri.var[swi.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(swi.brain.mri.var, "swi_session_id")
 
 # PCA
 pca.brain.mri.var <-
   grep("pca_", names(add_vmap_edc_brain_mri.df), v = T)
+pca.brain.mri.var <- pca.brain.mri.var[pca.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(pca.brain.mri.var, "cow_session_id")
 
 # ASL
@@ -633,6 +641,7 @@ asl.brain.mri.var <-
 asl.brain.mri.var <-
   asl.brain.mri.var[asl.brain.mri.var %nin% grep("_bold_", asl.brain.mri.var, v = T)]
 asl.brain.mri.var <- c(asl.brain.mri.var, mo.brain.mri.var)
+asl.brain.mri.var <- asl.brain.mri.var[asl.brain.mri.var %nin% form_variables.df$variable]
 vmap_edc_temp01.df <- tempfun(asl.brain.mri.var, "asl_session_id")
 
 # fMRI
@@ -643,6 +652,7 @@ asl.bold.brain.mri.var <-
 asl.bold.brain.mri.var <-
   asl.bold.brain.mri.var[asl.bold.brain.mri.var %in% grep("_bold_", asl.bold.brain.mri.var, v = T)]
 fmri.brain.mri.var <- c(fmri.brain.mri.var, asl.bold.brain.mri.var)
+fmri.brain.mri.var <- fmri.brain.mri.var[fmri.brain.mri.var %nin% form_variables.df$variable]
 
 add_vmap_edc_brain_mri_fmri.df <- pre_vmap_edc_repeating.df %>%
   filter(redcap_repeat_instrument == "brain_mri") %>%
