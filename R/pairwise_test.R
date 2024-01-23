@@ -40,6 +40,7 @@ chisq.post.hoc <- function(tbl, test=c("fisher.test"), popsInRows=TRUE,control=c
 pairwise_test <- function(data, variable, group = "diagnosis.factor.base", continuous = 5, p.adj = "none", datatable = FALSE, ...) {
   variable <- unique(setdiff(variable, group))
   grp <- data[, group]
+  grp <- ifelse(is.factor(grp), grp, as.factor(grp))
   grp.levels <- levels(grp)
   n.grp.levels <- length(grp.levels)
   output.df <- NULL
