@@ -171,7 +171,18 @@ derive_fsrp <- function(data) {
     )
     label(fsrp) <- "FSRP"
 
-    fsrp.minus.age.points <- fsrp - fsrp.age.pts
+    fsrp.minus.age.points <- apply(
+      cbind(
+        fsrp.sbp.pts,
+        fsrp.diabetes.pts,
+        fsrp.cigs.pts,
+        fsrp.cvd.pts,
+        fsrp.afib.pts,
+        fsrp.lvh.pts
+      ),
+      MARGIN = 1,
+      sum
+    )
     label(fsrp.minus.age.points) <- "FSRP - Age points"
 
     fsrp.2017 <- ifelse(
