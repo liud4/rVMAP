@@ -17,7 +17,7 @@ derive_fsrp <- function(data) {
 
     # sex: 1=Male; 2=Female
     fsrp.age.pts <- dplyr::case_when(
-      sex == 1 & age.integer >= 54 & age.integer <= 56 ~ 0,
+      sex == 1 & age.integer <= 56 ~ 0,
       sex == 1 & age.integer >= 57 & age.integer <= 59 ~ 1,
       sex == 1 & age.integer >= 60 & age.integer <= 62 ~ 2,
       sex == 1 & age.integer >= 63 & age.integer <= 65 ~ 3,
@@ -29,7 +29,7 @@ derive_fsrp <- function(data) {
       sex == 1 & age.integer >= 82 & age.integer <= 84 ~ 9,
       sex == 1 & age.integer >= 85 ~ 10,
 
-      sex == 2 & age.integer >= 54 & age.integer <= 56 ~ 0,
+      sex == 2 & age.integer <= 56 ~ 0,
       sex == 2 & age.integer >= 57 & age.integer <= 59 ~ 1,
       sex == 2 & age.integer >= 60 & age.integer <= 62 ~ 2,
       sex == 2 & age.integer >= 63 & age.integer <= 64 ~ 3,
