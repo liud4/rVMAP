@@ -5,25 +5,29 @@
 #' @export
 
 derive_AD_signature <- function(data) {
+  # Per the VMAC Biostatistics meeting on 2024/02/27, we will use T1 hippocampus for AD.sig.McEvoy, and will
+  # only provide harmonized AD signature variables in the merged data.
+
+  
   # data <- merged.df
 
   schwarz <- Hmisc::Cs(
-    rh.entorhinal.thickness,
-    rh.inferiortemporal.thickness,
-    rh.middletemporal.thickness,
-    rh.inferiorparietal.thickness,
-    rh.fusiform.thickness,
-    rh.precuneus.thickness,
-    lh.entorhinal.thickness,
-    lh.inferiortemporal.thickness,
-    lh.middletemporal.thickness,
-    lh.inferiorparietal.thickness,
-    lh.fusiform.thickness,
-    lh.precuneus.thickness
+    rh.entorhinal.thickness.combat,
+    rh.inferiortemporal.thickness.combat,
+    rh.middletemporal.thickness.combat,
+    rh.inferiorparietal.thickness.combat,
+    rh.fusiform.thickness.combat,
+    rh.precuneus.thickness.combat,
+    lh.entorhinal.thickness.combat,
+    lh.inferiortemporal.thickness.combat,
+    lh.middletemporal.thickness.combat,
+    lh.inferiorparietal.thickness.combat,
+    lh.fusiform.thickness.combat,
+    lh.precuneus.thickness.combat
   )
 
   mcevoy.Y <- Hmisc::Cs(
-    avg.hippocampus,
+    avg.hippocampus.combat,
     avg.entorhinal.thickness,
     avg.middletemporal.thickness,
     avg.bankssts.thickness,
@@ -48,34 +52,34 @@ derive_AD_signature <- function(data) {
   data <- data %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
-      avg.hippocampus = mean(c(right.hippocampus, left.hippocampus)),
-      avg.entorhinal.thickness = mean(c(rh.entorhinal.thickness, lh.entorhinal.thickness)),
-      avg.middletemporal.thickness = mean(c(rh.middletemporal.thickness, lh.middletemporal.thickness)),
-      avg.bankssts.thickness = mean(c(rh.bankssts.thickness, lh.bankssts.thickness)),
-      avg.isthmuscingulate.thickness = mean(c(rh.isthmuscingulate.thickness, lh.isthmuscingulate.thickness)),
-      avg.superiortemporal.thickness = mean(c(rh.superiortemporal.thickness, lh.superiortemporal.thickness)),
-      avg.medialorbitofrontal.thickness = mean(c(rh.medialorbitofrontal.thickness, lh.medialorbitofrontal.thickness)),
-      avg.lateralorbitofrontal.thickness = mean(c(rh.lateralorbitofrontal.thickness, lh.lateralorbitofrontal.thickness))
+      avg.hippocampus.combat = mean(c(ma.lh.hippocampus.vol.combat, ma.rh.hippocampus.vol.combat)),
+      avg.entorhinal.thickness.combat = mean(c(rh.entorhinal.thickness.combat, lh.entorhinal.thickness.combat)),
+      avg.middletemporal.thickness.combat = mean(c(rh.middletemporal.thickness.combat, lh.middletemporal.thickness.combat)),
+      avg.bankssts.thickness.combat = mean(c(rh.bankssts.thickness.combat, lh.bankssts.thickness.combat)),
+      avg.isthmuscingulate.thickness.combat = mean(c(rh.isthmuscingulate.thickness.combat, lh.isthmuscingulate.thickness.combat)),
+      avg.superiortemporal.thickness.combat = mean(c(rh.superiortemporal.thickness.combat, lh.superiortemporal.thickness.combat)),
+      avg.medialorbitofrontal.thickness.combat = mean(c(rh.medialorbitofrontal.thickness.combat, lh.medialorbitofrontal.thickness.combat)),
+      avg.lateralorbitofrontal.thickness.combat = mean(c(rh.lateralorbitofrontal.thickness.combat, lh.lateralorbitofrontal.thickness.combat))
     )
 
   mcevoy.all.temp <- NULL
 
   derive_mcevoy.df <- data %>%
     dplyr::filter(epoch == 1) %>%
-    dplyr::filter(!is.na(avg.hippocampus)) %>%
+    dplyr::filter(!is.na(avg.hippocampus.combat)) %>%
     dplyr::filter(diagnosis.factor.base == "Normal") %>%
     dplyr::select(
       all_of(
         Cs(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance,
-           age, sex.factor, diagnosis.factor.base, intracranialvol, avg.hippocampus, avg.entorhinal.thickness,
-           avg.middletemporal.thickness, avg.bankssts.thickness, avg.isthmuscingulate.thickness,
-           avg.superiortemporal.thickness, avg.medialorbitofrontal.thickness, avg.lateralorbitofrontal.thickness)
+           age, sex.factor, diagnosis.factor.base, ma.total.intracranial.vol.combat, avg.hippocampus.combat, avg.entorhinal.thickness.combat,
+           avg.middletemporal.thickness.combat, avg.bankssts.thickness.combat, avg.isthmuscingulate.thickness.combat,
+           avg.superiortemporal.thickness.combat, avg.medialorbitofrontal.thickness.combat, avg.lateralorbitofrontal.thickness.combat)
       )
     )
 
   # derive_mcevoy.df <- droplevels(derive_mcevoy.df)
 
-  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + intracranialvol')),
+  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + ma.total.intracranial.vol.combat')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
@@ -142,26 +146,26 @@ derive_AD_signature <- function(data) {
   mcevoy.temp$fit.8 <-
     ((data_w_fit.df[, mcevoy.Y[8]] - data_w_fit.df$mcevoy.fit.8) / sd(resid(fit.8), na.rm = TRUE)) * mcevoy.coef[8]
 
-  mcevoy.temp$AD.sig.mcevoy <- rowSums(mcevoy.temp[, c("fit.1", "fit.2", "fit.3", "fit.4", "fit.5", "fit.6", "fit.7", "fit.8")])
+  mcevoy.temp$AD.sig.mcevoy.combat <- rowSums(mcevoy.temp[, c("fit.1", "fit.2", "fit.3", "fit.4", "fit.5", "fit.6", "fit.7", "fit.8")])
 
   mcevoy.temp <- mcevoy.temp %>%
-    select(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance, AD.sig.mcevoy)
+    select(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance, AD.sig.mcevoy.combat)
 
   data <- left_join(data, mcevoy.temp, by = c("map.id", "epoch", "redcap.repeat.instrument", "redcap.repeat.instance"))
 
-  data$AD.sig.schwarz <- rowMeans(data[, schwarz], na.rm = FALSE)
+  data$AD.sig.schwarz.combat <- rowMeans(data[, schwarz], na.rm = FALSE)
 
   data <- within(data, {
-    label(avg.hippocampus) <- "Avg hippocampus vol - T1 3T FS"
-    label(avg.entorhinal.thickness) <- "Avg entorhinal cortex thickness - T1 3T FS"
-    label(avg.middletemporal.thickness) <- "Avg middletemporal thickness - T1 3T FS"
-    label(avg.bankssts.thickness) <- "Avg bankssts thickness - T1 3T FS"
-    label(avg.isthmuscingulate.thickness) <- "Avg isthmuscingulate thickness - T1 3T FS"
-    label(avg.superiortemporal.thickness) <- "Avg superiortemporal thickness - T1 3T FS"
-    label(avg.medialorbitofrontal.thickness) <- "Avg mediaorbitofrontal thickness - T1 3T FS"
-    label(avg.lateralorbitofrontal.thickness) <- "Avg lateralorbitofrontal thickness - T1 3T FS"
-    label(AD.sig.mcevoy) <- "AD signature - McEvoy"
-    label(AD.sig.schwarz) <- "AD signature - Schwarz"
+    label(avg.hippocampus.combat) <- "Avg hippocampus vol - T1 3T FS (Harmonized)"
+    label(avg.entorhinal.thickness.combat) <- "Avg entorhinal cortex thickness - T1 3T FS (Harmonized)"
+    label(avg.middletemporal.thickness.combat) <- "Avg middletemporal thickness - T1 3T FS (Harmonized)"
+    label(avg.bankssts.thickness.combat.combat) <- "Avg bankssts thickness - T1 3T FS (Harmonized)"
+    label(avg.isthmuscingulate.thickness.combat) <- "Avg isthmuscingulate thickness - T1 3T FS (Harmonized)"
+    label(avg.superiortemporal.thickness.combat) <- "Avg superiortemporal thickness - T1 3T FS (Harmonized)"
+    label(avg.medialorbitofrontal.thickness.combat) <- "Avg mediaorbitofrontal thickness - T1 3T FS (Harmonized)"
+    label(avg.lateralorbitofrontal.thickness.combat) <- "Avg lateralorbitofrontal thickness - T1 3T FS (Harmonized)"
+    label(AD.sig.mcevoy.combat) <- "AD signature - McEvoy"
+    label(AD.sig.schwarz.combat) <- "AD signature - Schwarz"
   })
 
   return(data)
