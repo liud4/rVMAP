@@ -28,13 +28,13 @@ derive_AD_signature <- function(data) {
 
   mcevoy.Y <- Hmisc::Cs(
     avg.hippocampus.combat,
-    avg.entorhinal.thickness,
-    avg.middletemporal.thickness,
-    avg.bankssts.thickness,
-    avg.isthmuscingulate.thickness,
-    avg.superiortemporal.thickness,
-    avg.medialorbitofrontal.thickness,
-    avg.lateralorbitofrontal.thickness
+    avg.entorhinal.thickness.combat,
+    avg.middletemporal.thickness.combat,
+    avg.bankssts.thickness.combat,
+    avg.isthmuscingulate.thickness.combat,
+    avg.superiortemporal.thickness.combat,
+    avg.medialorbitofrontal.thickness.combat,
+    avg.lateralorbitofrontal.thickness.combat
   )
 
   mcevoy.coef <- c(
@@ -159,13 +159,13 @@ derive_AD_signature <- function(data) {
     label(avg.hippocampus.combat) <- "Avg hippocampus vol - T1 3T FS (Harmonized)"
     label(avg.entorhinal.thickness.combat) <- "Avg entorhinal cortex thickness - T1 3T FS (Harmonized)"
     label(avg.middletemporal.thickness.combat) <- "Avg middletemporal thickness - T1 3T FS (Harmonized)"
-    label(avg.bankssts.thickness.combat.combat) <- "Avg bankssts thickness - T1 3T FS (Harmonized)"
+    label(avg.bankssts.thickness.combat) <- "Avg bankssts thickness - T1 3T FS (Harmonized)"
     label(avg.isthmuscingulate.thickness.combat) <- "Avg isthmuscingulate thickness - T1 3T FS (Harmonized)"
     label(avg.superiortemporal.thickness.combat) <- "Avg superiortemporal thickness - T1 3T FS (Harmonized)"
     label(avg.medialorbitofrontal.thickness.combat) <- "Avg mediaorbitofrontal thickness - T1 3T FS (Harmonized)"
     label(avg.lateralorbitofrontal.thickness.combat) <- "Avg lateralorbitofrontal thickness - T1 3T FS (Harmonized)"
-    label(AD.sig.mcevoy.combat) <- "AD signature - McEvoy"
-    label(AD.sig.schwarz.combat) <- "AD signature - Schwarz"
+    label(AD.sig.mcevoy.combat) <- "AD signature - McEvoy (Harmonized)"
+    label(AD.sig.schwarz.combat) <- "AD signature - Schwarz (Harmonized)"
   })
 
   return(data)
