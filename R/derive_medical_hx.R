@@ -76,6 +76,8 @@ derive_medical_hx <- function(data) {
     label(cvd.factor) <- "CVD, determined from variables in med hx"
     label(cvd) <- "CVD, determined from variables in med hx"
   })
+  
+  data$echo.sbp <- as.numeric(data$echo.sbp)
 
   data$echo.sbp2 <- as.numeric(data$echo.sbp2)
 
