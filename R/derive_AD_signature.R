@@ -156,16 +156,16 @@ derive_AD_signature <- function(data) {
   data$AD.sig.schwarz.combat <- rowMeans(data[, schwarz], na.rm = FALSE)
 
   data <- within(data, {
-    label(avg.hippocampus.combat) <- "Avg hippocampus vol - T1 3T FS (Harmonized)"
-    label(avg.entorhinal.thickness.combat) <- "Avg entorhinal cortex thickness - T1 3T FS (Harmonized)"
-    label(avg.middletemporal.thickness.combat) <- "Avg middletemporal thickness - T1 3T FS (Harmonized)"
-    label(avg.bankssts.thickness.combat) <- "Avg bankssts thickness - T1 3T FS (Harmonized)"
-    label(avg.isthmuscingulate.thickness.combat) <- "Avg isthmuscingulate thickness - T1 3T FS (Harmonized)"
-    label(avg.superiortemporal.thickness.combat) <- "Avg superiortemporal thickness - T1 3T FS (Harmonized)"
-    label(avg.medialorbitofrontal.thickness.combat) <- "Avg mediaorbitofrontal thickness - T1 3T FS (Harmonized)"
-    label(avg.lateralorbitofrontal.thickness.combat) <- "Avg lateralorbitofrontal thickness - T1 3T FS (Harmonized)"
-    label(AD.sig.mcevoy.combat) <- "AD signature - McEvoy (Harmonized)"
-    label(AD.sig.schwarz.combat) <- "AD signature - Schwarz (Harmonized)"
+    Hmisc::label(avg.hippocampus.combat) <- "Avg hippocampus vol - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.entorhinal.thickness.combat) <- "Avg entorhinal cortex thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.middletemporal.thickness.combat) <- "Avg middletemporal thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.bankssts.thickness.combat) <- "Avg bankssts thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.isthmuscingulate.thickness.combat) <- "Avg isthmuscingulate thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.superiortemporal.thickness.combat) <- "Avg superiortemporal thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.medialorbitofrontal.thickness.combat) <- "Avg mediaorbitofrontal thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(avg.lateralorbitofrontal.thickness.combat) <- "Avg lateralorbitofrontal thickness - T1 3T FS (Harmonized)"
+    Hmisc::label(AD.sig.mcevoy.combat) <- "AD signature - McEvoy (Harmonized)"
+    Hmisc::label(AD.sig.schwarz.combat) <- "AD signature - Schwarz (Harmonized)"
   })
 
   return(data)
