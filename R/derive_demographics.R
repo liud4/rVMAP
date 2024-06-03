@@ -5,9 +5,13 @@
 #' @export
 
 derive_demographics <- function(data) {
+
   days_in_one_year <- 365.25
   
   data <- within(data, {
+    dob <- dob.questionnaires
+    label(dob) <- "Date of Birth"
+    
     raceethnicity <- ifelse(is.na(race) | is.na(ethnicity),
                             NA,
                             ifelse(race == 1 & ethnicity == 0,
