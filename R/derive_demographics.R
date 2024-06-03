@@ -36,10 +36,10 @@ derive_demographics <- function(data) {
       ifelse(
         is.na(vf.arrival.date.time) | (map.id %in% c(1L:336L) & epoch == 1),
         floor(as.numeric(difftime(
-          medhx.date, dob, units = "days"
+          medhx.date, dob.questionnaires, units = "days"
         )) / days_in_one_year),
         floor(as.numeric(
-          difftime(vf.arrival.date.time, dob, units = "days")
+          difftime(vf.arrival.date.time, dob.questionnaires, units = "days")
         ) / days_in_one_year)
       )
     
