@@ -198,6 +198,12 @@ derive_biomarkers <- function(data) {
       ordered = TRUE
     )
     label(csf.lumipulse.snap.2022) <- label(csf.lumipulse.snap.2022.factor) <- "CSF-defined SNAP based on AB and tau cutpoints (LUMIPULSE, 2022)"
+    
+    biomarkers.ab42.ab40.ratio <- biomarkers.quanterixsimoa.ab42.plasma.2022 / biomarkers.quanterixsimoa.ab40.plasma.2022 
+    label(biomarkers.ab42.ab40.ratio) <- "AB42/AB42 Ratio (plasma)"
+    
+    csf.plasma.cobas.albumin.ratio <- csf.cobas.albumin.2022 / biomarkers.cobas.albumin.plasma.2022
+    label(csf.plasma.cobas.albumin.ratio) <- "CSF/Biomarkers Ratio (albumin)"
   })
 
   attr(data$biomarkers.milliplex.vegf.plasma.2015, "label") <- vegf_label
