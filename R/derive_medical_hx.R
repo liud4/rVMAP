@@ -80,9 +80,18 @@ derive_medical_hx <- function(data) {
   data$echo.sbp <- as.numeric(data$echo.sbp)
 
   data$echo.sbp2 <- as.numeric(data$echo.sbp2)
+  
+  data$echo.sbp3 <- as.numeric(data$echo.sbp3)
 
-  data$sbp <- rowMeans(data[, Cs(echo.sbp, echo.sbp2)], na.rm= TRUE)
-  data$dbp <- rowMeans(data[, Cs(echo.dbp, echo.dbp2)], na.rm= TRUE)
+  data$sbp <- rowMeans(data[, Cs(echo.sbp, echo.sbp2, echo.sbp3)], na.rm= TRUE)
+  
+  data$echo.dbp <- as.numeric(data$echo.dbp)
+  
+  data$echo.dbp2 <- as.numeric(data$echo.dbp2)
+  
+  data$echo.dbp3 <- as.numeric(data$echo.dbp3)
+  
+  data$dbp <- rowMeans(data[, Cs(echo.dbp, echo.dbp2, echo.dbp3)], na.rm= TRUE)
 
   # the above procedure introduces NaN's if both components are missing
   data <- within(data, {
