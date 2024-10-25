@@ -76,7 +76,8 @@ derive_cow_variants <- function(data) {
         cow.acoa %in% c(1, 2) & cow.pcoa.l %in% c(1, 2) & cow.pcoa.r %in% 3 ~ 3, # 3, Right PcoA missing
         cow.acoa %in% 3 & cow.pcoa.l %in% 3 & cow.pcoa.r %in% c(1, 2) ~ 4, # 4, AcoA and Left PcoA missing
         cow.acoa %in% 3 & cow.pcoa.l %in% c(1, 2) & cow.pcoa.r %in% 3 ~ 5, # 5, AcoA and Right PcoA missing
-        cow.acoa %in% 3 & cow.pcoa.l %in% 3 & cow.pcoa.r %in% 3 ~ 6, # 6, AcoA, Left PcoA, and Right PcoA missing
+        cow.acoa %in% c(1, 2) & cow.pcoa.l %in% 3 & cow.pcoa.r %in% 3 ~ 7, # 6, Left PcoA, and Right PcoA missing
+        cow.acoa %in% 3 & cow.pcoa.l %in% 3 & cow.pcoa.r %in% 3 ~ 7, # 7, AcoA, Left PcoA, and Right PcoA missing
         TRUE ~ NA_real_
       ),
       cow.variant11 = case_when( # derive: cow.variant11, COW variant Missing A1
@@ -130,7 +131,7 @@ derive_cow_variants <- function(data) {
       cow.variant18 = case_when(
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
         cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1 ~ 1, # 1, Left P1 hypoplasia, Left PcoA normal
-        cow.p1.r %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1 ~ 2, # 2, Right P1 hypoplasia, Right PcoA normal
+        cow.p1.r %in% 2 & cow.pcoa.r %in% 1 & cow.p1.l %in% 1 ~ 2, # 2, Right P1 hypoplasia, Right PcoA normal
         cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1 ~ 3, # 3, Bilateral P1 hypoplasia (relative to PcoA)
         cow.p1.l %in% 3 | cow.p1.r %in% 3 ~ 4, # 4, Other
         TRUE ~ NA_real_
@@ -238,13 +239,14 @@ derive_cow_variants <- function(data) {
     )
 
     cow.variant10 <- factor(cow.variant10,
-                            levels = c(0, 1, 2, 3, 4, 5, 6),
+                            levels = c(0, 1, 2, 3, 4, 5, 6, 7),
                             labels = c("Fully patent AcoA and PcoAs",
                                        "AcoA missing",
                                        "Left PcoA missing",
                                        "Right PcoA missing",
                                        "AcoA and Left PcoA missing",
                                        "AcoA and Right PcoA missing",
+                                       "Left PcoA and Right PcoA missing",
                                        "AcoA, Left PcoA, and Right PcoA missing")
     )
 
