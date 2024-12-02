@@ -239,7 +239,7 @@ derive_cow_variants <- function(data) {
                                        "AcoA and Left PcoA missing",
                                        "AcoA and Right PcoA missing",
                                        "Left PcoA and Right PcoA missing",
-                                       "Left PcoA, Right PcoA, and AcoA missing")
+                                       "AcoA, Left PcoA, and Right PcoA missing")
     )
 
     cow.variant11 <- factor(cow.variant11,
