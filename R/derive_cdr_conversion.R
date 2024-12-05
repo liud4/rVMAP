@@ -38,9 +38,11 @@ derive_cdr_conversion <- function(data) {
     ungroup()
 
   data$cdr.factor <- factor(data$cdr.factor, levels = c(0, 0.5, 1, 2, 3))
+  
+  label(data$cdr.factor) <- "CDR Global Score"
 
   data$cdr.conversion.factor <- factor(data$cdr.conversion.factor, levels = c("Stable", "Conversion", "Reversion"))
-
+  
   label(data$cdr.conversion.factor) <- "CDR Conversion"
 
   return(data)

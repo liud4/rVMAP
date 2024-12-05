@@ -114,7 +114,7 @@ derive_cow_variants <- function(data) {
         cow.acoa %in% 2 & cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2 ~ 7, # 7, Left PcoA, Right PcoA, and AcoA hypoplasia
         TRUE ~ NA_real_
       ),
-      cow.variant.missing.hyppoplastic.acoa.pcoa = case_when( # previous: cow.variant16; Missing or Hypoplastic AcoA or PcoAs
+      cow.variant.missing.hypoplastic.acoa.pcoa = case_when( # previous: cow.variant16; Missing or Hypoplastic AcoA or PcoAs
         cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
         cow.acoa %in% c(2, 3) & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia or missing
         cow.acoa %in% 1 & (cow.pcoa.l %in% c(2, 3) | cow.pcoa.r %in% c(2, 3)) ~ 2, # 2, PcoA hypoplasia or missing unilateral/bilateral
@@ -157,7 +157,7 @@ derive_cow_variants <- function(data) {
 
   data <- within(data, {
     cow.variant.archive1 <- factor(
-      ccow.variant.archive1,
+      cow.variant.archive1,
       levels = c(0, 1, 2, 3),
       labels = c(
         "textbook",
@@ -349,7 +349,7 @@ derive_cow_variants <- function(data) {
     
     cow.variant.partialftp <- factor(
       cow.variant.partialftp,
-      levels = c(0, 1, 2, 3, 4),
+      levels = c(0, 1, 2, 3),
       labels = c(
         "Normal circle",
         "Left P1 hypoplasia, Left PcoA normal",
