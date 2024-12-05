@@ -139,14 +139,13 @@ derive_cow_variants <- function(data) {
         (cow.p1.l %in% 2 & cow.pcoa.l %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Partial FTP unilateral/bilateral
         TRUE ~ NA_real_
       ),
-      ## !!DO NOT RUN; PUSH for records.
       cow.variant.missing.p1.partialftp = case_when( # previous: cow.variant20; Full or Partial FTP 
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
-        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1 ~ 1, # 1, Unilateral or Bilateral Full FTP or Unilateral or Bilateral Partial FTP
+        (cow.p1.l %in% 3 | cow.p1.r %in% 3) | (cow.p1.l %in% 2 & cow.pcoa.l %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
         TRUE ~ NA_real_
       ),
-      cow.variant21 = case_when(
-        ((cow.p1.l %in% 3 & cow.p1.r %in% c(1, 2)) | (cow.p1.l %in% c(1, 2) & cow.p1.r %in% 3) | (cow.p1.l %in% 3 & cow.p1.r %in% 3)) & (cow.a1.l %in% 1 & cow.a1.r %in% 1) ~ 0, # 0, Full FTP and Normal A1s
+      cow.variant.typesab = case_when( # previous: cow.variant21; Type A or B 
+        (cow.p1.l %in% 3 | cow.p1.r %in% 3) & cow.a1.l %in% 1 & cow.a1.r %in% 1 ~ 0, # 0, Full FTP and Normal A1s
         cow.p1.l %in% 3 & cow.p1.r %in% c(1, 2) & cow.a1.l %in% 1 & cow.a1.r %in% c(2, 3) ~ 1, # 1, Unilateral Full FTP and Absent/Hypoplastic A1 Contralateral (Type A)
         cow.p1.l %in% c(1, 2) & cow.p1.r %in% 3 & cow.a1.l %in% c(2, 3) & cow.a1.r %in% 1 ~ 1, # 1, Unilateral Full FTP and Absent/Hypoplastic A1 Contralateral (Type A)
         cow.p1.l %in% 3 & cow.p1.r %in% c(1, 2) & cow.a1.l %in% c(2, 3) & cow.a1.r %in% 1 ~ 2, # 2, Unilateral Full FTP and Absent/Hypoplastic A1 Ipsilateral (Type B)
@@ -157,177 +156,239 @@ derive_cow_variants <- function(data) {
     )
 
   data <- within(data, {
-    cow.variant2 <- factor(cow.variant2,
-                           levels = c(0, 1, 2, 3),
-                           labels = c("textbook",
-                                      "A1 hypoplasia",
-                                      "P1 hypoplasia",
-                                      "Other")
+    cow.variant.archive1 <- factor(
+      ccow.variant.archive1,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "textbook",
+        "A1 variant unilateral",
+        "P1 variant unilateral/bilateral",
+        "Other"
+      )
     )
-    label(cow.variant2) <- 'CoW variant Rivera-Rivera'
-
-    cow.variant3 <- factor(cow.variant3,
-                           levels = c(0, 1, 2),
-                           labels = c("Fully patent A1s and P1s",
-                                      "A1 missing",
-                                      "P1 missing bilateral/unilateral")
+    label(cow.variant.archive1) <- 'CoW variant Rivera-Rivera; Variant A1s or P1s'
+    
+    cow.variant.missing.a1.p1 <- factor(
+      cow.variant.missing.a1.p1,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "Patent A1s and P1s",
+        "A1 missing unilateral/bilateral",
+        "P1 missing unilateral/bilateral",
+        "A1 and P1 missing unilateral/bilateral"
+      )
     )
-    label(cow.variant3) <- 'CoW variant Ryan'
-
-    cow.variant4 <- factor(cow.variant4,
-                           levels = c(0, 1, 2, 3),
-                           labels = c("Fully patent AcoA and PcoAs",
-                                      "AcoA missing",
-                                      "PcoA missing bilateral/unilateral",
-                                      "AcoA and PcoA missing bilateral/unilateral")
+    label(cow.variant.missing.a1.p1) <- 'CoW variant Ryan; Missing A1s or P1s'
+    
+    cow.variant.missing.acoa.pcoa  <- factor(
+      cow.variant.missing.acoa.pcoa ,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "Patent AcoA and PcoAs",
+        "AcoA missing",
+        "PcoA missing unilateral/bilateral",
+        "AcoA and PcoA missing unilateral/bilateral"
+      )
     )
-    label(cow.variant4) <- 'CoW variant Vrselja'
-
-    cow.variant5 <- factor(cow.variant5,
-                           levels = c(0, 1, 2, 3, 4),
-                           labels = c("textbook",
-                                      "Left A1 hypoplasia",
-                                      "Right A1 hypoplasia",
-                                      "Left P1 hypoplasia (with bilateral)",
-                                      "Other")
+    label(cow.variant.missing.acoa.pcoa) <- 'CoW variant Vrselja; Missing AcoA or PcoAs'
+    
+    cow.variant.archive2 <- factor(
+      cow.variant.archive2 ,
+      levels = c(0, 1, 2, 3, 4),
+      labels = c(
+        "textbook",
+        "Left A1 variant",
+        "Right A1 variant",
+        "Left P1 variant (with bilateral)",
+        "Other"
+      )
     )
-
-    cow.variant6 <- factor(cow.variant6,
-                           levels = c(0, 1, 2, 3, 4),
-                           labels = c("textbook",
-                                      "Left A1 hypoplasia",
-                                      "Right A1 hypoplasia",
-                                      "Right P1 hypoplasia (with bilateral)",
-                                      "Other")
+    label(cow.variant.archive2) <- 'Variant A1s or P1s, left vs. right, grouping Bilateral P1 with Left P1'
+    
+    cow.variant.archive3 <- factor(
+      cow.variant.archive3,
+      levels = c(0, 1, 2, 3, 4),
+      labels = c(
+        "textbook",
+        "Left A1 variant",
+        "Right A1 variant",
+        "Right P1 variant (with bilateral)",
+        "Other"
+      )
     )
-
-    cow.variant7 <- factor(cow.variant7,
-                           levels = c(0, 1, 2, 3, 4, 5, 6),
-                           labels = c("textbook",
-                                      "Left A1 hypoplasia",
-                                      "Right A1 hypoplasia",
-                                      "Left P1 hypoplasia (without bilateral)",
-                                      "Right P1 hypoplasia (without bilateral)",
-                                      "Bilateral P1 hypoplasia",
-                                      "Other")
+    label(cow.variant.archive3) <- 'Variant A1s or P1s, left vs. right, grouping Bilateral P1 with Right P1'
+    
+    cow.variant.archive4 <- factor(
+      cow.variant.archive4,
+      levels = c(0, 1, 2, 3, 4, 5, 6),
+      labels = c(
+        "textbook",
+        "Left A1 variant",
+        "Right A1 variant",
+        "Left P1 variant (without bilateral)",
+        "Right P1 variant (without bilateral)",
+        "Bilateral P1 variant",
+        "Other"
+      )
     )
-
-    cow.variant8 <- factor(cow.variant8,
-                           levels = c(0, 1, 2, 3, 4),
-                           labels = c("Fully patent A1s and P1s",
-                                      "Left A1 missing",
-                                      "Right A1 missing",
-                                      "Left P1 missing (with bilateral)",
-                                      "Right P1 missing (without bilateral)")
+    label(cow.variant.archive4) <- 'Variant A1s or P1s, left vs. right, grouping Bilateral P1 separately'
+    
+    cow.variant.archive5  <- factor(
+      cow.variant.archive5 ,
+      levels = c(0, 1, 2, 3, 4),
+      labels = c(
+        "Patent A1s and P1s",
+        "Left A1 missing",
+        "Right A1 missing",
+        "Left P1 missing (with bilateral)",
+        "Right P1 missing (without bilateral)"
+      )
     )
-
-    cow.variant9 <- factor(cow.variant9,
-                           levels = c(0, 1, 2, 3, 4),
-                           labels = c("Fully patent A1s and P1s",
-                                      "Left A1 missing",
-                                      "Right A1 missing",
-                                      "Right P1 missing (with bilateral)",
-                                      "Left P1 missing (without bilateral)")
+    label(cow.variant.archive5) <- 'Missing A1s or P1s, left vs. right, grouping Bilateral P1 with Left P1'
+    
+    cow.variant.archive6 <- factor(
+      cow.variant.archive6,
+      levels = c(0, 1, 2, 3, 4),
+      labels = c(
+        "Patent A1s and P1s",
+        "Left A1 missing",
+        "Right A1 missing",
+        "Left P1 missing (without bilateral)",
+        "Right P1 missing (with bilateral)"
+      )
     )
-
-    cow.variant10 <- factor(cow.variant10,
-                            levels = c(0, 1, 2, 3, 4, 5, 6, 7),
-                            labels = c("Fully patent AcoA and PcoAs",
-                                       "AcoA missing",
-                                       "Left PcoA missing",
-                                       "Right PcoA missing",
-                                       "AcoA and Left PcoA missing",
-                                       "AcoA and Right PcoA missing",
-                                       "Left PcoA and Right PcoA missing",
-                                       "AcoA, Left PcoA, and Right PcoA missing")
+    label(cow.variant.archive6) <- 'Missing A1s or P1s, left vs. right, grouping Bilateral P1 with Right P1'
+    
+    cow.variant.missing.acoa.pcoa.lr <- factor(
+      cow.variant.missing.acoa.pcoa.lr,
+      levels = c(0, 1, 2, 3, 4, 5, 6, 7),
+      labels = c(
+        "Patent AcoA and PcoAs",
+        "AcoA missing",
+        "Left PcoA missing",
+        "Right PcoA missing",
+        "AcoA missing and Left PcoA",
+        "AcoA missing and Right PcoA",
+        "Left PcoA and Right PcoA missing",
+        "Left PcoA, Right PcoA, and AcoA missing"
+      )
     )
-
-    cow.variant11 <- factor(cow.variant11,
-                            levels = c(0, 1),
-                            labels = c("Both A1s present",
-                                       "A1 missing")
+    label(cow.variant.missing.acoa.pcoa.lr) <- 'Missing AcoA or PcoAs, left vs. right'
+    
+    cow.variant.missing.a1 <- factor(
+      cow.variant.missing.a1,
+      levels = c(0, 1),
+      labels = c("Patent A1s", "A1 missing unilateral/bilateral")
     )
-
-    cow.variant12 <- factor(cow.variant12,
-                            levels = c(0, 1),
-                            labels = c("Both P1s present",
-                                       "P1 missing")
+    label(cow.variant.missing.a1) <- 'Missing A1s'
+    
+    cow.variant.missing.p1 <- factor(
+      cow.variant.missing.p1,
+      levels = c(0, 1),
+      labels = c("Patent P1s", "P1 missing unilateral/bilateral")
     )
-
-    cow.variant13 <- factor(cow.variant13,
-                            levels = c(0, 1),
-                            labels = c("Left P1 present",
-                                       "Left P1 missing")
+    label(cow.variant.missing.p1) <- 'Missing P1s'
+    
+    cow.variant.archive7 <- factor(
+      cow.variant.archive7,
+      levels = c(0, 1),
+      labels = c("Patent Left P1", "Left P1 missing")
     )
-
-    cow.variant14 <- factor(cow.variant14,
-                            levels = c(0, 1, 2, 3, 4),
-                            labels = c("Normal AcoA and PcoAs",
-                                       "AcoA hypoplasia",
-                                       "PcoA hypoplasia bilateral/unilateral",
-                                       "AcoA and PcoA hypoplasia bilateral/unilateral",
-                                       "Other")
+    label(cow.variant.archive7) <- 'Missing Left P1'
+    
+    cow.variant.hypoplastic.acoa.pcoa <- factor(
+      cow.variant.hypoplastic.acoa.pcoa,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "Normal AcoA and PcoAs",
+        "AcoA hypoplasia",
+        "PcoA hypoplasia unilateral/bilateral",
+        "AcoA and PcoA hypoplasia unilateral/bilateral"
+      )
     )
-
-    cow.variant15 <- factor(cow.variant15,
-                            levels = c(0, 1, 2, 3, 4, 5, 6, 7, 8),
-                            labels = c("Normal AcoA and PcoAs",
-                                       "AcoA hypoplasia",
-                                       "Left PcoA hypoplasia",
-                                       "Right PcoA hypoplasia",
-                                       "Left PcoA and AcoA hypoplasia",
-                                       "Right PcoA and AcoA hypoplasia",
-                                       "Left PcoA and Right PcoA hypoplasia",
-                                       "Left PcoA, Right PcoA, and AcoA hypoplasia",
-                                       "Other")
+    label(cow.variant.hypoplastic.acoa.pcoa) <- 'Hypoplastic AcoA or PcoAs'
+    
+    cow.variant.hypoplastic.acoa.pcoa.lr <- factor(
+      cow.variant.hypoplastic.acoa.pcoa.lr,
+      levels = c(0, 1, 2, 3, 4, 5, 6, 7),
+      labels = c(
+        "Normal AcoA and PcoAs",
+        "AcoA hypoplasia",
+        "Left PcoA hypoplasia",
+        "Right PcoA hypoplasia",
+        "Left PcoA and AcoA hypoplasia",
+        "Right PcoA and AcoA hypoplasia",
+        "Left PcoA and Right PcoA hypoplasia",
+        "Left PcoA, Right PcoA, and AcoA hypoplasia"
+      )
     )
-
-    cow.variant16 <- factor(cow.variant16,
-                            levels = c(0, 1, 2, 3),
-                            labels = c("Normal AcoA and PcoAs",
-                                       "AcoA hypoplasia or missing",
-                                       "PcoA hypoplasia or missing bilateral/unilateral",
-                                       "AcoA and PcoA hypoplasia or missing bilateral/unilateral")
+    label(cow.variant.hypoplastic.acoa.pcoa.lr) <- 'Hypoplastic AcoA or PcoAs, left vs. right'
+    
+    cow.variant.missing.hypoplastic.acoa.pcoa <- factor(
+      cow.variant.missing.hypoplastic.acoa.pcoa,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "Normal AcoA and PcoAs",
+        "AcoA missing or hypoplasia",
+        "PcoA missing or hypoplasia unilateral/bilateral",
+        "AcoA and PcoA missing or hypoplasia unilateral/bilateral"
+      )
     )
-
-    cow.variant17 <- factor(cow.variant17,
-                            levels = c(0, 1, 2),
-                            labels = c("Normal circle",
-                                       "Unilateral P1 missing",
-                                       "Bilateral P1 missing")
+    label(cow.variant.missing.hypoplastic.acoa.pcoa) <- 'Missing or Hypoplastic AcoA or PcoAs'
+    
+    cow.variant.missing.p1.ub <- factor(
+      cow.variant.missing.p1.ub,
+      levels = c(0, 1, 2),
+      labels = c(
+        "Normal circle",
+        "P1 missing unilateral",
+        "P1 missing bilateral"
+      )
     )
-
-
-    cow.variant18 <- factor(cow.variant18,
-                            levels = c(0, 1, 2, 3, 4),
-                            labels = c("Normal circle",
-                                       "Left P1 hypoplasia, Left PcoA normal",
-                                       "Right P1 hypoplasia, Right PcoA normal",
-                                       "Bilateral P1 hypoplasia (relative to PcoA)",
-                                       "Other")
+    label(cow.variant.missing.p1.ub) <- 'Missing P1s, unilateral vs. bilateral'
+    
+    cow.variant.partialftp <- factor(
+      cow.variant.partialftp,
+      levels = c(0, 1, 2, 3, 4),
+      labels = c(
+        "Normal circle",
+        "Left P1 hypoplasia, Left PcoA normal",
+        "Right P1 hypoplasia, Right PcoA normal",
+        "Bilateral P1 hypoplasia (relative to PcoA)"
+      )
     )
-
-    cow.variant19 <- factor(cow.variant19,
-                            levels = c(0, 1),
-                            labels = c("Normal circle",
-                                       "Unilateral or Bilateral Partial FTP")
+    label(cow.variant.partialftp) <- 'Partial FTP, left vs. right'
+    
+    cow.variant.partialftp.ub <- factor(
+      cow.variant.partialftp.ub,
+      levels = c(0, 1),
+      labels = c("Normal circle", "Partial FTP unilateral/bilateral")
     )
-
-    cow.variant20 <- factor(cow.variant20,
-                            levels = c(0, 1),
-                            labels = c("Normal circle",
-                                       "Unilateral or Bilateral Full FTP or Unilateral or Bilateral Partial FTP")
+    label(cow.variant.partialftp.ub) <- 'Partial FTP'
+    
+    cow.variant.missing.p1.partialftp <- factor(
+      cow.variant.missing.p1.partialftp,
+      levels = c(0, 1),
+      labels = c(
+        "Normal circle",
+        "Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral"
+      )
     )
-
-    cow.variant21 <- factor(cow.variant21,
-                            levels = c(0, 1, 2, 3),
-                            labels = c("Full FTP and Normal A1s",
-                                       "Unilateral Full FTP and Absent/Hypoplastic A1 Contralateral (Type A)",
-                                       "Unilateral Full FTP and Absent/Hypoplastic A1 Ipsilateral (Type B)",
-                                       "Bilateral Full FTP and Absent/Hypoplastic A1")
+    label(cow.variant.missing.p1.partialftp) <- 'Full or Partial FTP'
+    
+    cow.variant.typesab <- factor(
+      cow.variant.typesab,
+      levels = c(0, 1, 2, 3),
+      labels = c(
+        "Full FTP and Normal A1s",
+        "Unilateral Full FTP and Absent/Hypoplastic A1 Contralateral (Type A)",
+        "Unilateral Full FTP and Absent/Hypoplastic A1 Ipsilateral (Type B)",
+        "Bilateral Full FTP and Absent/Hypoplastic A1"
+      )
     )
-
+    label(cow.variant.typesab) <- 'Type A or B'
+    
   })
-
+  
   return(data)
 }
