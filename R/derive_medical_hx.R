@@ -99,8 +99,8 @@ derive_medical_hx <- function(data) {
     dbp <- ifelse(is.nan(dbp), NA, dbp)
     pp <- sbp-dbp
 
-    label(sbp) <- "Mean of first two echo SBP readings"
-    label(dbp) <- "Mean of first two echo DBP readings"
+    label(sbp) <- "Mean of all three echo SBP readings"
+    label(dbp) <- "Mean of all three echo DBP readings"
     label(pp) <- "Pulse pressure"
   })
 
