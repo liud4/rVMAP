@@ -48,7 +48,7 @@ derive_demographics <- function(data) {
       )
     
     label(age) <-
-      "Age at medhx.date/vf.arrival.date.time, recalculated"
+      "Age at the visit"
   })
   
   return(data)
