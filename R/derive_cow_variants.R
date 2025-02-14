@@ -28,6 +28,15 @@ derive_cow_variants <- function(data) {
         cow.acoa %in% 3 & (cow.pcoa.l %in% 3 | cow.pcoa.r %in% 3) ~ 3, # 3, AcoA and PcoA missing unilateral/bilateral
         TRUE ~ NA_real_
       ),
+      cow.variant.missing.acoa.pcoa.ub = case_when( # new variable; Missing AcoA or PcoAs, unilateral vs. bilateral
+        cow.acoa %in% c(1, 2) & cow.pcoa.l %in% c(1, 2) & cow.pcoa.r %in% c(1, 2) ~ 0, # 0, Patent AcoA and PcoAs
+        cow.acoa %in% 3 & cow.pcoa.l %in% c(1, 2) & cow.pcoa.r %in% c(1, 2) ~ 1, # 1, AcoA missing
+        cow.acoa %in% c(1, 2) & ((cow.pcoa.l %in% 3 & cow.pcoa.r %nin% 3) | (cow.pcoa.l %nin% 3 & cow.pcoa.r %in% 3)) ~ 2, # 2, PcoA missing unilateral
+        cow.acoa %in% c(1, 2) & cow.pcoa.l %in% 3 & cow.pcoa.r %in% 3 ~ 3, # 3, PcoA missing bilateral
+        cow.acoa %in% 3 & ((cow.pcoa.l %in% 3 & cow.pcoa.r %nin% 3) |  (cow.pcoa.l %nin% 3 & cow.pcoa.r %in% 3)) ~ 4, # 4, AcoA and PcoA missing unilateral
+        cow.acoa %in% 3 & cow.pcoa.l %in% 3 & cow.pcoa.r %in% 3 ~ 5, # 5, AcoA and PcoA missing bilateral
+        TRUE ~ NA_real_
+      ),
       cow.variant.archive2 = case_when( # previous: cow.variant5; Variant A1s or P1s, left vs. right, grouping Bilateral P1 with Left P1
         cow.variant %in% c(1, 3, 4, 5, 6, 7, 8, 9) ~ 0, # 0, Textbook
         cow.variant %in% c(10, 21, 25, 29) ~ 1, # 1, Left A1 variant
@@ -97,6 +106,13 @@ derive_cow_variants <- function(data) {
         TRUE ~ NA_real_
       ),
       cow.variant.hypoplastic.acoa.pcoa = case_when( # previous: cow.variant14; Hypoplastic AcoA or PcoAs
+        cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
+        cow.acoa %in% 2 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia
+        cow.acoa %in% 1 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 2, # 2, PcoA hypoplasia unilateral/bilateral
+        cow.acoa %in% 2 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 3, # 3, AcoA and PcoA hypoplasia unilateral/bilateral
+        TRUE ~ NA_real_
+      ),
+      cow.variant.hypoplastic.acoa.pcoa.ub = case_when( # new variable; no label provided
         cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
         cow.acoa %in% 2 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia
         cow.acoa %in% 1 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 2, # 2, PcoA hypoplasia unilateral/bilateral
@@ -191,6 +207,20 @@ derive_cow_variants <- function(data) {
       )
     )
     label(cow.variant.missing.acoa.pcoa) <- 'CoW variant Vrselja; Missing AcoA or PcoAs'
+    
+    cow.variant.missing.acoa.pcoa.ub  <- factor(
+      cow.variant.missing.acoa.pcoa.ub ,
+      levels = c(0, 1, 2, 3, 4, 5),
+      labels = c(
+        "Patent AcoA and PcoAs",
+        "AcoA missing",
+        "PcoA missing unilateral",
+        "PcoA missing bilateral",
+        "AcoA missing and PcoA missing unilateral",
+        "AcoA missing and PcoA missing bilateral"
+      )
+    )
+    label(cow.variant.missing.acoa.pcoa.ub) <- 'Missing AcoA or PcoAs, unilateral vs. bilateral'
     
     cow.variant.archive2 <- factor(
       cow.variant.archive2 ,
