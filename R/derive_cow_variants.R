@@ -112,11 +112,13 @@ derive_cow_variants <- function(data) {
         cow.acoa %in% 2 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 3, # 3, AcoA and PcoA hypoplasia unilateral/bilateral
         TRUE ~ NA_real_
       ),
-      cow.variant.hypoplastic.acoa.pcoa.ub = case_when( # new variable; no label provided
+      cow.variant.hypoplastic.acoa.pcoa.ub = case_when( # new variable; Hypoolastic AcoA or PcoAs, unilateral vs. bilateral
         cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
         cow.acoa %in% 2 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia
-        cow.acoa %in% 1 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 2, # 2, PcoA hypoplasia unilateral/bilateral
-        cow.acoa %in% 2 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 3, # 3, AcoA and PcoA hypoplasia unilateral/bilateral
+        cow.acoa %in% 1 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %nin% 2) | (cow.pcoa.l %nin% 2 & cow.pcoa.r %in% 2)) ~ 2, # 2, PcoA hypoplasia unilateral
+        cow.acoa %in% 1 & cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2 ~ 3, # 3, PcoA hypoplasia bilateral
+        cow.acoa %in% 2 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %nin% 2) | (cow.pcoa.l %nin% 2 & cow.pcoa.r %in% 2)) ~ 4, # 4, AcoA hypoplasia and PcoA hypoplasia unilateral
+        cow.acoa %in% 2 & cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2 ~ 5, # 5, AcoA hypoplasia and PcoA hypoplasia bilateral
         TRUE ~ NA_real_
       ),
       cow.variant.hypoplastic.acoa.pcoa.lr = case_when( # previous: cow.variant15; Hypoplastic AcoA or PcoAs, left vs. right
@@ -143,14 +145,13 @@ derive_cow_variants <- function(data) {
         cow.p1.l %in% 3 & cow.p1.r %in% 3 ~ 0, # 2, P1 missing bilateral
         TRUE ~ NA_real_
       ),
-      cow.variant.partialftp = case_when( # previous: cow.variant18; Partial FTP, left vs. right
+      cow.variant.partialftp.ub = case_when( # previous: cow.variant18; Partial FTP, unilateral vs. bilateral
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
-        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1 ~ 1, # 1, Left P1 hypoplasia, Left PcoA normal
-        cow.p1.r %in% 2 & cow.pcoa.r %in% 1 & cow.p1.l %in% 1 ~ 2, # 2, Right P1 hypoplasia, Right PcoA normal
-        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1 ~ 3, # 3, Bilateral P1 hypoplasia (relative to PcoA)
+        (cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1 & cow.p1.l %in% 1) ~ 1, # 1, Partial FTP unilateral
+        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1 ~ 2, # 2, Partial FTP bilateral 
         TRUE ~ NA_real_
       ),
-      cow.variant.partialftp.ub = case_when( # previous: cow.variant19; Partial FTP
+      cow.variant.partialftp = case_when( # previous: cow.variant19; Partial FTP
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
         (cow.p1.l %in% 2 & cow.pcoa.l %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Partial FTP unilateral/bilateral
         TRUE ~ NA_real_
@@ -338,6 +339,20 @@ derive_cow_variants <- function(data) {
     )
     label(cow.variant.hypoplastic.acoa.pcoa) <- 'Hypoplastic AcoA or PcoAs'
     
+    cow.variant.hypoplastic.acoa.pcoa.ub <- factor(
+      cow.variant.hypoplastic.acoa.pcoa.ub,
+      levels = c(0, 1, 2, 3, 4, 5),
+      labels = c(
+        "Normal AcoA and PcoAs",
+        "AcoA hypoplasia",
+        "PcoA hypoplasia unilateral",
+        "PcoA hypoplasia bilateral",
+        "AcoA hypoplasia and PcoA hypoplasia unilateral",
+        "AcoA hypoplasia and PcoA hypoplasia bilateral"
+      )
+    )
+    label(cow.variant.hypoplastic.acoa.pcoa) <- 'Hypoplastic AcoA or PcoAs, unilateral vs. bilateral'
+    
     cow.variant.hypoplastic.acoa.pcoa.lr <- factor(
       cow.variant.hypoplastic.acoa.pcoa.lr,
       levels = c(0, 1, 2, 3, 4, 5, 6, 7),
@@ -377,20 +392,19 @@ derive_cow_variants <- function(data) {
     )
     label(cow.variant.missing.p1.ub) <- 'Missing P1s, unilateral vs. bilateral'
     
-    cow.variant.partialftp <- factor(
-      cow.variant.partialftp,
-      levels = c(0, 1, 2, 3),
-      labels = c(
-        "Normal circle",
-        "Left P1 hypoplasia, Left PcoA normal",
-        "Right P1 hypoplasia, Right PcoA normal",
-        "Bilateral P1 hypoplasia (relative to PcoA)"
-      )
-    )
-    label(cow.variant.partialftp) <- 'Partial FTP, left vs. right'
-    
     cow.variant.partialftp.ub <- factor(
       cow.variant.partialftp.ub,
+      levels = c(0, 1, 2),
+      labels = c(
+        "Normal circle",
+        "Partial FTP unilateral",
+        "Partial FTP bilateral"
+      )
+    )
+    label(cow.variant.partialftp) <- 'Partial FTP, unilateral vs. bilateral'
+    
+    cow.variant.partialftp <- factor(
+      cow.variant.partialftp,
       levels = c(0, 1),
       labels = c("Normal circle", "Partial FTP unilateral/bilateral")
     )
