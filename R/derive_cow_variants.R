@@ -108,16 +108,18 @@ derive_cow_variants <- function(data) {
       cow.variant.hypoplastic.acoa.pcoa = case_when( # previous: cow.variant14; Hypoplastic AcoA or PcoAs
         cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
         cow.acoa %in% 2 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia
-        cow.acoa %in% 1 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 2, # 2, PcoA hypoplasia unilateral/bilateral
-        cow.acoa %in% 2 & (cow.pcoa.l %in% 2 | cow.pcoa.r %in% 2) ~ 3, # 3, AcoA and PcoA hypoplasia unilateral/bilateral
+        cow.acoa %in% 1 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %in% 1) | (cow.pcoa.l %in% 1 & cow.pcoa.r %in% 2) | (cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2)) ~ 2, 
+        # 2, PcoA hypoplasia unilateral/bilateral
+        cow.acoa %in% 2 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %in% 1) | (cow.pcoa.l %in% 1 & cow.pcoa.r %in% 2) | (cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2)) ~ 3, 
+        # 3, AcoA and PcoA hypoplasia unilateral/bilateral
         TRUE ~ NA_real_
       ),
       cow.variant.hypoplastic.acoa.pcoa.ub = case_when( # new variable; Hypoolastic AcoA or PcoAs, unilateral vs. bilateral
         cow.acoa %in% 1 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 0, # 0, Normal AcoA and PcoAs
         cow.acoa %in% 2 & cow.pcoa.l %in% 1 & cow.pcoa.r %in% 1 ~ 1, # 1, AcoA hypoplasia
-        cow.acoa %in% 1 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %nin% 2) | (cow.pcoa.l %nin% 2 & cow.pcoa.r %in% 2)) ~ 2, # 2, PcoA hypoplasia unilateral
+        cow.acoa %in% 1 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %in% 1) | (cow.pcoa.l %in% 1 & cow.pcoa.r %in% 2)) ~ 2, # 2, PcoA hypoplasia unilateral
         cow.acoa %in% 1 & cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2 ~ 3, # 3, PcoA hypoplasia bilateral
-        cow.acoa %in% 2 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %nin% 2) | (cow.pcoa.l %nin% 2 & cow.pcoa.r %in% 2)) ~ 4, # 4, AcoA hypoplasia and PcoA hypoplasia unilateral
+        cow.acoa %in% 2 & ((cow.pcoa.l %in% 2 & cow.pcoa.r %in% 1) | (cow.pcoa.l %in% 1 & cow.pcoa.r %in% 2)) ~ 4, # 4, AcoA hypoplasia and PcoA hypoplasia unilateral
         cow.acoa %in% 2 & cow.pcoa.l %in% 2 & cow.pcoa.r %in% 2 ~ 5, # 5, AcoA hypoplasia and PcoA hypoplasia bilateral
         TRUE ~ NA_real_
       ),
@@ -153,12 +155,16 @@ derive_cow_variants <- function(data) {
       ),
       cow.variant.partialftp = case_when( # previous: cow.variant19; Partial FTP
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
-        (cow.p1.l %in% 2 & cow.pcoa.l %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Partial FTP unilateral/bilateral
+        (cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1 & cow.p1.l %in% 1) | 
+          (cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Partial FTP unilateral/bilateral
         TRUE ~ NA_real_
       ),
       cow.variant.missing.p1.partialftp = case_when( # previous: cow.variant20; Full or Partial FTP 
         cow.p1.l %in% 1 & cow.p1.r %in% 1 ~ 0, # 0, Normal circle
-        (cow.p1.l %in% 3 | cow.p1.r %in% 3) | (cow.p1.l %in% 2 & cow.pcoa.l %in% 1) | (cow.p1.r %in% 2 & cow.pcoa.r %in% 1) ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
+        cow.p1.l %in% 3 | cow.p1.r %in% 3 ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
+        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 1 ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
+        cow.p1.r %in% 2 & cow.pcoa.r %in% 1 & cow.p1.l %in% 1 ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
+        cow.p1.l %in% 2 & cow.pcoa.l %in% 1 & cow.p1.r %in% 2 & cow.pcoa.r %in% 1 ~ 1, # 1, Full FTP unilateral/bilateral or Partial FTP unilateral/bilateral
         TRUE ~ NA_real_
       ),
       cow.variant.typesab = case_when( # previous: cow.variant21; Type A or B 
