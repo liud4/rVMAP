@@ -91,13 +91,14 @@ data.merge.dir <- file.path(data.dir, 'mergedData')
 quarterly.download <- TRUE
 # modify one of these variables to download data or specify a specific raw data file to use for merging
 download.data <- FALSE
-data.freeze.date <- 20231205# in {yyyymmdd} format
+data.freeze.date <- 20250401 # in {yyyymmdd} format
 # modify both of these variables to specify a specific data merge file to compare the new one with
-last.data.download.date <- 20230906 # in {yyyymmdd} format
-last.data.merge.date <- 20230906 # in {yyyymmdd} format
+last.data.download.date <- 20241210 # in {yyyymmdd} format
+last.data.merge.date <- 20241210 # in {yyyymmdd} format
 
+np_invalidation.file <- file.path(data.dir, "Documentation", "InvalidNeuropsych", "VMAP_NP_Invalids_Variable_Names_2024-12-03.xlsx")
 map_163_invalidation.file <- file.path(data.dir, "Documentation", "MAP163_variablesunusable.xlsx")
-composite.df <- readRDS(file.path(data.raw.dir, "np_composite_20230905.rds"))
+composite.df <- readRDS(file.path(data.raw.dir, "np composite", "np_composite_20250401.rds"))
 ####                                                    ####
 ##%######################################################%##
 
@@ -562,6 +563,9 @@ add_brain_mri.variables <-
 add_brain_mri.variables <-
   add_brain_mri.variables[add_brain_mri.variables %nin% grep("_session_id", names(pre_vmap_edc_repeating.df), v = T)]
 
+add_brain_mri.variables <-
+  add_brain_mri.variables[add_brain_mri.variables %nin% grep("_session_indicator", names(pre_vmap_edc_repeating.df), v = T)]
+
 
 add_vmap_edc_brain_mri.df <- pre_vmap_edc_repeating.df %>%
   filter(redcap_repeat_instrument == "brain_mri") %>%
@@ -580,7 +584,7 @@ tempfun <- function(add.var.list, pref.session) {
   ))
 }
 
-# T1
+# T1/DLMUSE
 T1.brain.mri.var <-
   grep("tone_", names(add_vmap_edc_brain_mri.df), v = T)
 T1.brain.mri.var <- T1.brain.mri.var[T1.brain.mri.var %nin% form_variables.df$variable]
@@ -664,6 +668,9 @@ add_vmap_edc_brain_mri_fmri.df <- pre_vmap_edc_repeating.df %>%
   )) %>%
   filter(fmri_scan_acquired == 1 &
            fmri_challenge_complete == 1 & fmri_scan_usable != 0) %>%
+  group_by(map_id, epoch) %>%
+  slice(1) %>%
+  ungroup() %>%
   as.data.frame()
 
 vmap_edc_temp01.df <-
@@ -838,42 +845,44 @@ vmap_edc_temp04.df[vmap_edc_temp04.df$epoch %in% c(0, 1) & vmap_edc_temp04.df$ma
 
 ### Joining end tidal CO~2~ variables (Physlog Data)
 
-The following variables contain values of "--" instead of NA, causing them to be of character class. In this merge, they are manually coerced to numeric (hence the outputted warning messages): `asl_3t_bl_etco2e`, `asl_rest_trimmedmean2525_etco2`, `fmri_rest_trimmedmean2525_etco2`.
+**Note:** The `physlog.static` has retired from MAP data merge.
 
-```{r}
-physlog.df <- MAPfreeze.list$static$data$physlog.static %>%
-  select(
-    -session_id
-  ) %>%
-  mutate(
-    across(
-      c(asl_3t_bl_etco2e, asl_rest_trimmedmean2525_etco2, fmri_rest_trimmedmean2525_etco2),
-      ~ as.numeric(.x)
-    )
-  )
+<!-- The following variables contain values of "--" instead of NA, causing them to be of character class. In this merge, they are manually coerced to numeric (hence the outputted warning messages): `asl_3t_bl_etco2e`, `asl_rest_trimmedmean2525_etco2`, `fmri_rest_trimmedmean2525_etco2`. -->
 
-vars_to_exclude_from_vmap_edc.var <- setdiff(names(physlog.df), c("map_id", "redcap_event_name"))
+<!-- ```{r} -->
+<!-- physlog.df <- MAPfreeze.list$static$data$physlog.static %>% -->
+<!--   select( -->
+<!--     -session_id -->
+<!--   ) %>% -->
+<!--   mutate( -->
+<!--     across( -->
+<!--       c(asl_3t_bl_etco2e, asl_rest_trimmedmean2525_etco2, fmri_rest_trimmedmean2525_etco2), -->
+<!--       ~ as.numeric(.x) -->
+<!--     ) -->
+<!--   ) -->
 
-vmap_edc_temp05.df <- vmap_edc_temp04.df %>%
-  select(
-    -all_of(vars_to_exclude_from_vmap_edc.var)
-  ) %>%
-  left_join(
-    physlog.df, by = c("map_id", "redcap_event_name")
-  )
-```
+<!-- vars_to_exclude_from_vmap_edc.var <- setdiff(names(physlog.df), c("map_id", "redcap_event_name")) -->
+
+<!-- vmap_edc_temp05.df <- vmap_edc_temp04.df %>% -->
+<!--   select( -->
+<!--     -all_of(vars_to_exclude_from_vmap_edc.var) -->
+<!--   ) %>% -->
+<!--   left_join( -->
+<!--     physlog.df, by = c("map_id", "redcap_event_name") -->
+<!--   ) -->
+<!-- ``` -->
 
 ### Removing observations lacking chart finalization
 
 ```{r}
-vmap_edc_temp06.df <- vmap_edc_temp05.df %>%
+vmap_edc_temp05.df <- vmap_edc_temp04.df %>%
   filter(
     chart_finalization == 1 & chart_finalization_review == 1 & chart_merge == 1
   )
 ```
 
 ```{r}
-vmap_edc.df <- vmap_edc_temp06.df
+vmap_edc.df <- vmap_edc_temp05.df
 cat(paste0("NOTE: `vmap_edc.df` has ", nrow(vmap_edc.df), " rows and ", ncol(vmap_edc.df), " columns."))
 ```
 
@@ -1517,6 +1526,32 @@ for (row.i in 1:nrow(invalid_np.df)) {
   invalidation.df <- invalid_np.df[row.i, ]
   merged.df[merged.df$map_id == invalidation.df$map_id & merged.df$epoch == invalidation.df$epoch, invalidation.df$test] <- NA
 }
+
+###
+
+invalid_np_DL.var <- readxl::read_xlsx(np_invalidation.file, col_names = TRUE)
+invalid_np.temp <- merged.df %>% select(c(map_id, epoch, names(invalid_np_DL.var))) %>% as.data.frame()
+invalid_np.list <- lapply(1:ncol(invalid_np_DL.var), function(x) {
+  temp.var <- names(invalid_np_DL.var)[x]
+  temp <- invalid_np.temp[c("map_id", "epoch", temp.var)]
+  temp[temp[temp.var] == 1, ] %>% filter(!is.na(map_id))
+})
+
+invalid_np_DL.df <- NULL
+for (i in 1:ncol(invalid_np_DL.var)){
+  temp <- do.call("rbind", replicate(nrow(na.omit(invalid_np_DL.var[, i])), invalid_np.list[[i]], simplify = FALSE))
+  temp.df <- cbind(temp$map_id, temp$epoch, rep(na.omit(as.matrix(invalid_np_DL.var)[, i]), each = nrow(invalid_np.list[[i]])))
+  invalid_np_DL.df <- rbind(invalid_np_DL.df, temp.df)
+}
+
+invalid_np_DL.df <- as.data.frame(invalid_np_DL.df)
+names(invalid_np_DL.df) <- c("map_id", "epoch", "test")
+invalid_np_DL.df %>% mutate(epoch = as.integer(epoch)) %>% as.data.frame()
+
+for (row.i in 1:nrow(invalid_np_DL.df)) {
+  invalidation.df <- invalid_np_DL.df[row.i, ]
+  merged.df[merged.df$map_id == invalidation.df$map_id & merged.df$epoch == invalidation.df$epoch, invalidation.df$test] <- NA
+}
 ```
 
 ```{r}
@@ -1678,7 +1713,7 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 Derive, label, and add demographic variables to the merged data set.
 
 ```{r derive-demographic}
-merged.df <- derive_demographics(merged.df)
+merged.df <- rVMAP::derive_demographics(merged.df)
 ```
 
 ```{r}
@@ -2227,7 +2262,7 @@ print(data.frame(variables = contains_no.var))
 
 Derive, label, and add automated 3T and ASL reactivity variables to the merged data set.
 
-```{r derive-auto3T}
+```{r derive-auto3T, eval=TRUE}
 merged.df <- call_function("derive_automated_3T", merged.df)
 ```
 
@@ -2258,7 +2293,7 @@ cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(mer
 Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
 
 ```{r derive-AD-sig}
-merged.df <- derive_AD_signature(merged.df)
+merged.df <- derive_AD_signature_temp(merged.df)
 class(merged.df) <- "data.frame"
 ```
 
@@ -2311,6 +2346,76 @@ merged.df.bkup <- merged.df
 merged.df <- merged.df.bkup
 
 cat(paste0("NOTE: `merged.df` now has ", nrow(merged.df), " rows and ", ncol(merged.df), " columns."))
+```
+
+# Summary of Essential Missing Demographics
+
+```{r}
+missing.all.df <- merged.df %>% select(c(map.id, epoch, age, ethnicity.factor, education, fsrp.minus.age.points)) %>% filter(is.na(age) | is.na(ethnicity.factor) | is.na(education) | is.na(fsrp.minus.age.points))
+missing.all.df
+```
+
+## Summary of Essential Missing Demographics (at Baseline)
+
+```{r}
+missing.bl.df <- missing.all.df %>% filter(epoch == 1)
+missing.bl.df
+```
+
+## Investigation of Missing Baseline Ages
+
+```{r}
+id_age <- missing.bl.df %>% filter(is.na(age)) %>% select(map.id)
+merged.df %>% select(c(map.id, epoch, vf.arrival.date.time, medhx.date, dob)) %>% filter(map.id %in% id_age$map.id & epoch == 1)
+```
+
+## Investigation of Missing Baseline Ethnicity
+
+```{r}
+id_ethnicity <- missing.bl.df %>% filter(is.na(ethnicity.factor)) %>% select(map.id)
+merged.df %>% select(c(map.id, epoch, race, ethnicity)) %>% filter(map.id %in% id_ethnicity$map.id & epoch == 1)
+```
+
+## Investigation of Missing Baseline Education
+
+```{r}
+id_education <- missing.bl.df %>% filter(is.na(education)) %>% select(map.id)
+merged.df %>% select(c(map.id, epoch, education)) %>% filter(map.id %in% id_education$map.id & epoch == 1)
+```
+
+## Investigation of Missing Baseline FSRP (Minus Age Points)
+
+```{r}
+id_fsrp_minus_age <-
+  missing.bl.df %>% filter(is.na(fsrp.minus.age.points)) %>% select(map.id)
+merged.df %>% select(
+  c(
+    map.id,
+    epoch,
+    fsrp.minus.age.points,
+    fsrp.lvh.pts,
+    fsrp.afib.pts,
+    fsrp.cvd.pts,
+    fsrp.cigs.pts,
+    fsrp.diabetes.pts,
+    fsrp.sbp.pts,
+    fsrp.age.pts
+  )
+) %>% filter(map.id %in% id_fsrp_minus_age$map.id & epoch == 1)
+```
+
+### Further Investigations (Participant by Participant)
+
+```{r}
+merged.df %>% filter(map.id == "127" & epoch == 1) %>% select(c(map.id, epoch, echo.lvidd, echo.lvpwd, echo.ivsd, bsa))
+
+merged.df %>% filter(map.id == "373" & epoch == 1) %>% select(c(map.id, epoch, bld.c.hgba1c, diabetesrx, bld.c.glucose))
+
+merged.df %>% filter(map.id == "450" & epoch == 1) %>% select(c(map.id, epoch, bld.c.hgba1c, diabetesrx, bld.c.glucose))
+
+merged.df %>% filter(map.id == "458" & epoch == 1) %>% select(c(map.id, epoch, bld.c.hgba1c, diabetesrx, bld.c.glucose))
+
+merged.df %>% filter(map.id == "466" & epoch == 1) %>% select(c(map.id, epoch, bld.c.hgba1c, diabetesrx, bld.c.glucose))
 ```
 
 # Saving the Final Data
