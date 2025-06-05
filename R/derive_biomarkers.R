@@ -177,6 +177,27 @@ derive_biomarkers <- function(data) {
       labels = c("Yes", "No")
     )
     label(csf.lumipulse.ab42.40.2022.ratio.positive) <- label(csf.lumipulse.ab42.40.2022.ratio.positive.factor) <- "AB42/AB40 Ratio Positive (csf.lumipulse.ab42.40.2022.ratio <= 0.072)"
+    
+    ###
+    
+    csf.quanterixsimoa.n2pa.ab42.40.2025.ratio <- ccsf.quanterixsimoa.n2pa.ab42.2025 / csf.quanterixsimoa.n2pa.ab40.2025
+    label(csf.quanterixsimoa.n2pa.ab42.40.2025.ratio) <- 'Ratio of AB42/AB40 (QUANTERIX, 2025)'
+    
+    csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive <- ifelse(
+      is.na(csf.quanterixsimoa.n2pa.ab42.40.2025.ratio),
+      NA,
+      ifelse(
+        csf.quanterixsimoa.n2pa.ab42.40.2025.ratio <= 0.0942,
+        1,
+        0
+      )
+    )
+    csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive.factor <- factor(
+      csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive,
+      levels = c(1, 0),
+      labels = c("Yes", "No")
+    )
+    label(csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive) <- label(csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive.factor) <- "AB42/AB40 Ratio Positive (csf.quanterixsimoa.n2pa.ab42.40.2025.ratio <= 0.0942)"
 
     ###
 
