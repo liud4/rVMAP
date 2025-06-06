@@ -180,7 +180,7 @@ derive_biomarkers <- function(data) {
     
     ###
     
-    csf.quanterixsimoa.n2pa.ab42.40.2025.ratio <- ccsf.quanterixsimoa.n2pa.ab42.2025 / csf.quanterixsimoa.n2pa.ab40.2025
+    csf.quanterixsimoa.n2pa.ab42.40.2025.ratio <- csf.quanterixsimoa.n2pa.ab42.2025 / csf.quanterixsimoa.n2pa.ab40.2025
     label(csf.quanterixsimoa.n2pa.ab42.40.2025.ratio) <- 'Ratio of AB42/AB40 (QUANTERIX, 2025)'
     
     csf.quanterixsimoa.n2pa.ab42.40.2025.ratio.positive <- ifelse(
