@@ -155,21 +155,21 @@ derive_cognitive_complaint <- function(data) {
   )
 
   for (vname in mfq.freqforgetToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[[vname]])
     label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
   mfq.freqforget <- paste0(mfq.freqforgetToReverse, reverse_suffix)
 
   for (vname in mfq.seriousforgetToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[[vname]])
     label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
   mfq.seriousforget <- paste0(mfq.seriousforgetToReverse, reverse_suffix)
 
   for(vname in mfq.retroToReverse) {
-    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[, vname])
+    data[, paste0(vname, reverse_suffix)] <- reverse1to7(data[[vname]])
     label(data[, paste0(vname, reverse_suffix)]) <- paste0(reverse_phrase, label(data[, vname]))
   }
 
