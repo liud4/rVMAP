@@ -135,6 +135,7 @@ derive_blood <- function(data) {
                                    bld.c.albumin.redcap))
 
     # Recalculating these variables based on the new converted inputs
+    bld.c.egfr.redcap <- bld.c.egfr
     bld.c.egfr <- ifelse(sex==1,175*bld.c.creatinine^(-1.154)*age^(-.203),175*bld.c.creatinine^(-1.154)*age^(-.203)*.742)
 
     bld.c.egfraa <- bld.c.egfr*1.212
