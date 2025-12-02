@@ -13,12 +13,14 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
                                       AH_arb.file,
                                       AH_ccb.file,
                                       AH_ksd.file,
-                                      AH_other.file) {
+                                      AH_other.file,
+                                      ssri_med.file) {
 
   diabetes.redcap.num <- diabetes.file[, 1]
   cholesterol.redcap.num <- cholesterol.file[, 1]
   afib.redcap.num <- afib.file[, 1]
   afib_surgery.redcap.num <- afib_surgery.file[, 1]
+  ssri_med.redcap.num <- ssri_med.file[, 1]
 
   # anti-hyp. subtype files
   AH_beta_blocker.redcap.num <- AH_beta_blocker.file[, 1]
@@ -45,6 +47,9 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
   #    apply(medFrame, 1, function(x) any(x %in% antihypNums)))
   afibrxPrep <- as.numeric(
     apply(medFrame, 1, function(x) any(x %in% afib.redcap.num))
+  )
+  ssrirxPrep <- as.numeric(
+    apply(medFrame, 1, function(x) any(x %in% ssri_med.redcap.num))
   )
 
   # Antihypertensive med subtypes
@@ -143,6 +148,16 @@ derive_medication_surgery <- function(data, diabetes.file, cholesterol.file,
       labels = c("Yes", "No")
     )
     label(afibrx.factor) <- 'Taking at least 1 afib med'
+    
+    ssrirx <- ifelse(is.na(meds), NA, ssrirxPrep)
+    label(ssrirx) <- 'Taking at least 1 ssri med'
+    
+    ssrirx.factor <- factor(
+      ssrirx,
+      levels = c(1, 0),
+      labels = c("Yes", "No")
+    )
+    label(ssrirx.factor) <- 'Taking at least 1 ssri med'
 
     afibsurg <- ifelse(is.na(surg01), NA, afibsurgPrep)
     label(afibsurg) <- 'At least 1 afib surgery'
