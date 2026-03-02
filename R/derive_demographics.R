@@ -34,6 +34,15 @@ derive_demographics <- function(data) {
     
     label(raceethnicity.factor) <- "Two-level race/ethnicity"
     
+    initial.visit.date <-
+      ifelse(
+        is.na(vf.arrival.date.time) | (map.id %in% c(1L:336L) & epoch == 1),
+        medhx.date,
+        as.Date(vf.arrival.date.time)
+      )
+    
+    label(initial.visit.date) <- "Initial visit date"
+    
     age.redcap <- age
     
     age <-
