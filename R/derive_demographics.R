@@ -41,20 +41,26 @@ derive_demographics <- function(data) {
         as.Date(vf.arrival.date.time)
       )
     
+    initial.visit.date <- as.Date(initial.visit.date, origin = "1970-01-01")
+    
     label(initial.visit.date) <- "Initial visit date"
     
     age.redcap <- age
     
-    age <-
-      ifelse(
-        is.na(vf.arrival.date.time) | (map.id %in% c(1L:336L) & epoch == 1),
-        floor(as.numeric(difftime(
-          medhx.date, dob.questionnaires, units = "days"
-        )) / days_in_one_year),
-        floor(as.numeric(
-          difftime(vf.arrival.date.time, dob.questionnaires, units = "days")
-        ) / days_in_one_year)
-      )
+    # age <- floor(as.numeric(
+    #   difftime(initial.visit.date, dob.questionnaires, units = "days")
+    # ) / days_in_one_year)
+    
+    # age <-
+    #   ifelse(
+    #     is.na(vf.arrival.date.time) | (map.id %in% c(1L:336L) & epoch == 1),
+    #     floor(as.numeric(difftime(
+    #       medhx.date, dob.questionnaires, units = "days"
+    #     )) / days_in_one_year),
+    #     floor(as.numeric(
+    #       difftime(vf.arrival.date.time, dob.questionnaires, units = "days")
+    #     ) / days_in_one_year)
+    #   )
     
     label(age) <-
       "Age at the visit"
