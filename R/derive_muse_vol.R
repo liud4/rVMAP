@@ -4,7 +4,7 @@
 #' @return \code{data} with added AD signature variables.
 #' @export
 
-derive_AD_signature_temp <- function(data) {
+derive_muse_vol <- function(data) {
   # data <- merged.df
   muse.short.name <- Hmisc:::Cs(
     cort_csf,
@@ -249,7 +249,7 @@ derive_AD_signature_temp <- function(data) {
         muse.r.occ.lat.gm.vol,
         muse.r.occ.med.gm.vol
       ),
-      muse.r.occ.vol    = sum(muse.r.occ.gm.vol, muse.r.occ.wm.vol),
+      muse.r.occ.vol = sum(muse.r.occ.gm.vol, muse.r.occ.wm.vol),
       muse.l.occ.inf.gm.vol = muse.l.occ.fus.g.vol,
       muse.l.occ.lat.gm.vol = sum(
         muse.l.inf.occ.g.vol,
@@ -263,7 +263,7 @@ derive_AD_signature_temp <- function(data) {
         muse.l.occ.lat.gm.vol,
         muse.l.occ.med.gm.vol
       ),
-      muse.l.occ.vol    = sum(muse.l.occ.gm.vol, muse.l.occ.wm.vol),
+      muse.l.occ.vol = sum(muse.l.occ.gm.vol, muse.l.occ.wm.vol),
       muse.r.par.lat.gm.vol = sum(
         muse.r.ang.g.vol,
         muse.r.postcent.g.vol,
@@ -271,8 +271,8 @@ derive_AD_signature_temp <- function(data) {
         muse.r.sup.par.vol
       ),
       muse.r.par.med.gm.vol = sum(muse.r.med.postcent.g.vol, muse.r.precuneus.vol),
-      muse.r.par.gm.vol  = sum(muse.r.par.lat.gm.vol, muse.r.par.med.gm.vol),
-      muse.r.par.vol     = sum(muse.r.par.gm.vol, muse.r.par.wm.vol),
+      muse.r.par.gm.vol = sum(muse.r.par.lat.gm.vol, muse.r.par.med.gm.vol),
+      muse.r.par.vol = sum(muse.r.par.gm.vol, muse.r.par.wm.vol),
       muse.l.par.lat.gm.vol = sum(
         muse.l.ang.g.vol,
         muse.l.postcent.g.vol,
@@ -280,8 +280,8 @@ derive_AD_signature_temp <- function(data) {
         muse.l.sup.par.vol
       ),
       muse.l.par.med.gm.vol = sum(muse.l.med.postcent.g.vol, muse.l.precuneus.vol),
-      muse.l.par.gm.vol  = sum(muse.l.par.lat.gm.vol, muse.l.par.med.gm.vol),
-      muse.l.par.vol     = sum(muse.l.par.gm.vol, muse.l.par.wm.vol),
+      muse.l.par.gm.vol = sum(muse.l.par.lat.gm.vol, muse.l.par.med.gm.vol),
+      muse.l.par.vol = sum(muse.l.par.gm.vol, muse.l.par.wm.vol),
       muse.r.temp.inf.gm.vol = muse.r.fus.g.vol,
       muse.r.temp.lat.gm.vol = sum(
         muse.r.inf.temp.g.vol,
@@ -290,12 +290,12 @@ derive_AD_signature_temp <- function(data) {
         muse.r.temp.pole.vol
       ),
       muse.r.temp.supra.temp.gm.vol = sum(muse.r.pp.vol, muse.r.pt.vol, muse.r.trans.temp.g.vol),
-      muse.r.temp.gm.vol  = sum(
+      muse.r.temp.gm.vol = sum(
         muse.r.temp.inf.gm.vol,
         muse.r.temp.lat.gm.vol,
         muse.r.temp.supra.temp.gm.vol
       ),
-      muse.r.temp.vol     = sum(muse.r.temp.gm.vol, muse.r.temp.wm.vol),
+      muse.r.temp.vol = sum(muse.r.temp.gm.vol, muse.r.temp.wm.vol),
       muse.l.temp.inf.gm.vol = muse.l.fus.g.vol,
       muse.l.temp.lat.gm.vol = sum(
         muse.l.inf.temp.g.vol,
@@ -309,21 +309,21 @@ derive_AD_signature_temp <- function(data) {
         muse.l.temp.lat.gm.vol,
         muse.l.temp.supra.temp.gm.vol
       ),
-      muse.l.temp.vol     = sum(muse.l.temp.gm.vol, muse.l.temp.wm.vol),
+      muse.l.temp.vol = sum(muse.l.temp.gm.vol, muse.l.temp.wm.vol),
       muse.r.limb.cing.gm.vol = sum(
         muse.r.ant.cing.g.vol,
         muse.r.mid.cing.g.vol,
         muse.r.pos.cing.g.vol
       ),
       muse.r.limb.med.temp.gm.vol = sum(muse.r.ent.vol, muse.r.parahipp.g.vol),
-      muse.r.limb.gm.vol    = sum(muse.r.limb.cing.gm.vol, muse.r.limb.med.temp.gm.vol),
+      muse.r.limb.gm.vol = sum(muse.r.limb.cing.gm.vol, muse.r.limb.med.temp.gm.vol),
       muse.l.limb.cing.gm.vol = sum(
         muse.l.ant.cing.g.vol,
         muse.l.mid.cing.g.vol,
         muse.l.pos.cing.g.vol
       ),
       muse.l.limb.med.temp.gm.vol = sum(muse.l.ent.vol, muse.l.parahipp.g.vol),
-      muse.l.limb.gm.vol    = sum(muse.l.limb.cing.gm.vol, muse.l.limb.med.temp.gm.vol),
+      muse.l.limb.gm.vol = sum(muse.l.limb.cing.gm.vol, muse.l.limb.med.temp.gm.vol),
       muse.fron.inf.gm.vol = sum(muse.r.fron.inf.gm.vol, muse.l.fron.inf.gm.vol),
       muse.fron.insular.gm.vol = sum(muse.r.fron.insular.gm.vol, muse.l.fron.insular.gm.vol),
       muse.fron.lat.gm.vol = sum(muse.r.fron.lat.gm.vol, muse.l.fron.lat.gm.vol),
@@ -342,19 +342,19 @@ derive_AD_signature_temp <- function(data) {
         muse.r.temp.supra.temp.gm.vol,
         muse.l.temp.supra.temp.gm.vol
       ),
-      muse.fron.gm.vol   = sum(muse.r.fron.gm.vol, muse.l.fron.gm.vol),
-      muse.fron.wm.vol   = sum(muse.r.fron.wm.vol, muse.l.fron.wm.vol),
-      muse.fron.vol      = sum(muse.r.fron.vol, muse.l.fron.vol),
-      muse.limb.gm.vol    = sum(muse.r.limb.gm.vol, muse.l.limb.gm.vol),
+      muse.fron.gm.vol = sum(muse.r.fron.gm.vol, muse.l.fron.gm.vol),
+      muse.fron.wm.vol = sum(muse.r.fron.wm.vol, muse.l.fron.wm.vol),
+      muse.fron.vol = sum(muse.r.fron.vol, muse.l.fron.vol),
+      muse.limb.gm.vol = sum(muse.r.limb.gm.vol, muse.l.limb.gm.vol),
       muse.occ.gm.vol = sum(muse.r.occ.gm.vol, muse.l.occ.gm.vol),
       muse.occ.wm.vol = sum(muse.r.occ.wm.vol, muse.l.occ.wm.vol),
-      muse.occ.vol    = sum(muse.r.occ.vol, muse.l.occ.vol),
-      muse.par.gm.vol  = sum(muse.r.par.gm.vol, muse.l.par.gm.vol),
-      muse.par.wm.vol  = sum(muse.r.par.wm.vol, muse.l.par.wm.vol),
-      muse.par.vol     = sum(muse.r.par.vol, muse.l.par.vol),
-      muse.temp.gm.vol  = sum(muse.r.temp.gm.vol, muse.l.temp.gm.vol),
-      muse.temp.wm.vol  = sum(muse.r.temp.wm.vol, muse.l.temp.wm.vol),
-      muse.temp.vol     = sum(muse.r.temp.vol, muse.l.temp.vol),
+      muse.occ.vol = sum(muse.r.occ.vol, muse.l.occ.vol),
+      muse.par.gm.vol = sum(muse.r.par.gm.vol, muse.l.par.gm.vol),
+      muse.par.wm.vol = sum(muse.r.par.wm.vol, muse.l.par.wm.vol),
+      muse.par.vol = sum(muse.r.par.vol, muse.l.par.vol),
+      muse.temp.gm.vol = sum(muse.r.temp.gm.vol, muse.l.temp.gm.vol),
+      muse.temp.wm.vol = sum(muse.r.temp.wm.vol, muse.l.temp.wm.vol),
+      muse.temp.vol = sum(muse.r.temp.vol, muse.l.temp.vol),
       muse.r.bg.vol = sum(
         muse.r.accum.vol,
         muse.r.caudate.vol,
@@ -381,7 +381,7 @@ derive_AD_signature_temp <- function(data) {
       muse.r.hipp.amyg.vol = sum(muse.r.hipp.vol, muse.r.amyg.vol),
       muse.l.hipp.amyg.vol = sum(muse.l.hipp.vol, muse.l.amyg.vol),
       muse.hipp.amyg.vol = sum(muse.r.hipp.amyg.vol, muse.l.hipp.amyg.vol),
-      muse.r.deep.gm.vol  = sum(
+      muse.r.deep.gm.vol = sum(
         muse.r.hipp.amyg.vol,
         muse.r.accum.vol,
         muse.r.caudate.vol,
@@ -411,10 +411,14 @@ derive_AD_signature_temp <- function(data) {
         muse.l.ant.intcap.vol,
         muse.l.ventdc.vol
       ),
-      muse.deep.gm.vol  = sum(muse.r.deep.gm.vol, muse.l.deep.gm.vol),
-      muse.deep.wm.vol  = sum(muse.r.deep.wm.vol, muse.l.deep.wm.vol),
+      muse.deep.gm.vol = sum(muse.r.deep.gm.vol, muse.l.deep.gm.vol),
+      muse.deep.wm.vol = sum(muse.r.deep.wm.vol, muse.l.deep.wm.vol),
       muse.deep.wm.gm.vol  = sum(muse.deep.gm.vol, muse.deep.wm.vol),
+      muse.l.cc.vol = sum(muse.l.cc.vol),
+      muse.r.cc.vol = sum(muse.r.cc.vol),
       muse.cc.vol = sum(muse.l.cc.vol, muse.r.cc.vol),
+      muse.l.bs.vol = sum(muse.l.bs.vol),
+      muse.r.bs.vol = sum(muse.r.bs.vol),
       muse.bs.vol = sum(muse.l.bs.vol, muse.r.bs.vol),
       muse.l.cb.ext.vol = sum(muse.l.cb.ext.vol),
       muse.r.cb.ext.vol = sum(muse.r.cb.ext.vol),
@@ -433,6 +437,7 @@ derive_AD_signature_temp <- function(data) {
       muse.l.cb.vol = sum(muse.l.cb.gm.vol, muse.l.cb.wm.vol),
       muse.r.cb.vol = sum(muse.r.cb.gm.vol, muse.r.cb.wm.vol),
       muse.cb.vol = sum(muse.l.cb.vol, muse.r.cb.vol),
+      muse.inf.lat.vent.vol = sum(muse.r.inf.lat.vent.vol, muse.l.inf.lat.vent.vol),
       muse.vent.vol = sum(
         muse.r.inf.lat.vent.vol,
         muse.r.lat.vent.vol,
@@ -441,10 +446,7 @@ derive_AD_signature_temp <- function(data) {
         muse.third.vent.vol,
         muse.fourth.vent.vol
       ),
-      muse.inf.lat.vent.vol = sum(muse.r.inf.lat.vent.vol, muse.l.inf.lat.vent.vol),
       muse.r.gm.vol = sum(
-        muse.r.bg.vol,
-        muse.r.hipp.amyg.vol,
         muse.r.deep.gm.vol,
         muse.r.cb.gm.vol,
         muse.r.fron.gm.vol,
@@ -464,8 +466,6 @@ derive_AD_signature_temp <- function(data) {
         muse.r.bs.vol
       ),
       muse.l.gm.vol = sum(
-        muse.l.bg.vol,
-        muse.l.hipp.amyg.vol,
         muse.l.deep.gm.vol,
         muse.l.cb.gm.vol,
         muse.l.fron.gm.vol,
