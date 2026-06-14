@@ -1,4 +1,4 @@
-#' Derive, label, and add AD signature McEvoy and Schwarz variables to the merged data set.
+#' Derive, label, and add DLMUSE volume variables to the merged data set.
 #'
 #' @param data A data frame containing VMAC variables.
 #' @return \code{data} with added AD signature variables.
@@ -6,7 +6,7 @@
 
 derive_AD_signature_temp <- function(data) {
   # data <- merged.df
-  muse.short.name <- Hmisc::Cs(
+  muse.short.name <- Hmisc:::Cs(
     cort_csf,
     third_vent,
     fourth_vent,
@@ -441,6 +441,7 @@ derive_AD_signature_temp <- function(data) {
         muse.third.vent.vol,
         muse.fourth.vent.vol
       ),
+      muse.inf.lat.vent.vol = sum(muse.r.inf.lat.vent.vol, muse.l.inf.lat.vent.vol),
       muse.r.gm.vol = sum(
         muse.r.bg.vol,
         muse.r.hipp.amyg.vol,
@@ -529,155 +530,133 @@ derive_AD_signature_temp <- function(data) {
       muse.cerebrum.gm.vol = sum(muse.r.cerebrum.gm.vol, muse.l.cerebrum.gm.vol),
       muse.cerebrum.wm.vol = sum(muse.r.cerebrum.wm.vol, muse.l.cerebrum.wm.vol),
       muse.cerebrum.vol = sum(muse.r.cerebrum.vol, muse.l.cerebrum.vol)
-    ) %>% as.data.frame()
+    ) %>%
+    ungroup() %>%
+    as.data.frame()
   
-  
-  
-  schwarz <- Hmisc::Cs(
-    rh.entorhinal.thickness,
-    rh.inferiortemporal.thickness,
-    rh.middletemporal.thickness,
-    rh.inferiorparietal.thickness,
-    rh.fusiform.thickness,
-    rh.precuneus.thickness,
-    lh.entorhinal.thickness,
-    lh.inferiortemporal.thickness,
-    lh.middletemporal.thickness,
-    lh.inferiorparietal.thickness,
-    lh.fusiform.thickness,
-    lh.precuneus.thickness
-  )
-  
-  mcevoy.Y <- Hmisc::Cs(
-    avg.hippocampus,
-    avg.entorhinal.thickness,
-    avg.middletemporal.thickness,
-    avg.bankssts.thickness,
-    avg.isthmuscingulate.thickness,
-    avg.superiortemporal.thickness,
-    avg.medialorbitofrontal.thickness,
-    avg.lateralorbitofrontal.thickness
-  )
-  mcevoy.coef <- c(
-    0.709, # avg.hippocampus
-    0.597, # avg.entorhinal.thickness
-    0.506, # avg.middletemporal.thickness
-    0.453, # avg.bankssts.thickness
-    0.395, # avg.isthmuscingulate.thickness
-    0.328, # avg.superiortemporal.thickness
-    0.269, # avg.medialorbitofrontal.thickness
-    0.250  # avg.lateralorbitofrontal.thickness
-  )
-  ## create mcevoy.Y variables
-  data <- data %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      avg.hippocampus = mean(c(right.hippocampus, left.hippocampus)),
-      avg.entorhinal.thickness = mean(c(rh.entorhinal.thickness, lh.entorhinal.thickness)),
-      avg.middletemporal.thickness = mean(c(rh.middletemporal.thickness, lh.middletemporal.thickness)),
-      avg.bankssts.thickness = mean(c(rh.bankssts.thickness, lh.bankssts.thickness)),
-      avg.isthmuscingulate.thickness = mean(c(rh.isthmuscingulate.thickness, lh.isthmuscingulate.thickness)),
-      avg.superiortemporal.thickness = mean(c(rh.superiortemporal.thickness, lh.superiortemporal.thickness)),
-      avg.medialorbitofrontal.thickness = mean(c(rh.medialorbitofrontal.thickness, lh.medialorbitofrontal.thickness)),
-      avg.lateralorbitofrontal.thickness = mean(c(rh.lateralorbitofrontal.thickness, lh.lateralorbitofrontal.thickness))
-    )
-  
-  mcevoy.all.temp <- NULL
-  
-  derive_mcevoy.df <- data %>%
-    dplyr::filter(epoch == 1) %>%
-    dplyr::filter(!is.na(avg.hippocampus)) %>%
-    dplyr::filter(diagnosis.factor.base == "Normal") %>%
-    dplyr::select(
-      all_of(
-        Cs(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance,
-           age, sex.factor, diagnosis.factor.base, intracranialvol, avg.hippocampus, avg.entorhinal.thickness,
-           avg.middletemporal.thickness, avg.bankssts.thickness, avg.isthmuscingulate.thickness,
-           avg.superiortemporal.thickness, avg.medialorbitofrontal.thickness, avg.lateralorbitofrontal.thickness)
-      )
-    )
-  
-  # derive_mcevoy.df <- droplevels(derive_mcevoy.df)
-  
-  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + intracranialvol')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  
-  fit.2 <- lm(formula = as.formula(paste0(mcevoy.Y[2], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.3 <- lm(formula = as.formula(paste0(mcevoy.Y[3], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.4 <- lm(formula = as.formula(paste0(mcevoy.Y[4], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.5 <- lm(formula = as.formula(paste0(mcevoy.Y[5], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.6 <- lm(formula = as.formula(paste0(mcevoy.Y[6], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.7 <- lm(formula = as.formula(paste0(mcevoy.Y[7], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  fit.8 <- lm(formula = as.formula(paste0(mcevoy.Y[8], ' ~ age + sex.factor')),
-              data = derive_mcevoy.df,
-              na.action = na.exclude)
-  data_w_fit.df <- data %>%
-    modelr::add_predictions(model = fit.1, var = "mcevoy.fit.1") %>%
-    modelr::add_predictions(model = fit.2, var = "mcevoy.fit.2") %>%
-    modelr::add_predictions(model = fit.3, var = "mcevoy.fit.3") %>%
-    modelr::add_predictions(model = fit.4, var = "mcevoy.fit.4") %>%
-    modelr::add_predictions(model = fit.5, var = "mcevoy.fit.5") %>%
-    modelr::add_predictions(model = fit.6, var = "mcevoy.fit.6") %>%
-    modelr::add_predictions(model = fit.7, var = "mcevoy.fit.7") %>%
-    modelr::add_predictions(model = fit.8, var = "mcevoy.fit.8")
-  mcevoy.temp <- data.frame(
-    map.id = data_w_fit.df$map.id,
-    epoch = data_w_fit.df$epoch,
-    redcap.repeat.instrument = data_w_fit.df$redcap.repeat.instrument,
-    redcap.repeat.instance = data_w_fit.df$redcap.repeat.instance,
-    stringsAsFactors = FALSE
-  )
-  mcevoy.temp$fit.1 <-
-    ((data_w_fit.df[, mcevoy.Y[1]] - data_w_fit.df$mcevoy.fit.1) / sd(resid(fit.1), na.rm = TRUE)) * mcevoy.coef[1]
-  mcevoy.temp$fit.2 <-
-    ((data_w_fit.df[, mcevoy.Y[2]] - data_w_fit.df$mcevoy.fit.2) / sd(resid(fit.2), na.rm = TRUE)) * mcevoy.coef[2]
-  mcevoy.temp$fit.3 <-
-    ((data_w_fit.df[, mcevoy.Y[3]] - data_w_fit.df$mcevoy.fit.3) / sd(resid(fit.3), na.rm = TRUE)) * mcevoy.coef[3]
-  mcevoy.temp$fit.4 <-
-    ((data_w_fit.df[, mcevoy.Y[4]] - data_w_fit.df$mcevoy.fit.4) / sd(resid(fit.4), na.rm = TRUE)) * mcevoy.coef[4]
-  mcevoy.temp$fit.5 <-
-    ((data_w_fit.df[, mcevoy.Y[5]] - data_w_fit.df$mcevoy.fit.5) / sd(resid(fit.5), na.rm = TRUE)) * mcevoy.coef[5]
-  mcevoy.temp$fit.6 <-
-    ((data_w_fit.df[, mcevoy.Y[6]] - data_w_fit.df$mcevoy.fit.6) / sd(resid(fit.6), na.rm = TRUE)) * mcevoy.coef[6]
-  mcevoy.temp$fit.7 <-
-    ((data_w_fit.df[, mcevoy.Y[7]] - data_w_fit.df$mcevoy.fit.7) / sd(resid(fit.7), na.rm = TRUE)) * mcevoy.coef[7]
-  mcevoy.temp$fit.8 <-
-    ((data_w_fit.df[, mcevoy.Y[8]] - data_w_fit.df$mcevoy.fit.8) / sd(resid(fit.8), na.rm = TRUE)) * mcevoy.coef[8]
-  
-  mcevoy.temp$AD.sig.mcevoy <- rowSums(mcevoy.temp[, c("fit.1", "fit.2", "fit.3", "fit.4", "fit.5", "fit.6", "fit.7", "fit.8")])
-  
-  mcevoy.temp <- mcevoy.temp %>%
-    select(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance, AD.sig.mcevoy)
-  
-  data <- left_join(data, mcevoy.temp, by = c("map.id", "epoch", "redcap.repeat.instrument", "redcap.repeat.instance"))
-  
-  data$AD.sig.schwarz <- rowMeans(data[, schwarz], na.rm = FALSE)
-  
-  data <- within(data, {
-    label(avg.hippocampus) <- "Avg hippocampus vol - T1 3T FS"
-    label(avg.entorhinal.thickness) <- "Avg entorhinal cortex thickness - T1 3T FS"
-    label(avg.middletemporal.thickness) <- "Avg middletemporal thickness - T1 3T FS"
-    label(avg.bankssts.thickness) <- "Avg bankssts thickness - T1 3T FS"
-    label(avg.isthmuscingulate.thickness) <- "Avg isthmuscingulate thickness - T1 3T FS"
-    label(avg.superiortemporal.thickness) <- "Avg superiortemporal thickness - T1 3T FS"
-    label(avg.medialorbitofrontal.thickness) <- "Avg mediaorbitofrontal thickness - T1 3T FS"
-    label(avg.lateralorbitofrontal.thickness) <- "Avg lateralorbitofrontal thickness - T1 3T FS"
-    label(AD.sig.mcevoy) <- "AD signature - McEvoy"
-    label(AD.sig.schwarz) <- "AD signature - Schwarz"
+  data.new <- within(data.new, {
+    Hmisc::label(muse.cerebrum.vol) <- "Cerebrum [mm3s]"
+    Hmisc::label(muse.cerebrum.wm.vol) <- "Cerebrum White Matter [mm3s]"
+    Hmisc::label(muse.deep.gm.vol) <- "Deep Grey Matter [mm3s]"
+    Hmisc::label(muse.deep.wm.gm.vol) <- "Deep Brain Structures [mm3s]"
+    Hmisc::label(muse.deep.wm.vol) <- "Deep White matter [mm3s]"
+    Hmisc::label(muse.fron.inf.gm.vol) <- "Frontal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.insular.gm.vol) <- "Frontal Lobe Insular Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.med.gm.vol) <- "Frontal Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.op.gm.vol) <- "Frontal Lobe Opercular Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.wm.vol) <- "Frontal Lobe White Matter [mm3s]"
+    Hmisc::label(muse.hipp.amyg.vol) <- "Hippocampus and Amygdala [mm3s]"
+    Hmisc::label(muse.hipp.vol) <- "Hippocampus [mm3s]"
+    Hmisc::label(muse.amyg.vol) <- "Amygdala [mm3s]"
+    Hmisc::label(muse.icv.vol) <- "Intracranial Volume [mm3s]"
+    Hmisc::label(muse.l.cerebrum.vol) <- "Left Cerebrum [mm3s]"
+    Hmisc::label(muse.l.deep.gm.vol) <- "Left Deep Brain Structures Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.insular.gm.vol) <- "Left Frontal Lobe Insular Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.lat.gm.vol) <- "Left Frontal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.op.gm.vol) <- "Left Frontal Lobe Opercular Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.vol) <- "Left Frontal Lobe [mm3s]"
+    Hmisc::label(muse.l.occ.inf.gm.vol) <- "Left Occipital Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.l.par.lat.gm.vol) <- "Left Parietal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.l.temp.lat.gm.vol) <- "Left Temporal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.l.temp.supra.temp.gm.vol) <- "Left Temporal Lobe Supratemporal Grey Matter [mm3s]"
+    Hmisc::label(muse.l.temp.vol) <- "Left Temporal Lobe [mm3s]"
+    Hmisc::label(muse.occ.gm.vol) <- "Occipital Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.parenchyma.vol) <- "Parenchyma [mm3s]"
+    Hmisc::label(muse.r.cb.gm.vol) <- "Right Cerebellum Grey Matter [mm3s]"
+    Hmisc::label(muse.r.cerebrum.vol) <- "Right Cerebrum [mm3s]"
+    Hmisc::label(muse.r.cerebrum.wm.vol) <- "Right Cerebrum White Matter [mm3s]"
+    Hmisc::label(muse.r.deep.gm.vol) <- "Right Deep Brain Structures Grey Matter [mm3s]"
+    Hmisc::label(muse.r.deep.wm.vol) <- "Right Deep Brain Structures White Matter [mm3s]"
+    Hmisc::label(muse.r.fron.insular.gm.vol) <- "Right Deep Brain Structures Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.lat.gm.vol) <- "Right Frontal Lobe Insular Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.med.gm.vol) <- "Right Frontal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.op.gm.vol) <- "Right Frontal Lobe Opercular Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.vol) <- "Right Frontal Lobe [mm3s]"
+    Hmisc::label(muse.r.par.lat.gm.vol) <- "Right Parietal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.r.temp.inf.gm.vol) <- "Right Temporal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.r.temp.lat.gm.vol) <- "Right Temporal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.r.temp.supra.temp.gm.vol) <- "Right Temporal Lobe Supratemporal Grey Matter [mm3s]"
+    Hmisc::label(muse.r.temp.vol) <- "Right Temporal Lobe [mm3s]"
+    Hmisc::label(muse.temp.gm.vol) <- "Temporal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.temp.lat.gm.vol) <- "Temporal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.temp.supra.temp.gm.vol) <- "Temporal Lobe Supratemporal Grey Matter [mm3s]"
+    Hmisc::label(muse.temp.wm.vol) <- "Temporal Lobe White Matter [mm3s]"
+    Hmisc::label(muse.total.brain.vol) <- "Total Brain Volume [mm3s]"
+    Hmisc::label(muse.bg.vol) <- "Basal Ganglia [mm3s]"
+    Hmisc::label(muse.bs.vol) <- "Brain Stem [mm3s]"
+    Hmisc::label(muse.cb.vol) <- "Cerebellum [mm3s]"
+    Hmisc::label(muse.cc.vol) <- "Corpus Callosum [mm3s]"
+    Hmisc::label(muse.cerebrum.gm.vol) <- "Cerebrum Grey Matter [mm3s]"
+    Hmisc::label(muse.csf.vol) <- "CSF [mm3s]"
+    Hmisc::label(muse.fron.gm.vol) <- "Frontal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.lat.gm.vol) <- "Frontal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.fron.vol) <- "Frontal Lobe [mm3s]"
+    Hmisc::label(muse.gm.vol) <- "Grey Matter [mm3s]"
+    Hmisc::label(muse.l.bg.vol) <- "Left Basal Ganglia [mm3s]"
+    Hmisc::label(muse.l.cb.gm.vol) <- "Left Cerebellum Grey Matter [mm3s]"
+    Hmisc::label(muse.l.cb.vol) <- "Left Cerebellum [mm3s]"
+    Hmisc::label(muse.l.cerebrum.gm.vol) <- "Left Cerebrum Grey Matter [mm3s]"
+    Hmisc::label(muse.l.cerebrum.wm.vol) <- "Left Cerebrum White Matter [mm3s]"
+    Hmisc::label(muse.l.deep.wm.vol) <- "Left Deep Brain Structures White Matter [mm3s]"
+    Hmisc::label(muse.l.fron.gm.vol) <- "Left Frontal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.inf.gm.vol) <- "Left Frontal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.l.fron.med.gm.vol) <- "Left Frontal Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.l.gm.vol) <- "Left Grey Matter [mm3s]"
+    Hmisc::label(muse.l.hipp.amyg.vol) <- "Left Hippocampus and Amygdala [mm3s]"
+    Hmisc::label(muse.l.limb.cing.gm.vol) <- "Left Limbic Cingulate Grey Matter [mm3s]"
+    Hmisc::label(muse.l.limb.gm.vol) <- "Left Limbic Regions Grey Matter [mm3s]"
+    Hmisc::label(muse.l.limb.med.temp.gm.vol) <- "Left Limbic Medialtemporal Grey Matter [mm3s]"
+    Hmisc::label(muse.l.occ.gm.vol) <- "Left Occipital Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.l.occ.lat.gm.vol) <- "Left Occipital Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.l.occ.med.gm.vol) <- "Left Occipital Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.l.occ.vol) <- "Left Occipital Lobe [mm3s]"
+    Hmisc::label(muse.l.par.gm.vol) <- "Left Parietal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.l.par.med.gm.vol) <- "Left Parietal Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.l.par.vol) <- "Left Parietal Lobe [mm3s]"
+    Hmisc::label(muse.l.temp.gm.vol) <- "Left Temporal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.l.temp.inf.gm.vol) <- "Left Temporal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.l.verm.vol) <- "Left Cerebellar Vermal Lobules [mm3s]"
+    Hmisc::label(muse.l.wm.vol) <- "Left White Matter [mm3s]"
+    Hmisc::label(muse.limb.cing.gm.vol) <- "Limbic Regions Cingulate Grey Matter [mm3s]"
+    Hmisc::label(muse.limb.gm.vol) <- "Limbic Regions Grey Matter [mm3s]"
+    Hmisc::label(muse.limb.med.temp.gm.vol) <- "Limbic Regions Medial Temporal Grey Matter [mm3s]"
+    Hmisc::label(muse.occ.inf.gm.vol) <- "Occipital Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.occ.lat.gm.vol) <- "Occipital Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.occ.med.gm.vol) <- "Occipital Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.occ.vol) <- "Occipital Lobe [mm3s]"
+    Hmisc::label(muse.occ.wm.vol) <- "Occipital Lobe White Matter [mm3s]"
+    Hmisc::label(muse.par.gm.vol) <- "Parietal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.par.lat.gm.vol) <- "Parietal Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.par.med.gm.vol) <- "Parietal Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.par.vol) <- "Parietal Lobe [mm3s]"
+    Hmisc::label(muse.par.wm.vol) <- "Parietal Lobe White Matter [mm3s]"
+    Hmisc::label(muse.r.bg.vol) <- "Right Basal Ganglia [mm3s]"
+    Hmisc::label(muse.r.cb.vol) <- "Cerebellum [mm3s]"
+    Hmisc::label(muse.r.cerebrum.gm.vol) <- "Cerebrum Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.gm.vol) <- "Right Frontal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.r.fron.inf.gm.vol) <- "Right Frontal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.r.gm.vol) <- "Right Grey Matter [mm3s]"
+    Hmisc::label(muse.r.hipp.amyg.vol) <- "Right Hippocampus and Amygdala [mm3s]"
+    Hmisc::label(muse.r.limb.cing.gm.vol) <- "Right Limbic Cingulate Grey Matter [mm3s]"
+    Hmisc::label(muse.r.limb.gm.vol) <- "Right Limbic Regions Grey Matter [mm3s]"
+    Hmisc::label(muse.r.limb.med.temp.gm.vol) <- "Right Limbic Medialtemporal Grey Matter [mm3s]"
+    Hmisc::label(muse.r.occ.gm.vol) <- "Right Occipital Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.r.occ.inf.gm.vol) <- "Right Occipital Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.r.occ.lat.gm.vol) <- "Right Occipital Lobe Lateral Grey Matter [mm3s]"
+    Hmisc::label(muse.r.occ.med.gm.vol) <- "Right Occipital Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.r.occ.vol) <- "Right Occipital Lobe [mm3s]"
+    Hmisc::label(muse.r.par.gm.vol) <- "Right Parietal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.r.par.med.gm.vol) <- "Right Parietal Lobe Medial Grey Matter [mm3s]"
+    Hmisc::label(muse.r.par.vol) <- "Right Parietal Lobe [mm3s]"
+    Hmisc::label(muse.r.temp.gm.vol) <- "Right Temporal Lobe Grey Matter [mm3s]"
+    Hmisc::label(muse.r.verm.vol) <- "Right Cerebellar Vermal Lobules [mm3s]"
+    Hmisc::label(muse.r.wm.vol) <- "Right White Matter [mm3s]"
+    Hmisc::label(muse.temp.inf.gm.vol) <- "Right Temporal Lobe Inferior Grey Matter [mm3s]"
+    Hmisc::label(muse.temp.vol) <- "Temoral Lobe [mm3s]"
+    Hmisc::label(muse.vent.vol) <- "Ventricles [mm3s]"
+    Hmisc::label(muse.wm.vol) <- "White Matter [mm3s]"
+    Hmisc::label(muse.inf.lat.vent.vol) <- "Inferior Lateral Ventricles [mm3s]"
   })
   
-  return(data)
+  return(data.new)
 }
