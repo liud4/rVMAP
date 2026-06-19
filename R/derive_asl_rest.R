@@ -32,7 +32,9 @@ derive_asl_rest <- function(data) {
   
   asl.muse.rest.var <- paste0("asl.muse.rest.", gsub("_", ".", meta.roi.name), ".cbf.hct")
   
-  ###
+  ###############
+  ### Frontal ###
+  ###############
   
   asl.muse.rest.l.fron.gm.var <- c(
     "asl.muse.rest.l.ant.orb.g.cbf.hct",
@@ -64,7 +66,7 @@ derive_asl_rest <- function(data) {
   # sanity check
   # sum(!(c(asl.muse.rest.l.fron.gm.var,  asl.muse.rest.l.fron.gm.regvol) %in% names(data)))
   
-  # create `asl.muse.rest.l.fron.gm.hct`
+  # create `asl.muse.rest.l.fron.gm.cbf.hct`
   data <- data %>%
     dplyr::mutate(asl.muse.rest.l.fron.gm.cbf.hct =
                     rowSums(dplyr::pick(
@@ -110,7 +112,7 @@ derive_asl_rest <- function(data) {
   # sanity check
   # sum(!(c(asl.muse.rest.r.fron.gm.var,  asl.muse.rest.r.fron.gm.regvol) %in% names(data)))
   
-  # create `asl.muse.rest.r.fron.gm.hct`
+  # create `asl.muse.rest.r.fron.gm.cbf.hct`
   data <- data %>%
     dplyr::mutate(asl.muse.rest.r.fron.gm.cbf.hct =
                     rowSums(dplyr::pick(
@@ -129,7 +131,7 @@ derive_asl_rest <- function(data) {
   asl.muse.rest.fron.gm.var <- c(asl.muse.rest.l.fron.gm.var, asl.muse.rest.r.fron.gm.var)
   asl.muse.rest.fron.gm.regvol <- c(asl.muse.rest.l.fron.gm.regvol, asl.muse.rest.r.fron.gm.regvol)
   
-  # create `asl.muse.rest.fron.gm.hct`
+  # create `asl.muse.rest.fron.gm.cbf.hct`
   data <- data %>%
     dplyr::mutate(asl.muse.rest.fron.gm.cbf.hct =
                     rowSums(dplyr::pick(
@@ -140,6 +142,170 @@ derive_asl_rest <- function(data) {
                       )) /
                     rowSums(dplyr::pick(
                       dplyr::all_of(asl.muse.rest.fron.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  ##############
+  ### Limbic ###
+  ##############
+  
+  asl.muse.rest.l.limb.gm.var <- c(
+    "asl.muse.rest.l.ant.cing.g.cbf.hct",
+    "asl.muse.rest.l.mid.cing.g.cbf.hct",
+    "asl.muse.rest.l.pos.cing.g.cbf.hct",
+    "asl.muse.rest.l.ent.cbf.hct",
+    "asl.muse.rest.l.parahipp.g.cbf.hct"
+  )
+  
+  asl.muse.rest.l.limb.gm.regvol <- gsub("cbf.hct", "regvol", asl.muse.rest.l.limb.gm.var)
+  
+  # sanity check
+  # sum(!(c(asl.muse.rest.l.limb.gm.var,  asl.muse.rest.l.limb.gm.regvol) %in% names(data)))
+  
+  # create `asl.muse.rest.l.limb.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.l.limb.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.l.limb.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.l.limb.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.l.limb.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  ###
+  
+  asl.muse.rest.r.limb.gm.var <- c(
+    "asl.muse.rest.r.ant.cing.g.cbf.hct",
+    "asl.muse.rest.r.mid.cing.g.cbf.hct",
+    "asl.muse.rest.r.pos.cing.g.cbf.hct",
+    "asl.muse.rest.r.ent.cbf.hct",
+    "asl.muse.rest.r.parahipp.g.cbf.hct"
+  )
+  
+  asl.muse.rest.r.limb.gm.regvol <- gsub("cbf.hct", "regvol", asl.muse.rest.r.limb.gm.var)
+  
+  # sanity check
+  # sum(!(c(asl.muse.rest.r.limb.gm.var,  asl.muse.rest.r.limb.gm.regvol) %in% names(data)))
+  
+  # create `asl.muse.rest.r.limb.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.r.limb.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.r.limb.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.r.limb.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.r.limb.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  ###
+  
+  asl.muse.rest.limb.gm.var <- c(asl.muse.rest.l.limb.gm.var, asl.muse.rest.r.limb.gm.var)
+  asl.muse.rest.limb.gm.regvol <- c(asl.muse.rest.l.limb.gm.regvol, asl.muse.rest.r.limb.gm.regvol)
+  
+  # create `asl.muse.rest.limb.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.limb.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.limb.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.limb.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.limb.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  #################
+  ### Occipital ###
+  #################
+  
+  asl.muse.rest.l.occ.gm.var <- c(
+    "asl.muse.rest.l.occ.fus.g.cbf.hct",
+    "asl.muse.rest.l.inf.occ.g.cbf.hct",
+    "asl.muse.rest.l.mid.occ.g.cbf.hct",
+    "asl.muse.rest.l.occ.pole.cbf.hct",
+    "asl.muse.rest.l.sup.occ.g.cbf.hct",
+    "asl.muse.rest.l.calc.ctx.cbf.hct",
+    "asl.muse.rest.l.cuneus.cbf.hct",
+    "asl.muse.rest.l.ling.g.cbf.hct"
+  )
+  
+  asl.muse.rest.l.occ.gm.regvol <- gsub("cbf.hct", "regvol", asl.muse.rest.l.occ.gm.var)
+  
+  # sanity check
+  # sum(!(c(asl.muse.rest.l.occ.gm.var,  asl.muse.rest.l.occ.gm.regvol) %in% names(data)))
+  
+  # create `asl.muse.rest.l.occ.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.l.occ.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.l.occ.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.l.occ.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.l.occ.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  ###
+  
+  asl.muse.rest.r.occ.gm.var <- c(
+    "asl.muse.rest.r.occ.fus.g.cbf.hct",
+    "asl.muse.rest.r.inf.occ.g.cbf.hct",
+    "asl.muse.rest.r.mid.occ.g.cbf.hct",
+    "asl.muse.rest.r.occ.pole.cbf.hct",
+    "asl.muse.rest.r.sup.occ.g.cbf.hct",
+    "asl.muse.rest.r.calc.ctx.cbf.hct",
+    "asl.muse.rest.r.cuneus.cbf.hct",
+    "asl.muse.rest.r.ling.g.cbf.hct"
+  )
+  
+  asl.muse.rest.r.occ.gm.regvol <- gsub("cbf.hct", "regvol", asl.muse.rest.r.occ.gm.var)
+  
+  # sanity check
+  # sum(!(c(asl.muse.rest.r.occ.gm.var,  asl.muse.rest.r.occ.gm.regvol) %in% names(data)))
+  
+  # create `asl.muse.rest.r.occ.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.r.occ.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.r.occ.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.r.occ.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.r.occ.gm.regvol)
+                    ))) %>%
+    as.data.frame()
+  
+  ###
+  
+  asl.muse.rest.occ.gm.var <- c(asl.muse.rest.l.occ.gm.var, asl.muse.rest.r.occ.gm.var)
+  asl.muse.rest.occ.gm.regvol <- c(asl.muse.rest.l.occ.gm.regvol, asl.muse.rest.r.occ.gm.regvol)
+  
+  # create `asl.muse.rest.occ.gm.cbf.hct`
+  data <- data %>%
+    dplyr::mutate(asl.muse.rest.occ.gm.cbf.hct =
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.occ.gm.var)
+                    ) *
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.occ.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.occ.gm.regvol)
                     ))) %>%
     as.data.frame()
   
