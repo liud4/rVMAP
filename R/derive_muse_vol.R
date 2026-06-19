@@ -164,7 +164,7 @@ derive_muse_vol <- function(data) {
   muse.var <- paste0("muse.", gsub("_", ".", muse.short.name), ".vol")
   
   # sanity check
-  # sum(!(muse.var %in% names(merged.df)))
+  # sum(!(muse.var %in% names(data)))
   
   # create gray matter volume
   data.new <- data %>%
