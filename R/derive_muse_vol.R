@@ -376,8 +376,6 @@ derive_AD_signature_temp <- function(data) {
         muse.l.ant.intcap.vol
       ),
       muse.bg.vol = sum(muse.r.bg.vol, muse.l.bg.vol),
-      muse.hipp.vol = sum(muse.r.hipp.vol, muse.l.hipp.vol),
-      muse.amyg.vol = sum(muse.r.amyg.vol, muse.l.amyg.vol),
       muse.r.hipp.amyg.vol = sum(muse.r.hipp.vol, muse.r.amyg.vol),
       muse.l.hipp.amyg.vol = sum(muse.l.hipp.vol, muse.l.amyg.vol),
       muse.hipp.amyg.vol = sum(muse.r.hipp.amyg.vol, muse.l.hipp.amyg.vol),
@@ -416,8 +414,6 @@ derive_AD_signature_temp <- function(data) {
       muse.deep.wm.gm.vol  = sum(muse.deep.gm.vol, muse.deep.wm.vol),
       muse.cc.vol = sum(muse.l.cc.vol, muse.r.cc.vol),
       muse.bs.vol = sum(muse.l.bs.vol, muse.r.bs.vol),
-      muse.l.cb.ext.vol = sum(muse.l.cb.ext.vol),
-      muse.r.cb.ext.vol = sum(muse.r.cb.ext.vol),
       muse.l.verm.vol = sum(
         muse.l.cb.verm.1.5.vol,
         muse.l.cb.verm.6.7.vol,
@@ -442,8 +438,6 @@ derive_AD_signature_temp <- function(data) {
         muse.fourth.vent.vol
       ),
       muse.r.gm.vol = sum(
-        muse.r.bg.vol,
-        muse.r.hipp.amyg.vol,
         muse.r.deep.gm.vol,
         muse.r.cb.gm.vol,
         muse.r.fron.gm.vol,
@@ -463,8 +457,6 @@ derive_AD_signature_temp <- function(data) {
         muse.r.bs.vol
       ),
       muse.l.gm.vol = sum(
-        muse.l.bg.vol,
-        muse.l.hipp.amyg.vol,
         muse.l.deep.gm.vol,
         muse.l.cb.gm.vol,
         muse.l.fron.gm.vol,
@@ -496,7 +488,7 @@ derive_AD_signature_temp <- function(data) {
         muse.csf.46.vol
       ),
       muse.icv.vol = sum(muse.gm.vol, muse.wm.vol, muse.csf.vol),
-      muse.total.brain.vol = muse.icv.vol - muse.cort.csf.vol - muse.csf.46.vol,
+      muse.total.brain.vol = muse.icv.vol - sum(muse.cort.csf.vol, muse.csf.46.vol),
       muse.parenchyma.vol = sum(muse.gm.vol, muse.wm.vol),
       muse.l.cerebrum.gm.vol = sum(
         muse.l.fron.gm.vol,
