@@ -1,7 +1,7 @@
 #' Derive, label, and add DLMUSE volume variables to the merged data set.
 #'
 #' @param data A data frame containing VMAC variables.
-#' @return \code{data} with added AD signature variables.
+#' @return \code{data} with added DLMUSE volume variables.
 #' @export
 
 derive_muse_vol <- function(data) {
