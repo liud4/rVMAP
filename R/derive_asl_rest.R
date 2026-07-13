@@ -314,16 +314,18 @@ derive_asl_rest <- function(data) {
   
   # create `asl.muse.rest.occ.gm.cbf.hct`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.occ.gm.cbf.hct =
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.occ.gm.var)
-                    ) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.occ.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.occ.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.occ.gm.cbf.hct =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.occ.gm.var)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.occ.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.occ.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ################
@@ -400,16 +402,18 @@ derive_asl_rest <- function(data) {
   
   # create `asl.muse.rest.par.gm.cbf.hct`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.par.gm.cbf.hct =
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.par.gm.var)
-                    ) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.par.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.par.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.par.gm.cbf.hct =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.par.gm.var)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.par.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.par.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ################
@@ -651,16 +655,18 @@ derive_asl_rest <- function(data) {
   
   # create `asl.muse.rest.cb.gm.cbf.hct`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.cb.gm.cbf.hct =
-                    rowSums(dplyr::pick(dplyr::all_of(
-                      asl.muse.rest.cb.gm.var
-                    )) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.cb.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.cb.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.cb.gm.cbf.hct =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.cb.gm.var)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.cb.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.cb.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ################
@@ -694,12 +700,12 @@ derive_asl_rest <- function(data) {
                     rowSums(dplyr::pick(dplyr::all_of(
                       asl.muse.rest.gm.var
                     )) *
-                      dplyr::pick(dplyr::all_of(
-                        asl.muse.rest.gm.regvol
-                      ))) /
-                    rowSums(dplyr::pick(dplyr::all_of(
-                      asl.muse.rest.gm.regvol
-                    )))) %>%
+                      dplyr::pick(
+                        dplyr::all_of(asl.muse.rest.gm.regvol)
+                      )) /
+                    rowSums(dplyr::pick(
+                      dplyr::all_of(asl.muse.rest.gm.regvol)
+                    ))) %>%
     as.data.frame()
   
   # sanity check
@@ -886,7 +892,8 @@ derive_asl_rest <- function(data) {
   
   ###
   
-  asl.muse.rest.limb.gm.var.pvc <- c(asl.muse.rest.l.limb.gm.var.pvc, asl.muse.rest.r.limb.gm.var.pvc)
+  asl.muse.rest.limb.gm.var.pvc <- c(asl.muse.rest.l.limb.gm.var.pvc,
+                                     asl.muse.rest.r.limb.gm.var.pvc)
   
   # create `asl.muse.rest.limb.gm.cbf.hct.pvc`
   data <- data %>%
@@ -972,20 +979,23 @@ derive_asl_rest <- function(data) {
   
   ###
   
-  asl.muse.rest.occ.gm.var.pvc <- c(asl.muse.rest.l.occ.gm.var.pvc, asl.muse.rest.r.occ.gm.var.pvc)
+  asl.muse.rest.occ.gm.var.pvc <- c(asl.muse.rest.l.occ.gm.var.pvc,
+                                    asl.muse.rest.r.occ.gm.var.pvc)
   
   # create `asl.muse.rest.occ.gm.cbf.hct.pvc`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.occ.gm.cbf.hct.pvc =
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.occ.gm.var.pvc)
-                    ) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.occ.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.occ.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.occ.gm.cbf.hct.pvc =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.occ.gm.var.pvc)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.occ.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.occ.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ######################
@@ -1052,20 +1062,23 @@ derive_asl_rest <- function(data) {
   
   ###
   
-  asl.muse.rest.par.gm.var.pvc <- c(asl.muse.rest.l.par.gm.var.pvc, asl.muse.rest.r.par.gm.var.pvc)
+  asl.muse.rest.par.gm.var.pvc <- c(asl.muse.rest.l.par.gm.var.pvc,
+                                    asl.muse.rest.r.par.gm.var.pvc)
   
   # create `asl.muse.rest.par.gm.cbf.hct.pvc`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.par.gm.cbf.hct.pvc =
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.par.gm.var.pvc)
-                    ) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.par.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.par.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.par.gm.cbf.hct.pvc =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.par.gm.var.pvc)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.par.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.par.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ######################
@@ -1136,7 +1149,8 @@ derive_asl_rest <- function(data) {
   
   ###
   
-  asl.muse.rest.temp.gm.var.pvc <- c(asl.muse.rest.l.temp.gm.var.pvc, asl.muse.rest.r.temp.gm.var.pvc)
+  asl.muse.rest.temp.gm.var.pvc <- c(asl.muse.rest.l.temp.gm.var.pvc,
+                                     asl.muse.rest.r.temp.gm.var.pvc)
   
   # create `asl.muse.rest.temp.gm.cbf.hct.pvc`
   data <- data %>%
@@ -1222,7 +1236,8 @@ derive_asl_rest <- function(data) {
   
   ###
   
-  asl.muse.rest.deep.gm.var.pvc <- c(asl.muse.rest.l.deep.gm.var.pvc, asl.muse.rest.r.deep.gm.var.pvc)
+  asl.muse.rest.deep.gm.var.pvc <- c(asl.muse.rest.l.deep.gm.var.pvc,
+                                     asl.muse.rest.r.deep.gm.var.pvc)
   
   # create `asl.muse.rest.deep.gm.cbf.hct.pvc`
   data <- data %>%
@@ -1291,16 +1306,18 @@ derive_asl_rest <- function(data) {
   
   # create `asl.muse.rest.cb.gm.cbf.hct.pvc`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.cb.gm.cbf.hct.pvc =
-                    rowSums(dplyr::pick(dplyr::all_of(
-                      asl.muse.rest.cb.gm.var.pvc
-                    )) *
-                      dplyr::pick(
-                        dplyr::all_of(asl.muse.rest.cb.gm.regvol)
-                      )) /
-                    rowSums(dplyr::pick(
-                      dplyr::all_of(asl.muse.rest.cb.gm.regvol)
-                    ))) %>%
+    dplyr::mutate(
+      asl.muse.rest.cb.gm.cbf.hct.pvc =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.cb.gm.var.pvc)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.cb.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.cb.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   ######################
@@ -1328,24 +1345,63 @@ derive_asl_rest <- function(data) {
   
   # create `asl.muse.rest.gm.cbf.hct.pvc`
   data <- data %>%
-    dplyr::mutate(asl.muse.rest.gm.cbf.hct.pvc =
-                    rowSums(dplyr::pick(dplyr::all_of(
-                      asl.muse.rest.gm.var.pvc
-                    )) *
-                      dplyr::pick(dplyr::all_of(
-                        asl.muse.rest.gm.regvol
-                      ))) /
-                    rowSums(dplyr::pick(dplyr::all_of(
-                      asl.muse.rest.gm.regvol
-                    )))) %>%
+    dplyr::mutate(
+      asl.muse.rest.gm.cbf.hct.pvc =
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.gm.var.pvc)
+        ) *
+          dplyr::pick(
+            dplyr::all_of(asl.muse.rest.gm.regvol)
+          )) /
+        rowSums(dplyr::pick(
+          dplyr::all_of(asl.muse.rest.gm.regvol)
+        ))
+    ) %>%
     as.data.frame()
   
   # sanity check
   # asl.muse.rest.var.pvc <- paste0("asl.muse.rest.", gsub("_", ".", meta.roi.name), ".cbf.hct.pvc")
-  # sum(!asl.muse.rest.var.pvc %in% names(data))
+  # sum(!asl.muse.rest.var.pvc %in% names(data))4
+  
+  ## add variable labels
+  meta.roi.label <- c(
+    l_fron_gm = "Left Frontal GM",
+    r_fron_gm = "Right Frontal GM",
+    fron_gm = "Frontal GM",
+    l_limb_gm = "Left Limbic GM",
+    r_limb_gm = "Right Limbic GM",
+    limb_gm = "Limbic GM",
+    l_occ_gm = "Left Occipital GM",
+    r_occ_gm = "Right Occipital GM",
+    occ_gm = "Occipital GM",
+    l_par_gm = "Left Parietal GM",
+    r_par_gm = "Right Parietal GM",
+    par_gm = "Parietal GM",
+    l_temp_gm = "Left Temporal GM",
+    r_temp_gm = "Right Temporal GM",
+    temp_gm = "Temporal GM",
+    l_deep_gm = "Left Deep GM",
+    r_deep_gm = "Right Deep GM",
+    deep_gm = "Deep GM",
+    cerebrum_gm = "Cerebrum GM",
+    gm = "GM",
+    cb_gm = "Cerebellar GM"
+  )
+  
+  asl.muse.rest.var <- paste0("asl.muse.rest.", gsub("_", ".", names(meta.roi.label)), ".cbf.hct")
+  
+  asl.muse.rest.label <- paste("Resting-State Hct-Corrected CBF", unname(meta.roi.label))
+  
+  asl.muse.rest.var.pvc <- paste0(asl.muse.rest.var, ".pvc")
+  asl.muse.rest.label.pvc <- paste(
+    "Resting-State PV- and Hct-Corrected CBF",
+    unname(meta.roi.label)
+  )
+  
+  for (j in seq_along(asl.muse.rest.var)) {
+    Hmisc::label(data[[asl.muse.rest.var[j]]]) <- asl.muse.rest.label[j]
+    Hmisc::label(data[[asl.muse.rest.var.pvc[j]]]) <- asl.muse.rest.label.pvc[j]
+  }
   
   return(data)
 }
-
-
-

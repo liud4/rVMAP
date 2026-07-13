@@ -1378,6 +1378,46 @@ derive_asl_reac_metaROI <- function(data) {
   # asl.muse.reac.var.pvc <- paste0("asl.muse.reac.", gsub("_", ".", meta.roi.name), ".cbf.hct.pvc")
   # sum(!asl.muse.reac.var.pvc %in% names(data))
   
+  ## add variable labels
+  meta.roi.label <- c(
+    l_fron_gm = "Left Frontal GM",
+    r_fron_gm = "Right Frontal GM",
+    fron_gm = "Frontal GM",
+    l_limb_gm = "Left Limbic GM",
+    r_limb_gm = "Right Limbic GM",
+    limb_gm = "Limbic GM",
+    l_occ_gm = "Left Occipital GM",
+    r_occ_gm = "Right Occipital GM",
+    occ_gm = "Occipital GM",
+    l_par_gm = "Left Parietal GM",
+    r_par_gm = "Right Parietal GM",
+    par_gm = "Parietal GM",
+    l_temp_gm = "Left Temporal GM",
+    r_temp_gm = "Right Temporal GM",
+    temp_gm = "Temporal GM",
+    l_deep_gm = "Left Deep GM",
+    r_deep_gm = "Right Deep GM",
+    deep_gm = "Deep GM",
+    cerebrum_gm = "Cerebrum GM",
+    gm = "GM",
+    cb_gm = "Cerebellar GM"
+  )
+  
+  asl.muse.reac.var <- paste0("asl.muse.reac.", gsub("_", ".", names(meta.roi.label)), ".cbf.hct")
+  
+  asl.muse.reac.label <- paste("Reactivity Hct-Corrected CBF", unname(meta.roi.label))
+  
+  asl.muse.reac.var.pvc <- paste0(asl.muse.reac.var, ".pvc")
+  asl.muse.reac.label.pvc <- paste(
+    "Reactivity PV- and Hct-Corrected CBF",
+    unname(meta.roi.label)
+  )
+  
+  for (j in seq_along(asl.muse.reac.var)) {
+    Hmisc::label(data[[asl.muse.reac.var[j]]]) <- asl.muse.reac.label[j]
+    Hmisc::label(data[[asl.muse.reac.var.pvc[j]]]) <- asl.muse.reac.label.pvc[j]
+  }
+  
   return(data)
 }
 
