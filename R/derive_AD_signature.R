@@ -76,7 +76,6 @@ derive_AD_signature_temp <- function(data) {
   fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + intracranialvol')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
-  
   fit.2 <- lm(formula = as.formula(paste0(mcevoy.Y[2], ' ~ age + sex.factor')),
               data = derive_mcevoy.df,
               na.action = na.exclude)

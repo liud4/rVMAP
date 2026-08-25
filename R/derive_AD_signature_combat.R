@@ -52,7 +52,7 @@ derive_AD_signature <- function(data) {
   data <- data %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
-      avg.hippocampus.combat = mean(c(ma.lh.hippocampus.vol.combat, ma.rh.hippocampus.vol.combat)),
+      avg.hippocampus.combat = mean(c(muse.l.hipp.vol.combat, muse.r.hipp.vol.combat)),
       avg.entorhinal.thickness.combat = mean(c(rh.entorhinal.thickness.combat, lh.entorhinal.thickness.combat)),
       avg.middletemporal.thickness.combat = mean(c(rh.middletemporal.thickness.combat, lh.middletemporal.thickness.combat)),
       avg.bankssts.thickness.combat = mean(c(rh.bankssts.thickness.combat, lh.bankssts.thickness.combat)),
@@ -71,7 +71,7 @@ derive_AD_signature <- function(data) {
     dplyr::select(
       all_of(
         Cs(map.id, epoch, redcap.repeat.instrument, redcap.repeat.instance,
-           age, sex.factor, diagnosis.factor.base, ma.total.intracranial.vol.combat, avg.hippocampus.combat, avg.entorhinal.thickness.combat,
+           age, sex.factor, diagnosis.factor.base, muse.icv.vol.combat, avg.hippocampus.combat, avg.entorhinal.thickness.combat,
            avg.middletemporal.thickness.combat, avg.bankssts.thickness.combat, avg.isthmuscingulate.thickness.combat,
            avg.superiortemporal.thickness.combat, avg.medialorbitofrontal.thickness.combat, avg.lateralorbitofrontal.thickness.combat)
       )
@@ -79,7 +79,7 @@ derive_AD_signature <- function(data) {
 
   # derive_mcevoy.df <- droplevels(derive_mcevoy.df)
 
-  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + ma.total.intracranial.vol.combat')),
+  fit.1 <- lm(formula = as.formula(paste0(mcevoy.Y[1], ' ~ age + sex.factor + muse.icv.vol.combat')),
               data = derive_mcevoy.df,
               na.action = na.exclude)
 
