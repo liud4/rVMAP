@@ -112,7 +112,17 @@ derive_muse_wml <- function(data) {
         wml.muse.l.occ.perivent.vol,
         wml.muse.r.deep.perivent.vol,
         wml.muse.l.deep.perivent.vol
-      )
+      ), 
+      wml.muse.fron.vol.cm = wml.muse.fron.vol / 1000,
+      wml.muse.par.vol.cm = wml.muse.par.vol / 1000,
+      wml.muse.temp.vol.cm = wml.muse.temp.vol / 1000,
+      wml.muse.occ.vol.cm = wml.muse.occ.vol / 1000,
+      wml.muse.vol.cm = wml.muse.vol / 1000,
+      wml.muse.fron.vol.cm.plus.1.log = log(wml.muse.fron.vol.cm + 1),
+      wml.muse.par.vol.cm.plus.1.log = log(wml.muse.par.vol.cm + 1),
+      wml.muse.temp.vol.cm.plus.1.log = log(wml.muse.temp.vol.cm + 1),
+      wml.muse.occ.vol.cm.plus.1.log = log(wml.muse.occ.vol.cm + 1),
+      wml.muse.vol.cm.plus.1.log = log(wml.muse.vol.cm + 1)
     ) %>%
     ungroup() %>%
     as.data.frame()
@@ -143,6 +153,16 @@ derive_muse_wml <- function(data) {
     Hmisc::label(wml.muse.juxcort.vol) = "White matter lesion volume - Juxtacortical Total (mm3)"
     Hmisc::label(wml.muse.perivent.vol) = "White matter lesion volume - Periventricular Total (mm3)"
     Hmisc::label(wml.muse.vol) = "White matter lesion volume - Total Brainmask (mm3)"
+    Hmisc::label(wml.muse.fron.vol.cm) = "White matter lesion volume - Frontal Lobe (cm3)"
+    Hmisc::label(wml.muse.par.vol.cm) = "White matter lesion volume - Parietal Lobe (cm3)"
+    Hmisc::label(wml.muse.temp.vol.cm) = "White matter lesion volume - Temporal Lobe (cm3)"
+    Hmisc::label(wml.muse.occ.vol.cm) = "White matter lesion volume - Occipital Lobe (cm3)"
+    Hmisc::label(wml.muse.vol.cm) = "White matter lesion volume - Total Brainmask (cm3)"
+    Hmisc::label(wml.muse.fron.vol.cm.plus.1.log) = "White matter lesion volume - Frontal Lobe (log-transformed)"
+    Hmisc::label(wml.muse.par.vol.cm.plus.1.log) = "White matter lesion volume - Parietal Lobe (log-transformed)"
+    Hmisc::label(wml.muse.temp.vol.cm.plus.1.log) = "White matter lesion volume - Temporal Lobe (log-transformed)"
+    Hmisc::label(wml.muse.occ.vol.cm.plus.1.log) = "White matter lesion volume - Occipital Lobe (log-transformed)"
+    Hmisc::label(wml.muse.vol.cm.plus.1.log) = "White matter lesion volume - Total Brainmask (log-transformed)"
   })
   
   return(data.new)
