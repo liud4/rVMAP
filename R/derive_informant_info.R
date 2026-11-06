@@ -10,8 +10,9 @@ derive_informant_info <- function(data) {
     # AJ confirmed in email 23 Feb 2015 that she wants to impute 0 for mos
     # in cases where yrs is nonmissing but mos is missing
     inform.length.mos <- as.numeric(inform.length.mos) 
-    inform.length.yrs <- as.numeric(inform.length.yrs) 
     label(inform.length.mos) <- "Length of Time Informant Has Known Participant - months"
+    inform.length.yrs <- as.numeric(inform.length.yrs) 
+    label(inform.length.yrs) <- "Length of Time Informant Has Known Participant - years"
     inform.length.imputedmosInYrs <- ifelse(
       is.na(inform.length.yrs) & is.na(inform.length.mos), NA,
       ifelse(
