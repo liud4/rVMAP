@@ -66,6 +66,8 @@ derive_automated_3T <- function(data) {
     
     asl.3t.change.etco2 <- asl.3t.chall.etco2 - asl.3t.rest.etco2
     label(asl.3t.change.etco2) <- "Change in EtCO2"
+    
+    oef.cmro2.hct.redcap <- oef.cmro2.hct
   })
 
   # CMRO2 and OEF  (OAK 20191203)
@@ -75,6 +77,7 @@ derive_automated_3T <- function(data) {
   label(data$oef.ya) <- "Arterial Oxygenation (%)"
 
   data$oef.cmro2.hct <- data$asl.rest.grey.matter.hct * ((data$oef.ya - data$oef.yv.hct) * 0.01) * (0.556 * data$bld.c.hgb)
+  
   label(data$oef.cmro2.hct) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
 
   data$oef.oef <- 100 * ((data$oef.ya - data$oef.yv) / data$oef.ya)
