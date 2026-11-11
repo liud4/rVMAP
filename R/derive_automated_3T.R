@@ -76,8 +76,7 @@ derive_automated_3T <- function(data) {
   data$oef.ya[is.nan(data$oef.ya)] <- NA
   label(data$oef.ya) <- "Arterial Oxygenation (%)"
 
-  data$oef.cmro2.hct <- data$asl.rest.grey.matter.hct * ((data$oef.ya - data$oef.yv.hct) * 0.01) * (0.556 * data$bld.c.hgb)
-  
+  data$oef.cmro2.hct <- data$asl.muse.rest.cerebrum.gm.cbf.hct * ((data$oef.ya - data$oef.yv.hct) * 0.01) * (0.556 * data$bld.c.hgb)
   label(data$oef.cmro2.hct) <- "Cerebral Metabolic Rate of Oxygen (µmol/100 g/min)"
 
   data$oef.oef <- 100 * ((data$oef.ya - data$oef.yv) / data$oef.ya)
